@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "description": "Checks that your analytics SDK calls match what your dashboards, alerts and insights actually need.",
   "license": "MIT",
-  "author": "Aman Gupta (https://github.com/amangupta678)",
+  "author": "Aman Gupta (https://github.com/guptaaman678)",
   "type": "module",
   "bin": {
     "dashlint": "dist/cli/main.js"

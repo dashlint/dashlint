@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { readFileSync } from 'node:fs';
+import { readFileSync, realpathSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 export function readVersion(): string {
@@ -30,6 +30,6 @@ function main(): void {
   process.stdout.write(`${run(process.argv.slice(2))}\n`);
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
   main();
 }
