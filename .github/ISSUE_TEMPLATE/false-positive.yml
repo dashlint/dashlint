@@ -1,0 +1,23 @@
+name: False positive
+description: dashlint flagged something that is not actually broken.
+labels: [false-positive]
+body:
+  - type: textarea
+    id: finding
+    attributes:
+      label: The finding
+      description: The event, property or alert dashlint flagged, and the report line.
+    validations:
+      required: true
+  - type: textarea
+    id: why-wrong
+    attributes:
+      label: Why it is not actually broken
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: dashlint version
+    validations:
+      required: true

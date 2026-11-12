@@ -1,0 +1,15 @@
+import tseslint from 'typescript-eslint';
+import eslintConfigPrettier from 'eslint-config-prettier';
+
+export default tseslint.config(
+  {
+    ignores: ['dist/**', 'coverage/**', 'test/golden/**'],
+  },
+  ...tseslint.configs.strict,
+  {
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'error',
+    },
+  },
+  eslintConfigPrettier,
+);

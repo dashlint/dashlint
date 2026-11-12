@@ -1,0 +1,17 @@
+name: Descriptor request
+description: An SDK, wrapper shape or builtin event dashlint does not recognise yet.
+labels: [descriptor]
+body:
+  - type: input
+    id: sdk
+    attributes:
+      label: SDK and version
+    validations:
+      required: true
+  - type: textarea
+    id: shape
+    attributes:
+      label: Call shape or wrapper that is not recognised
+      description: A minimal code snippet.
+    validations:
+      required: true

@@ -1,0 +1,24 @@
+name: Bug report
+description: Something in dashlint itself is broken.
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you ran and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproduction
+      description: Command, config and a minimal source snippet if relevant.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: dashlint version
+    validations:
+      required: true
