@@ -154,7 +154,17 @@ export function run(argv, env = process.env, { files = FILES } = {}) {
     if (add.status !== 0) throw new Error(`git add failed in ${opts.dest}: ${add.stderr?.trim()}`);
     const commit = spawnSync(
       'git',
-      ['-C', opts.dest, 'commit', '-m', `chore: sync action v${opts.version}`],
+      [
+        '-C',
+        opts.dest,
+        '-c',
+        'user.name=Aman Gupta',
+        '-c',
+        'user.email=12541236+guptaaman678@users.noreply.github.com',
+        'commit',
+        '-m',
+        `chore: sync action v${opts.version}`,
+      ],
       {
         encoding: 'utf8',
       },
