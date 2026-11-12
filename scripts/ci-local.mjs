@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 // ci:local (spec T1.4, G17): the full gate a commit must pass before it is pushed. Steps run in
 // order and all run even after a failure, so one `npm run ci:local` shows every problem at once.
-// Schema checks are a no-op until P2 (no schema to check yet); the size check is a no-op until
-// T1.5 (no bundle to measure yet).
+// Schema checks are a no-op until P2 (no schema to check yet).
 //
 // Usage: node scripts/ci-local.mjs
 // Exit: 0 all steps passed, 1 at least one step failed.
@@ -36,7 +35,7 @@ export function run() {
     noop('schema checks', 'no schema to check until P2'),
     runNode('scripts/denylist-scan.mjs', [], 'denylist scan'),
     runNode('scripts/copy-check.mjs', [], 'copy check'),
-    noop('size check', 'no bundle to measure until T1.5'),
+    runNode('scripts/size-check.mjs', [], 'size check'),
   ];
   process.stdout.write('\nci:local summary:\n');
   for (const s of steps) process.stdout.write(`  ${s.code === 0 ? 'PASS' : 'FAIL'}  ${s.label}\n`);

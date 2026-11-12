@@ -68,15 +68,19 @@ export function check(repo) {
       problems.push(`README.md lacks the closing sentence (G11): "${CLOSING}"`);
   }
 
-  const messages = join(repo, MESSAGES);
-  if (!existsSync(messages)) problems.push(`${MESSAGES} is missing (spec 6.9.7)`);
-  else {
-    const text = readFileSync(messages, 'utf8');
-    for (const d of findDashes(text, DASH_ESCAPE)) {
-      problems.push(`${MESSAGES}:${d.line}:${d.col}: ${name(d.char)} (G7)`);
-    }
-    if (!squash(text).includes(CLOSING)) {
-      problems.push(`${MESSAGES} lacks the closing sentence (G11): "${CLOSING}"`);
+  // messages.ts is a CLI-specific file; a copy without a src/ tree (the Action or demo repo) has no
+  // report output of its own, so the check does not apply there.
+  if (existsSync(join(repo, 'src'))) {
+    const messages = join(repo, MESSAGES);
+    if (!existsSync(messages)) problems.push(`${MESSAGES} is missing (spec 6.9.7)`);
+    else {
+      const text = readFileSync(messages, 'utf8');
+      for (const d of findDashes(text, DASH_ESCAPE)) {
+        problems.push(`${MESSAGES}:${d.line}:${d.col}: ${name(d.char)} (G7)`);
+      }
+      if (!squash(text).includes(CLOSING)) {
+        problems.push(`${MESSAGES} lacks the closing sentence (G11): "${CLOSING}"`);
+      }
     }
   }
   return { problems, scanned };

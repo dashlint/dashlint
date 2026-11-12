@@ -77,13 +77,19 @@ describe('copy-check', () => {
     expect(r.out.join('\n')).toMatch(/README\.md is missing/);
   });
 
-  it('fails when messages lack the closing sentence or are missing', () => {
+  it('fails when messages lack the closing sentence or are missing (with a src tree)', () => {
     const without = check(repo({ ...GOOD, 'src/report/messages.ts': 'export {};\n' }));
     expect(without.code).toBe(1);
     expect(without.out.join('\n')).toMatch(/messages\.ts lacks the closing sentence/);
-    const missing = check(repo({ 'README.md': README }));
+    const missing = check(repo({ 'README.md': README, 'src/other.ts': 'export {};\n' }));
     expect(missing.code).toBe(1);
     expect(missing.out.join('\n')).toMatch(/messages\.ts is missing/);
+  });
+
+  it('skips the messages.ts check for a repo with no src tree (the Action and demo copies)', () => {
+    const r = check(repo({ 'README.md': README }));
+    expect(r.code).toBe(0);
+    expect(r.out.join('\n')).not.toMatch(/messages\.ts/);
   });
 
   it('fails on a dash written as an escape in the message strings', () => {
