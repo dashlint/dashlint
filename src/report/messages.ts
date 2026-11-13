@@ -32,6 +32,39 @@ export const validation = {
   seenAndNotSeen: (property: string) => `"${property}" is listed as both seen and not seen`,
 };
 
+// `dashlint pull` (src/adapters/posthog/pull.ts, src/cli/commands/pull.ts; spec 6.5, 6.8, 6.13).
+export const pullMessages = {
+  // Spec 6.8: a literal key in the config.
+  literalKey: 'Put the key in an environment variable and write `key: env:NAME`.',
+  noKey: (name: string) => `no PostHog key: the environment variable ${name} is not set or empty`,
+  wrote: (file: string, tiles: number, dashboards: number, alerts: number) =>
+    `pull: wrote ${file} (${tiles} tiles, ${dashboards} dashboards, ${alerts} alerts)`,
+  // Spec 6.13: said on every pull that is not redacted.
+  publicNames:
+    'pull: this file holds your insight titles, dashboard names, alert names and filter values. ' +
+    'If you commit it to a public repository, they become public. ' +
+    'To replace titles with ids and drop the names, set `redact: true` under platforms.posthog.',
+  redacted:
+    'pull: redact is on: titles are replaced by ids and dashboard, alert and action names are left out. ' +
+    'Filter values stay, because the checks need them; on a public repository they become public.',
+  failed: (message: string) => `dashlint pull: ${message}`,
+  bug: (message: string) => `dashlint pull: unexpected error, please report it: ${message}`,
+  usage: 'Usage: dashlint pull [--config <file>]',
+  unknownFlag: (flag: string) => `unknown option ${flag}`,
+  flagNeedsValue: (flag: string) => `${flag} needs a value`,
+  configUnreadable: (file: string, detail: string) => `cannot read the config ${file}: ${detail}`,
+  configInvalid: (file: string, error: string) => `${file}: ${error}`,
+  configField: (path: string, expected: string) => `${path} must be ${expected}`,
+  configMissing: (path: string) => `${path} is missing; pull needs it`,
+  requirementsNotJson: (file: string) =>
+    `requirements names ${file}; pull writes JSON only (a .yml or .yaml file is written by hand), so point requirements at a .json file`,
+  hogqlNotAvailable:
+    'platforms.posthog.hogql: true is not available in this version; remove it or set it to false',
+  cannotWrite: (file: string, detail: string) => `cannot write ${file}: ${detail}`,
+  actionNotRead: (id: string) => `pull: action ${id} was not found; its tiles are not checked`,
+  invalidOutput: (error: string) => `the pulled requirements do not validate: ${error}`,
+};
+
 // SDK descriptors, their builtins and stubs (src/descriptors/loader.ts).
 export const descriptorErrors = {
   inFile: (file: string, error: string) => `${file}: ${error}`,

@@ -5,6 +5,7 @@
 //
 // Fields that are not definitions (cached insight results, alert values and check history, people)
 // are dropped from every response on arrival (6.5.2), so nothing after the client ever holds them.
+import { pullMessages } from '../../report/messages.js';
 
 export const MAX_IN_FLIGHT = 3;
 export const PER_MINUTE = 240;
@@ -23,6 +24,8 @@ export class PullError extends Error {
   constructor(
     message: string,
     readonly exitCode: 2 | 3 | 4,
+    /** The HTTP status of a request PostHog answered with an error, when there was one. */
+    readonly status?: number,
   ) {
     super(message);
     this.name = 'PullError';
@@ -38,12 +41,10 @@ export function resolveKey(
   env: Readonly<Record<string, string | undefined>>,
 ): string {
   const m = /^env:([A-Za-z_][A-Za-z0-9_]*)$/.exec(spec);
-  if (!m)
-    throw new PullError('Put the key in an environment variable and write `key: env:NAME`.', 2);
+  if (!m) throw new PullError(pullMessages.literalKey, 2);
   const name = m[1] as string;
   const value = env[name];
-  if (value === undefined || value.trim() === '')
-    throw new PullError(`no PostHog key: the environment variable ${name} is not set or empty`, 4);
+  if (value === undefined || value.trim() === '') throw new PullError(pullMessages.noKey(name), 4);
   return value.trim();
 }
 
@@ -327,7 +328,7 @@ export class PostHogClient {
         await this.sleep(1000 * 2 ** (transient - 1));
         continue;
       }
-      throw new PullError(this.redact(this.failure(verb, rel, status, detail)), 4);
+      throw new PullError(this.redact(this.failure(verb, rel, status, detail)), 4, status);
     }
   }
 

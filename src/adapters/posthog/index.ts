@@ -13,3 +13,13 @@ export {
   type ActionLookup,
   type NormalizeContext,
 } from './normalize/index.js';
+export {
+  pullRequirements,
+  pullTime,
+  readProject,
+  redactRequirements,
+  requirementsJson,
+  type ProjectDefinitions,
+  type PullOptions,
+  type PullSettings,
+} from './pull.js';
