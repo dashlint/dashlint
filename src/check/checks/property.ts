@@ -1,12 +1,15 @@
 // `property-is-sent` (spec 6.7.2) for filters and math properties: is the property sent on the event
 // (event scope) or set for the person (person scope)? A never-sent property makes a positive filter
 // or an event-scope math property dead and a negative filter degraded ("filter has no effect"), as
-// the rules profile says (spec 6.6 rows 1 to 3). Breakdowns are in `breakdown.ts`.
+// the rules profile says (spec 6.6 rows 1 to 3). A sent filter property on a finite domain then goes
+// to `value-is-reachable` (`value.ts`), whose effect becomes the filter's. Breakdowns are in
+// `breakdown.ts`.
 import type { Filter, PropertyFilter, PropertyRef, Scope } from '../../formats/requirements.js';
 import { closestName } from '../closest.js';
 import { personPropertyFacts, propertyFacts } from '../facts.js';
 import { observedField, sitesOf, sortedUnique } from './common.js';
 import type { CheckContext, PartEffect, PropertyCheck, PropertyRole } from './types.js';
+import { checkValue } from './value.js';
 
 /** Scopes outside the profile's (spec 6.6 row 7). */
 export const SCOPE_NOT_CHECKED = 'scope-not-checked';
@@ -85,12 +88,31 @@ export function checkProperty(ctx: CheckContext, part: PropertyPart, path: strin
   };
   if (facts.sent === 'yes') {
     const presence = facts.property?.presence;
+    const value =
+      part.role === 'filter' && facts.property !== undefined
+        ? checkValue(
+            ctx,
+            {
+              event: event as string,
+              key: part.key,
+              scope: part.scope,
+              op: part.op ?? '',
+              values: part.values ?? [],
+              property: facts.property,
+              ...(facts.incomplete === undefined ? {} : { incomplete: facts.incomplete }),
+              observed: facts.observed,
+            },
+            path,
+          )
+        : undefined;
     return {
       ...base(part),
       sent: 'yes',
       ...(presence === undefined ? {} : { presence }),
       ...found,
-      effect: 'live',
+      ...(value === undefined ? {} : { value }),
+      effect: value?.effect ?? 'live',
+      ...(value?.effect === 'unknown' ? { reasons: value.reasons ?? [] } : {}),
       ...(facts.producedElsewhere === true
         ? {
             finding: {
@@ -176,9 +198,13 @@ export function checkFilter(
     checkProperty(ctx, filterPart(event, f), `${path}.any[${i}]`),
   );
   const effect = orEffect(checks.map((c) => c.effect));
-  for (const c of checks)
+  for (const c of checks) {
     if (c.finding !== undefined && c.finding.effect !== 'info' && c.finding.effect !== effect)
       c.finding = { ...c.finding, effect: 'info' };
+    const v = c.value;
+    if (v?.finding !== undefined && v.finding.effect !== effect)
+      c.value = { ...v, finding: { ...v.finding, effect: 'info' } };
+  }
   return {
     path,
     effect,

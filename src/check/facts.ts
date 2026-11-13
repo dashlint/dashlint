@@ -23,6 +23,8 @@ export interface CodeFact {
 export interface PropertyCodeFact extends CodeFact {
   /** Presence and values when the fact is "yes". */
   property?: PropertyFact;
+  /** "yes" only: why `property.values` may not be every value the code sends. */
+  incomplete?: readonly string[];
 }
 
 /** The code column of the 6.7.1 table, from the merged catalogs. */
@@ -91,6 +93,8 @@ export interface PropertyFacts {
   reasons?: string[];
   /** From code, when it sends the property. */
   property?: PropertyFact;
+  /** With `property`: why its values may be incomplete, sorted. */
+  incomplete?: string[];
 }
 
 export const LOW_NAME_RESOLUTION = 'low-name-resolution';
@@ -179,14 +183,18 @@ function eventProperties(
   return all !== undefined && Object.hasOwn(all, event) ? all[event] : undefined;
 }
 
-function yes(code: Tri, observed: Tri, property?: PropertyFact): PropertyFacts {
+function yes(code: Tri, observed: Tri, fact?: PropertyCodeFact): PropertyFacts {
+  const incomplete = fact?.incomplete ?? [];
   return {
     code,
     observed,
     sent: 'yes',
     ...(code === 'no' ? { producedElsewhere: true as const } : {}),
     ...(code === 'yes' && observed === 'no' ? { notArriving: true as const } : {}),
-    ...(property === undefined ? {} : { property }),
+    ...(fact?.property === undefined ? {} : { property: fact.property }),
+    ...(fact?.property !== undefined && incomplete.length > 0
+      ? { incomplete: sorted(incomplete) }
+      : {}),
   };
 }
 
@@ -202,7 +210,7 @@ export function propertyFacts(inputs: FactInputs, event: string, key: string): P
   const fact = inputs.code.property(event, key);
   const code = fact.fact;
   const observed = seenFact(eventProperties(inputs.observed, event), key);
-  if (code === 'yes') return yes(code, observed, fact.property);
+  if (code === 'yes') return yes(code, observed, fact);
   if (observed === 'yes') return yes(code, observed);
   if (code === 'no')
     return { code, observed, sent: 'no', basis: observed === 'no' ? 'high' : 'code-only' };

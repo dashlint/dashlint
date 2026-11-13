@@ -65,6 +65,21 @@ export interface FindingDetail {
   missingOn?: string[];
   /** Breakdowns and filters: the property is sent on some events only. */
   presence?: Presence;
+  /** `value-is-reachable`: the filter values the code never sends, in filter order. */
+  unreachable?: JsonScalar[];
+}
+
+/** `value-is-reachable` (spec 6.7.2) on one filter whose property the code sends. */
+export interface ValueCheck {
+  op: string;
+  /** The filter's values. */
+  values: JsonScalar[];
+  effect: PartEffect;
+  /** Filter values the code never sends, in filter order. */
+  unreachable: JsonScalar[];
+  /** Unknown only, or values left undecided next to an unreachable one: the reasons, sorted. */
+  reasons?: string[];
+  finding?: CheckFinding;
 }
 
 export interface EventCheck {
@@ -89,6 +104,9 @@ export interface PropertyCheck {
   presence?: Presence;
   /** From code, when it sends the property: T6.3 reads the values. */
   property?: PropertyFact;
+  /** A filter on a finite domain: whether the code can send its values (T6.3). */
+  value?: ValueCheck;
+  /** `property-is-sent`'s effect, then `value`'s when the property is sent. */
   effect: PartEffect;
   facts?: PropertyFacts;
   /** Unknown only: the reasons, sorted. */

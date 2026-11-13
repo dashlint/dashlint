@@ -260,7 +260,12 @@ describe('property-is-sent: filters', () => {
   });
 
   it('a positive filter on a key the code sends is live, with no finding', () => {
-    const r = checkFilter(context(), 'wishlist_shared', filter('genre_id'), 'f');
+    const r = checkFilter(
+      context(),
+      'wishlist_shared',
+      filter('genre_id', 'exact', ['fiction']),
+      'f',
+    );
     expect(r).toMatchObject({ effect: 'live' });
     expect(r.checks[0]).toMatchObject({ sent: 'yes', presence: 'always' });
     expect(r.checks[0]?.property?.values).toEqual({ kind: 'finite', set: ['fiction', 'poetry'] });
@@ -455,7 +460,7 @@ describe('property-is-sent: any filters (OR)', () => {
     const r = checkFilter(
       context(),
       'wishlist_shared',
-      any(filter('genre'), filter('genre_id')),
+      any(filter('genre'), filter('genre_id', 'exact', ['fiction'])),
       'f',
     );
     expect(r.effect).toBe('live');

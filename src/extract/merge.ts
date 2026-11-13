@@ -119,6 +119,11 @@ export interface EventCodeFact extends CodeFact {
 export interface PropertyCodeFact extends CodeFact {
   /** The merged fact when "yes". */
   property?: PropertyFact;
+  /**
+   * "yes" only, sorted: why a write the catalogs do not list may also send the property, so a
+   * finite `values` set may be incomplete. The same reasons that keep a "no" unknown.
+   */
+  incomplete?: UnknownReason[];
 }
 
 const OPEN_UNKNOWN: ValueDomain = { kind: 'open', type: 'unknown' };
@@ -371,15 +376,12 @@ export function eventFact(m: MergedCatalogs, name: string): EventCodeFact {
  * sender's own sites, super properties or builtins send it; "no" only when no site of the event is
  * open in any catalog, no sender has an open super property call, an unknown builtins table, an
  * undecided or uncitable builtin of that name, and no catalog has a crashed file (it may hold a
- * site of the event); otherwise "unknown". An event no catalog sends has no property facts.
+ * site of the event); otherwise "unknown". An event no catalog sends has no property facts. A "yes"
+ * carries the same reasons as `incomplete`: its values may not be all the code sends.
  */
 export function propertyFact(m: MergedCatalogs, event: string, name: string): PropertyCodeFact {
   const merged = Object.hasOwn(m.events, event) ? m.events[event] : undefined;
   if (!merged) return { fact: 'unknown', unknown: ['event-not-sent'] };
-  if (Object.hasOwn(merged.properties, name)) {
-    const p = merged.properties[name] as PropertyFact;
-    return { fact: 'yes', unknown: [], property: { presence: p.presence, values: p.values } };
-  }
   const reasons: UnknownReason[] = [];
   if (merged.openSites > 0) reasons.push('open-properties');
   for (const { catalog: c } of m.sources)
@@ -390,6 +392,15 @@ export function propertyFact(m: MergedCatalogs, event: string, name: string): Pr
     if (c.builtins.conditional.includes(name)) reasons.push('conditional-builtin');
     if (unknownTables.length > 0) reasons.push('unknown-builtin-table');
     if (hasPrefix(name, unknownNames.properties)) reasons.push('uncitable-name');
+  }
+  if (Object.hasOwn(merged.properties, name)) {
+    const p = merged.properties[name] as PropertyFact;
+    return {
+      fact: 'yes',
+      unknown: [],
+      property: { presence: p.presence, values: p.values },
+      ...(reasons.length > 0 ? { incomplete: unknown(reasons) } : {}),
+    };
   }
   return reasons.length > 0
     ? { fact: 'unknown', unknown: unknown(reasons) }
