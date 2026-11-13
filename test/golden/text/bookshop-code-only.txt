@@ -1,0 +1,45 @@
+dashlint 0.1.0 · PostHog project 12345 · snapshot pulled 2026-12-18 09:12 UTC
+PostHog data: not read, so every finding rests on code alone
+Sources: web (web) · mobile (android, ios)
+Catalog: 61 call sites, 58 with literal event names (95%), 3 open
+
+Bookshop growth (9 tiles): 2 live · 1 dead · 1 partly dead · 1 degraded · 1 one platform ·
+2 not checked · 1 ignored
+
+DEAD          Wishlist shares, fiction
+              filters on `genre` = "Fiction", but no call site sends `genre` with `wishlist_shared`
+              (they send `genre_id`)
+              web/src/wishlist/share.ts:41 · mobile/src/wishlist/share.ts:27
+
+PARTLY DEAD   Checkout funnel   (steps 3 to 4 are always zero)
+              step 3 filters `payment_method` = "Voucher", but the code can only send "card" or
+              "wallet"
+              web/src/checkout/pay.ts:63 · mobile/src/checkout/pay.ts:40
+
+DEGRADED      Orders by format
+              breaks down by `format`, which no call site of `order_completed` sends: every row
+              lands in one "(none)" bucket
+              web/src/checkout/complete.ts:30 · mobile/src/orders/complete.ts:30
+
+ONE PLATFORM  Reviews submitted   (alert "Reviews spike" watches a part the insight does not have)
+              every event it counts is sent from web only; android and ios have no call site
+
+NOT CHECKED   Gift cards redeemed
+              series[0] not checked: some event names in code are not literal, so any name may be
+              sent
+
+NOT CHECKED   Revenue by cohort   (SQL insight)
+              not checked: a SQL query; an insight kind dashlint does not check
+
+Not on a dashboard (1 tile): 0 live · 1 degraded · 0 not checked
+
+DEGRADED      Checkouts by method
+              filters out `coupon` is not "none", but no call site sends `coupon` with
+              `checkout_started`, so the filter has no effect
+              web/src/checkout/start.ts:12 · mobile/src/checkout/start.ts:9
+
+Alerts: 2 checked · 0 can never fire · 1 invalid target
+  alert "Reviews spike" watches series 3, but the insight has 1 series (PostHog shows: Errored)
+Unknown: 2 parts could not be decided and are counted as not checked.
+Warning: the ignore entry for insight:Of05 expired on 2026-12-01; the tile is checked again.
+A clean result means nothing dashlint can see is broken, not that every number is right.

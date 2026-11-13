@@ -1,8 +1,349 @@
 // Every user-facing string lives here (spec §6.9.7); scripts/copy-check.mjs checks this file.
+import type { AlertFinding } from '../check/alerts.js';
+import type { CheckFinding } from '../check/checks/types.js';
+import type { JsonScalar } from '../formats/catalog.js';
+import type { Location, TileKind, Verdict } from '../formats/report.js';
 
 // G11: every report ends with this sentence.
 export const CLOSING_SENTENCE =
   'A clean result means nothing dashlint can see is broken, not that every number is right.';
+
+const code = (name: string) => `\`${name}\``;
+
+/** A filter value as the user typed it: strings quoted, other JSON values as written. */
+export const formatValue = (v: JsonScalar): string =>
+  typeof v === 'string' ? JSON.stringify(v) : String(v);
+
+/** "a", "a or b", "a, b or c". */
+export function orList(items: readonly string[]): string {
+  if (items.length <= 1) return items.join('');
+  return `${items.slice(0, -1).join(', ')} or ${items[items.length - 1] as string}`;
+}
+
+/** "a", "a and b", "a, b and c". */
+export function andList(items: readonly string[]): string {
+  if (items.length <= 1) return items.join('');
+  return `${items.slice(0, -1).join(', ')} and ${items[items.length - 1] as string}`;
+}
+
+const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+
+export const formatSite = (s: Location) => `${s.file}:${s.line}`;
+export const formatSites = (sites: readonly Location[]) => sites.map(formatSite).join(' · ');
+
+/** `key` = "a", `key` is not "a", `key` contains "a", or the operator as PostHog names it. */
+export function filterPhrase(key: string, op: string | undefined, values: readonly JsonScalar[]) {
+  const vs = orList(values.map(formatValue));
+  switch (op) {
+    case 'exact':
+      return `${code(key)} = ${vs}`;
+    case 'is_not':
+      return `${code(key)} is not ${vs}`;
+    case 'icontains':
+      return `${code(key)} contains ${vs}`;
+    case 'not_icontains':
+      return `${code(key)} does not contain ${vs}`;
+    case 'is_set':
+      return `${code(key)} is set`;
+    case 'is_not_set':
+      return `${code(key)} is not set`;
+    case undefined:
+      return code(key);
+    default:
+      return values.length === 0 ? `${code(key)} ${op}` : `${code(key)} ${op} ${vs}`;
+  }
+}
+
+/** Where a finding sits, from its path: "step 3" in a funnel, "formula 1", or nothing. */
+export function partName(path: string, kind: TileKind): string | undefined {
+  const series = /^series\[(\d+)\]/.exec(path);
+  if (series !== null && kind === 'funnels') return `step ${Number(series[1]) + 1}`;
+  if (path.startsWith('exclusions[')) return 'the exclusion';
+  if (path.startsWith('retention.target')) return 'the target event';
+  if (path.startsWith('retention.returning')) return 'the returning event';
+  return undefined;
+}
+
+// The 6.7.1 bases of a "no", as a clause about an event or a property on it.
+function eventNo(event: string, basis: string | undefined): string {
+  switch (basis) {
+    case 'high':
+      return `queries ${code(event)}: no code sends it and PostHog has never seen it`;
+    case 'not-defined':
+      return `queries ${code(event)}: PostHog has no definition of it, so it has never arrived`;
+    default:
+      return `queries ${code(event)}: no code sends it`;
+  }
+}
+
+function propertyNo(f: CheckFinding, closest: string | undefined): string {
+  const key = f.property as string;
+  const instead = closest === undefined ? '' : ` (they send ${code(closest)})`;
+  if (f.detail.scope === 'person') {
+    const setter = closest === undefined ? '' : ` (it sets ${code(closest)})`;
+    if (f.detail.basis === 'observed')
+      return `PostHog has never seen the person property ${code(key)}`;
+    const neverSeen =
+      f.detail.basis === 'high' ? `, and PostHog has never seen it on a person` : '';
+    return `no code sets the person property ${code(key)}${setter}${neverSeen}`;
+  }
+  const on = f.event === undefined ? 'any event' : code(f.event);
+  if (f.detail.basis === 'observed') return `PostHog has never seen ${code(key)} on ${on}`;
+  const neverSeen =
+    f.detail.basis === 'high' ? `, and PostHog has never seen ${code(key)} on that event` : '';
+  return `no call site sends ${code(key)} with ${on}${instead}${neverSeen}`;
+}
+
+function breakdownMessage(f: CheckFinding, closest: string | undefined): string {
+  const key = code(f.property as string);
+  const events = (f.detail.missingOn ?? (f.event === undefined ? [] : [f.event])).map(code);
+  if (f.effect === 'info') {
+    if (f.detail.presence === 'sometimes' && events.length === 0)
+      return `breaks down by ${key}, which only some call sites send: their other rows land in one "(none)" bucket`;
+    return `breaks down by ${key}, which ${orList(events)} never sends: those rows land in one "(none)" bucket`;
+  }
+  const instead = closest === undefined ? '' : ` (they send ${code(closest)})`;
+  const of = events.length === 0 ? 'any event' : orList(events);
+  return `breaks down by ${key}, which no call site of ${of} sends${instead}: every row lands in one "(none)" bucket`;
+}
+
+function valueMessage(f: CheckFinding, where: string | undefined): string {
+  const key = f.property as string;
+  const values = f.values ?? [];
+  const reachable = f.hint?.reachableValues ?? [];
+  const unreachable = f.detail.unreachable ?? [];
+  const can = orList(reachable.map(formatValue));
+  const prefix = where === undefined ? '' : `${where} `;
+  if (f.detail.op === 'is_not')
+    return `${prefix}filters out ${filterPhrase(key, 'exact', values)}, but the code never sends ${orList(unreachable.map(formatValue))}, so that part of the filter has no effect`;
+  if (f.effect === 'dead' || unreachable.length === values.length)
+    return `${prefix}filters ${filterPhrase(key, f.detail.op, values)}, but the code can only send ${can}`;
+  return `${prefix}filters ${filterPhrase(key, f.detail.op, values)}, but the code never sends ${orList(unreachable.map(formatValue))}; it can only send ${can}`;
+}
+
+/** One finding as the report's `message` (spec 6.9.7): event, property or value, closest, why. */
+export function findingMessage(f: CheckFinding, kind: TileKind): string {
+  const where = partName(f.path, kind);
+  const prefix = where === undefined ? '' : `${where} `;
+  if (f.check === 'event-has-call-site') {
+    const event = f.event as string;
+    if (f.detail.producedElsewhere === true)
+      return `${prefix}queries ${code(event)}, which no code here sends, but PostHog receives it: something else produces it (a server, a pipeline or another repository)`;
+    const closest = f.hint?.closestEvent;
+    const hint = closest === undefined ? '' : `; closest event in code: ${code(closest)}`;
+    return `${prefix}${eventNo(event, f.detail.basis)}${hint}`;
+  }
+  if (f.check === 'value-is-reachable') return valueMessage(f, where);
+  const closest = f.hint?.closestProperty;
+  const key = f.property as string;
+  if (f.detail.role === 'breakdown') return breakdownMessage(f, closest);
+  if (f.detail.producedElsewhere === true) {
+    const on = f.event === undefined ? '' : ` on ${code(f.event)}`;
+    return `${prefix}uses ${code(key)}${on}, which no code here sends, but PostHog receives it: something else produces it`;
+  }
+  const no = propertyNo(f, closest);
+  if (f.detail.role === 'math-property') return `${prefix}aggregates ${code(key)}, but ${no}`;
+  if (f.effect === 'degraded' || f.detail.op === 'is_not' || f.detail.op === 'is_not_set')
+    return `${prefix}filters out ${filterPhrase(key, f.detail.op, f.values ?? [])}, but ${no}, so the filter has no effect`;
+  return `${prefix}filters on ${filterPhrase(key, f.detail.op, f.values ?? [])}, but ${no}`;
+}
+
+const TARGET_NOUN = { formulas: 'formula', series: 'series', steps: 'step' } as const;
+
+function targetName(f: AlertFinding): string {
+  const t = f.detail.target;
+  if (!('index' in t)) return 'its query';
+  const noun = t.kind === 'funnel-step' ? 'step' : t.kind;
+  return `${noun} ${t.index + 1}`;
+}
+
+/** One alert finding as the report's `message`. */
+export function alertMessage(f: AlertFinding): string {
+  const d = f.detail;
+  if (d.result === 'invalid-target') {
+    const of = d.of ?? 'series';
+    const count = d.count ?? 0;
+    return `watches ${targetName(f)}, but the insight has ${plural(count, TARGET_NOUN[of], of === 'series' ? 'series' : `${TARGET_NOUN[of]}s`)}`;
+  }
+  const watched =
+    d.watches === 'every-row'
+      ? 'every breakdown row'
+      : d.watches === 'funnel'
+        ? 'the funnel'
+        : targetName(f);
+  const condition = d.condition === undefined ? '' : `, under a ${code(d.condition)} condition`;
+  if (d.result === 'fires-every-check')
+    return `fires on every check: it watches ${watched}, which is always zero, under a lower bound`;
+  return `can never fire: it watches ${watched}, which is always zero${condition}`;
+}
+
+const VERDICT_LABEL: Record<Verdict, string> = {
+  live: 'LIVE',
+  dead: 'DEAD',
+  'partly-dead': 'PARTLY DEAD',
+  degraded: 'DEGRADED',
+  'one-platform': 'ONE PLATFORM',
+  'not-checked': 'NOT CHECKED',
+  ignored: 'IGNORED',
+};
+
+const KIND_NAME: Partial<Record<TileKind, string>> = {
+  sql: 'SQL insight',
+  paths: 'paths insight',
+  other: 'an insight kind dashlint does not check',
+};
+
+// Reason codes from the checks and verdicts (src/check), as words. A reason with no entry here is
+// printed as it is (requirements can carry the platform's own reason text).
+const REASONS: Record<string, string> = {
+  'kind-not-checked': 'an insight kind dashlint does not check',
+  'no-catalog': 'no catalog to check against',
+  'open-event-name': 'some event names in code are not literal, so any name may be sent',
+  'conditional-builtin': 'a builtin the SDK sends only under init options dashlint cannot read',
+  'unknown-builtin-table': 'an SDK version with no builtins table',
+  'uncitable-name': 'a builtin name dashlint cannot cite a source for',
+  'event-not-sent': 'the event is not sent',
+  'open-properties': 'some call sites send properties dashlint cannot read',
+  'open-super-properties': 'some super properties are set from values dashlint cannot read',
+  'open-person-properties': 'some person properties are set from values dashlint cannot read',
+  'crashed-file': 'a file dashlint could not read',
+  'kind-cut': 'this insight kind is not checked in this release',
+  'no-parts': 'no series, steps or entities to check',
+  'warehouse-node': 'a data warehouse series',
+  'and-group': 'an AND group of events',
+  'no-action-steps': 'an action with no steps',
+  'action-step-unsupported': 'an action step matches by URL, selector or text',
+  'dashboard-filters-differ': 'its dashboards apply different filters',
+  'formula-not-parsed': 'a formula dashlint cannot read',
+  'formula-unknown-series': 'a formula names a series the insight does not have',
+  'formula-series-unknown': 'a formula over a series that is not checked',
+  'low-name-resolution': 'too few event names in code are literal (below 70%)',
+  'person-properties-not-observed': 'person properties were not read from PostHog',
+  'value-not-comparable': 'a value dashlint cannot compare',
+  'regex-values': 'a regular expression filter',
+  'no-values': 'a filter with no values',
+  'several-icontains-values': 'a "contains" filter with several values',
+  'scope-not-checked': 'a property scope dashlint does not check',
+  'all-events': 'a filter on every event',
+  'operator-not-checked': 'a filter operator dashlint does not check',
+  'person-math-property': 'a math property on persons',
+  'no-live-event': 'no live event to break down',
+  'alert-tile-missing': 'its insight is not in the snapshot',
+  'alert-target-hogql': 'a HogQL alert',
+  'alert-target-metrics': 'a metrics alert',
+  'alert-target-unread': 'its target was not read',
+  'alert-target-mismatch': 'its target does not match the insight',
+  'alert-target-range-unknown': 'the size of its target is not known',
+  'alert-funnel-view': 'a funnel view alerts do not read',
+  'alert-funnel-relative': 'a relative condition on a funnel',
+  'alert-empty-funnel': 'a funnel whose first step is always zero',
+  'alert-condition-detector': 'a detector condition',
+  'alert-condition-unknown': 'a condition dashlint does not know',
+};
+
+export const reasonText = (reason: string): string => REASONS[reason] ?? reason;
+
+const PLATFORM_NAME: Record<string, string> = {
+  posthog: 'PostHog',
+  mixpanel: 'Mixpanel',
+  amplitude: 'Amplitude',
+  segment: 'Segment',
+};
+
+/** `2026-12-18T09:12:00Z` as `2026-12-18 09:12 UTC`. */
+export const formatPulledAt = (iso: string): string =>
+  /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/.test(iso)
+    ? iso.replace(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}).*$/, '$1 $2 UTC')
+    : iso;
+
+// The text report (src/report/text.ts, spec 6.9.3).
+export const reportText = {
+  header: (tool: string, platform: string, project?: number | string, pulledAt?: string) =>
+    [
+      `dashlint ${tool}`,
+      `${PLATFORM_NAME[platform] ?? platform}${project === undefined ? '' : ` project ${project}`}`,
+      ...(pulledAt === undefined ? [] : [`snapshot pulled ${formatPulledAt(pulledAt)}`]),
+    ].join(' · '),
+  noObserved: (platform: string) =>
+    `${PLATFORM_NAME[platform] ?? platform} data: not read, so every finding rests on code alone`,
+  sources: (sources: readonly { name: string; platforms: readonly string[] }[]) =>
+    `Sources: ${sources.map((s) => `${s.name} (${s.platforms.join(', ')})`).join(' · ')}`,
+  noSources: 'Sources: none',
+  catalog: (callSites: number, literal: number, open: number) => {
+    if (callSites === 0) return 'Catalog: 0 call sites';
+    // Rounded down, so a rate is never shown higher than it is.
+    const rate = Math.floor((literal / callSites) * 100);
+    return `Catalog: ${plural(callSites, 'call site')}, ${literal} with literal event names (${rate}%), ${open} open`;
+  },
+  dashboard: (name: string, tiles: number, counts: string) =>
+    `${name} (${plural(tiles, 'tile')}): ${counts}`,
+  noDashboard: 'Not on a dashboard',
+  counts: (c: {
+    live: number;
+    dead: number;
+    partlyDead: number;
+    degraded: number;
+    onePlatform: number;
+    notChecked: number;
+    ignored: number;
+  }) =>
+    // Live and not checked (an unknown count, G11) always; the others when there are any.
+    [
+      `${c.live} live`,
+      ...(c.dead > 0 ? [`${c.dead} dead`] : []),
+      ...(c.partlyDead > 0 ? [`${c.partlyDead} partly dead`] : []),
+      ...(c.degraded > 0 ? [`${c.degraded} degraded`] : []),
+      ...(c.onePlatform > 0 ? [`${c.onePlatform} one platform`] : []),
+      `${c.notChecked} not checked`,
+      ...(c.ignored > 0 ? [`${c.ignored} ignored`] : []),
+    ].join(' · '),
+  verdictLabel: (v: Verdict) => VERDICT_LABEL[v],
+  // Notes after a tile's title, in parentheses.
+  deadSteps: (from: number, to: number) =>
+    from === to ? `step ${from} is always zero` : `steps ${from} to ${to} are always zero`,
+  retentionZero: 'retention is always 0%',
+  kindNotChecked: (kind: TileKind) => KIND_NAME[kind],
+  partsNotChecked: (n: number) => `${plural(n, 'part')} not checked`,
+  alertNote: (name: string, result: string) =>
+    result === 'can-never-fire'
+      ? `alert "${name}" can never fire`
+      : result === 'fires-every-check'
+        ? `alert "${name}" fires on every check`
+        : `alert "${name}" watches a part the insight does not have`,
+  // Lines under a tile.
+  onePlatform: (fed: readonly string[], missing: readonly string[]) =>
+    `every event it counts is sent from ${andList(fed)} only; ${andList(missing)} ${missing.length === 1 ? 'has' : 'have'} no call site`,
+  notCheckedReasons: (reasons: readonly string[]) =>
+    `not checked: ${reasons.map(reasonText).join('; ')}`,
+  unknownPart: (path: string, reasons: string) =>
+    path === '' ? `not checked: ${reasons}` : `${path} not checked: ${reasons}`,
+  // Sections after the tiles.
+  notArriving: (
+    event: string,
+    sites: readonly Location[],
+    windowDays: number,
+    enforcement?: 'allow' | 'reject',
+  ) =>
+    `Not arriving: ${code(event)} is sent in code (${formatSites(sites)}) but PostHog has not seen it in ${windowDays} days${enforcement === 'reject' ? ' (its schema enforcement is set to reject)' : ''}.`,
+  alerts: (checked: number, canNeverFire: number, firesEveryCheck: number, invalid: number) =>
+    [
+      `Alerts: ${checked} checked`,
+      `${canNeverFire} can never fire`,
+      ...(firesEveryCheck > 0 ? [`${firesEveryCheck} fire on every check`] : []),
+      `${plural(invalid, 'invalid target')}`,
+    ].join(' · '),
+  alertLine: (name: string, message: string, state: string | null, enabled?: boolean) => {
+    const shown = [...(enabled === false ? ['disabled'] : []), ...(state === null ? [] : [state])];
+    return `alert "${name}" ${message}${shown.length === 0 ? '' : ` (PostHog shows: ${shown.join(', ')})`}`;
+  },
+  unknownTotal: (parts: number) =>
+    `Unknown: ${plural(parts, 'part')} could not be decided and ${parts === 1 ? 'is' : 'are'} counted as not checked.`,
+  ignoreExpired: (id: string, until: string) =>
+    `Warning: the ignore entry for ${id} expired on ${until}; the tile is checked again.`,
+  ignoreUnmatched: (id: string) =>
+    `Warning: the ignore entry for ${id} matches nothing in the snapshot.`,
+  written: (file: string) => `Report written to ${file}`,
+};
 
 // Format validation (src/formats/validate.ts). `path` is a JSON pointer into the file.
 export const validation = {
