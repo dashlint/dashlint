@@ -174,6 +174,12 @@ function alert(
 
 const run = (tile: Tile | undefined, a: Alert) => checkAlert(context(), a, tile);
 
+const REQ: Requirements = {
+  schema: 'dashlint.requirements/1',
+  source: { platform: 'posthog' },
+  tiles: [],
+};
+
 describe('alert-target-valid (spec 6.7.4)', () => {
   it('a series index inside the series: valid; at or past the end: invalid target', () => {
     const tile = trends([live, live2]);
@@ -245,6 +251,11 @@ describe('alert-target-valid (spec 6.7.4)', () => {
     expect(run(bare, alert(formula(5))).reasons).toEqual([ALERT_TARGET_RANGE_UNKNOWN]);
     const whole = trends([live], { notChecked: [{ reason: 'query shape not read' }] });
     expect(run(whole, alert(series(3))).reasons).toEqual([ALERT_TARGET_RANGE_UNKNOWN]);
+    const wholeFormulas = trends([live], {
+      formulas: [{ index: 0, expression: 'A', refs: ['A'] }],
+      notChecked: [{ reason: 'query shape not read' }],
+    });
+    expect(run(wholeFormulas, alert(formula(1))).reasons).toEqual([ALERT_TARGET_RANGE_UNKNOWN]);
     // Inside the range of an unread tile: valid, but the tile itself is not checked.
     expect(run(whole, alert(series(0)))).toMatchObject({
       result: 'not-checked',
@@ -410,6 +421,15 @@ describe('alert-can-never-fire: every condition and bound on a dead part (spec 6
     const filtered = run(trends([live], { filters: [f('genre')] }), alert(series(0)));
     expect(filtered.result).toBe('can-never-fire');
     expect(filtered.causes.map((c) => c.path)).toEqual(['filters[0]']);
+    // A finding on the watched series that is not dead is not a cause.
+    const noEffect: Filter = { key: 'format', scope: 'event', op: 'is_not', values: ['x'] };
+    const mixed: Tile = {
+      ...trends([live]),
+      series: [{ ...ev(live, [f('genre'), noEffect]), ref: 'A' }],
+    };
+    const both = run(mixed, alert(series(0)));
+    expect(checkTiles(context(), { ...REQ, tiles: [mixed] })[0]?.findings).toHaveLength(2);
+    expect(both.causes.map((c) => c.effect)).toEqual(['dead']);
     // A dead series the alert does not watch is not a cause.
     const other = run(trends([dead, dead]), alert(series(0)));
     expect(other.causes.map((c) => c.path)).toEqual(['series[0]']);
