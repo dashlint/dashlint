@@ -93,11 +93,12 @@ function view(catalogs: readonly Catalog[]): SideView {
     for (const [name, e] of Object.entries(c.events)) {
       const v: SideEvent = events.get(name) ?? { sites: [], open: false, properties: new Map() };
       v.sites.push(...e.sites.map((s) => ({ source: c.source.name, file: s.file, line: s.line })));
-      v.open ||= e.openSites > 0 || (c.coverage.crashedFiles ?? 0) > 0;
+      v.open ||= e.openSites > 0;
       addProps(v.properties, e.properties);
       events.set(name, v);
     }
     addProps(supers, c.superProperties);
+    // A crashed file may hold any call: every event and super property is open.
     openSupers ||= (c.coverage.openSuperSites ?? 0) > 0 || (c.coverage.crashedFiles ?? 0) > 0;
   }
   return { events, supers, openSupers };
