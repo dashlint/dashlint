@@ -129,6 +129,14 @@ export function toCanonicalJson(value: unknown): string {
   return `${json(ordered(value), '')}\n`;
 }
 
+/**
+ * JSON for a value whose objects are already Maps in the order to write (the catalog writer orders
+ * its own fields): two-space indent, one trailing newline.
+ */
+export function orderedJson(value: unknown): string {
+  return `${json(value, '')}\n`;
+}
+
 /** Canonical YAML: block style, stable key order, no anchors, no line folding. */
 export function toCanonicalYaml(value: unknown): string {
   return stringify(ordered(value), { lineWidth: 0, aliasDuplicateObjects: false, indent: 2 });

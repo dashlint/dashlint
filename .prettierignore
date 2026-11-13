@@ -5,6 +5,7 @@ test/golden
 test/fixtures/posthog/expected
 test/fixtures/formats/requirements/valid
 test/fixtures/formats/requirements/yaml/*.expected.json
+test/fixtures/extract/posthog-js/crash/src/deep-*.ts
 src/formats/generated
 src/descriptors/generated
 .changeset/*.md

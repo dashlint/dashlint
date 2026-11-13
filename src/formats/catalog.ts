@@ -44,6 +44,10 @@ export interface Coverage {
   openSites: number;
   /** literalNameSites / callSites, rounded to three decimals. */
   nameResolutionRate: number;
+  /** Super property calls whose argument is open: no event is certain to lack a property. */
+  openSuperSites?: number;
+  /** Person property calls whose argument is open. */
+  openPersonSites?: number;
 }
 
 export interface OpenWorldSite {
@@ -94,6 +98,8 @@ export interface Builtins {
   properties: string | null;
   /** Builtins whose condition could not be evaluated: unknown, never "not sent". */
   conditional: string[];
+  /** Builtins the init options turn off: not sent, although the table lists them. */
+  off?: string[];
 }
 
 export interface IdentityCall {

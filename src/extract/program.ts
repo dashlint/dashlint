@@ -51,6 +51,33 @@ export interface ProgramInput {
   /** Config `exclude`: globs relative to the repository root, added to the D7 defaults. */
   exclude?: string[];
   descriptors: Descriptor[];
+  /** Relative paths an earlier attempt crashed on (T3.8): neither analysed nor program roots. */
+  leaveOut?: readonly string[];
+}
+
+/** Syntax nested deeper than this makes a file unknown (ADR-028): no stage recurses that far. */
+export const MAX_NESTING = 500;
+
+/** A file of the source that is unknown, never analysed: its parse threw, or it nests too deep. */
+export interface CrashedFile {
+  /** Relative to the repository root. */
+  file: string;
+  why: 'parse' | 'nesting';
+  /** The thrown value, for a warning; never written to a catalog. */
+  error?: unknown;
+}
+
+/** Whether any node of `sf` lies more than `limit` levels down (walked without recursion). */
+export function nestsDeeper(sf: ts.SourceFile, limit: number): boolean {
+  const stack: [ts.Node, number][] = [[sf, 0]];
+  for (let next = stack.pop(); next; next = stack.pop()) {
+    const [node, depth] = next;
+    if (depth > limit) return true;
+    ts.forEachChild(node, (child) => {
+      stack.push([child, depth + 1]);
+    });
+  }
+  return false;
 }
 
 export interface SdkTypes {
@@ -74,6 +101,8 @@ export interface SourceProgram {
   skipped: Record<SkipReason, string[]>;
   /** Files that could not be read (relative): unknown, never analysed. */
   unreadable: string[];
+  /** Files of the source whose parse threw or that nest too deep (sorted), left out of `files`. */
+  crashed: CrashedFile[];
   /** The SDKs the source imports, sorted by id. */
   sdks: SdkTypes[];
   /** Non-fatal tsconfig problems; the program uses what could be read. */
@@ -328,6 +357,7 @@ export function createSourceProgram(input: ProgramInput): ProgramResult {
   const ignored = gitIgnored(repoRoot, code);
   const tests = matching(TEST_PATTERNS, sourceDir);
   const excluded = matching(input.exclude ?? [], repoRoot);
+  const leaveOut = new Set(input.leaveOut ?? []);
 
   const files: string[] = [];
   const unreadable: string[] = [];
@@ -342,6 +372,7 @@ export function createSourceProgram(input: ProgramInput): ProgramResult {
       skipped[reason].push(rel(f));
       continue;
     }
+    if (leaveOut.has(rel(f))) continue;
     try {
       if (statSync(f).size > MAX_FILE_BYTES) {
         skipped.oversize.push(rel(f));
@@ -383,7 +414,40 @@ export function createSourceProgram(input: ProgramInput): ProgramResult {
   // An ambient module declaration wins over a resolved package (ADR-021), so a stub joins the
   // program only for a package that does not resolve.
   const stubs = sdks.flatMap((s) => (s.stub ? [s.stub] : []));
-  const program = ts.createProgram({ rootNames: [...files, ...declarations, ...stubs], options });
+  // Crash guard (spec 6.4 item 12, ADR-028): a file of the source whose parse throws (a stack
+  // overflow on deep nesting), or whose syntax nests deeper than MAX_NESTING (the checker and the
+  // stages recurse and would overflow at some depth that depends on the caller's stack), becomes an
+  // empty file: its importers see no exports, and the rest of the source goes on.
+  const own = new Set(files);
+  const host = ts.createCompilerHost(options);
+  const getSourceFile = host.getSourceFile.bind(host);
+  const failed = new Map<string, Omit<CrashedFile, 'file'>>();
+  host.getSourceFile = (fileName, languageVersion, onError, shouldCreate) => {
+    const f = slash(resolve(fileName));
+    try {
+      const sf = getSourceFile(fileName, languageVersion, onError, shouldCreate);
+      if (!sf || !own.has(f) || !nestsDeeper(sf, MAX_NESTING)) return sf;
+      failed.set(f, { why: 'nesting' });
+    } catch (error) {
+      failed.set(f, { why: 'parse', error });
+    }
+    return ts.createSourceFile(fileName, '', languageVersion);
+  };
+  const program = ts.createProgram({
+    rootNames: [...files, ...declarations, ...stubs],
+    options,
+    host,
+  });
+  const crashed: CrashedFile[] = [];
+  for (const [f, crash] of failed) {
+    if (own.has(f)) crashed.push({ file: rel(f), ...crash });
+    else
+      warnings.push(
+        `${rel(f)}: TypeScript could not parse this file; its declarations are missing`,
+      );
+  }
+  crashed.sort((a, b) => (a.file < b.file ? -1 : a.file > b.file ? 1 : 0));
+  const analysed = files.filter((f) => !failed.has(f));
   const excludedFiles =
     skipped['build-output'].length +
     skipped['git-ignored'].length +
@@ -396,12 +460,13 @@ export function createSourceProgram(input: ProgramInput): ProgramResult {
       repoRoot: slash(repoRoot),
       root: sourceRel === '' ? '.' : sourceRel,
       tsconfig: found.config ? rel(found.config) : null,
-      files,
+      files: analysed,
       skipped,
       unreadable,
+      crashed,
       sdks,
       warnings,
-      coverage: { files: files.length, excludedFiles, oversizeFiles: skipped.oversize.length },
+      coverage: { files: analysed.length, excludedFiles, oversizeFiles: skipped.oversize.length },
     },
   };
 }

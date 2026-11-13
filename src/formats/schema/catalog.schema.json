@@ -63,7 +63,15 @@
         "callSites": { "$ref": "#/$defs/count" },
         "literalNameSites": { "$ref": "#/$defs/count" },
         "openSites": { "$ref": "#/$defs/count" },
-        "nameResolutionRate": { "type": "number", "minimum": 0, "maximum": 1 }
+        "nameResolutionRate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "openSuperSites": {
+          "description": "Super property calls whose argument is open: no event of the source is certain to lack a property.",
+          "$ref": "#/$defs/count"
+        },
+        "openPersonSites": {
+          "description": "Person property calls whose argument is open: no person property is certain to be unset.",
+          "$ref": "#/$defs/count"
+        }
       }
     },
     "openWorld": {
@@ -118,7 +126,11 @@
       "properties": {
         "events": { "$ref": "#/$defs/nameList" },
         "properties": { "type": ["string", "null"], "pattern": "^[\\s\\S]+$" },
-        "conditional": { "$ref": "#/$defs/nameList" }
+        "conditional": { "$ref": "#/$defs/nameList" },
+        "off": {
+          "description": "Builtins the init options turn off: not sent, although the table lists them.",
+          "$ref": "#/$defs/nameList"
+        }
       }
     },
     "identity": {
