@@ -1,0 +1,89 @@
+{
+  "schema": "dashlint.requirements/1",
+  "source": {
+    "platform": "posthog",
+    "host": "https://us.posthog.com",
+    "project": 1001,
+    "profile": "posthog"
+  },
+  "dashboards": [],
+  "tiles": [
+    {
+      "id": "insight:BkTr0011",
+      "title": "Orders per daily reader",
+      "url": "https://us.posthog.com/project/1001/insights/BkTr0011",
+      "dashboards": [],
+      "kind": "trends",
+      "dateRange": {
+        "from": "-30d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "order_completed",
+          "math": "total",
+          "filters": []
+        },
+        {
+          "ref": "B",
+          "node": "all-events",
+          "math": "dau",
+          "filters": []
+        }
+      ],
+      "formulas": [
+        {
+          "index": 0,
+          "expression": "A/B",
+          "refs": [
+            "A",
+            "B"
+          ]
+        }
+      ],
+      "filters": [],
+      "breakdown": [],
+      "notChecked": []
+    },
+    {
+      "id": "insight:BkTr0012",
+      "title": "Active readers",
+      "url": "https://us.posthog.com/project/1001/insights/BkTr0012",
+      "dashboards": [],
+      "kind": "trends",
+      "dateRange": {
+        "from": "-30d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "all-events",
+          "math": "dau",
+          "filters": []
+        },
+        {
+          "ref": "B",
+          "node": "all-events",
+          "math": "weekly_active",
+          "filters": []
+        },
+        {
+          "ref": "C",
+          "node": "all-events",
+          "math": "monthly_active",
+          "filters": []
+        }
+      ],
+      "formulas": [],
+      "filters": [],
+      "breakdown": [],
+      "notChecked": []
+    }
+  ],
+  "alerts": []
+}

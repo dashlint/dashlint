@@ -1,0 +1,101 @@
+{
+  "responses": {
+    "insights/?saved=true": {
+      "count": 2,
+      "next": null,
+      "previous": null,
+      "results": [
+        {
+          "id": 5111,
+          "short_id": "BkTr0011",
+          "name": "Orders per daily reader",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "order_completed",
+                  "name": "order_completed",
+                  "math": "total"
+                },
+                {
+                  "kind": "EventsNode",
+                  "name": "All events",
+                  "math": "dau"
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4,
+              "trendsFilter": {
+                "formulaNodes": [
+                  {
+                    "formula": "A/B"
+                  }
+                ]
+              }
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        },
+        {
+          "id": 5112,
+          "short_id": "BkTr0012",
+          "name": "Active readers",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": null,
+                  "name": "All events",
+                  "math": "dau"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": null,
+                  "name": "All events",
+                  "math": "weekly_active"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": null,
+                  "name": "All events",
+                  "math": "monthly_active"
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        }
+      ]
+    }
+  }
+}

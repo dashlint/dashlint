@@ -1,0 +1,59 @@
+{
+  "schema": "dashlint.requirements/1",
+  "source": {
+    "platform": "posthog",
+    "host": "https://us.posthog.com",
+    "project": 1001,
+    "profile": "posthog"
+  },
+  "dashboards": [],
+  "tiles": [
+    {
+      "id": "insight:BkLi0001",
+      "title": "App reader lifecycle",
+      "url": "https://us.posthog.com/project/1001/insights/BkLi0001",
+      "dashboards": [],
+      "kind": "lifecycle",
+      "dateRange": {
+        "from": "-12m",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "Application Opened",
+          "math": "total",
+          "filters": []
+        }
+      ],
+      "filters": [],
+      "notChecked": []
+    },
+    {
+      "id": "insight:BkSt0001",
+      "title": "Reading days per week",
+      "url": "https://us.posthog.com/project/1001/insights/BkSt0001",
+      "dashboards": [],
+      "kind": "stickiness",
+      "dateRange": {
+        "from": "-30d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "reader_opened",
+          "math": "total",
+          "filters": []
+        }
+      ],
+      "filters": [],
+      "notChecked": []
+    }
+  ],
+  "alerts": []
+}

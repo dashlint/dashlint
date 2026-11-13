@@ -1,0 +1,76 @@
+{
+  "responses": {
+    "insights/?saved=true": {
+      "count": 1,
+      "next": null,
+      "previous": null,
+      "results": [
+        {
+          "id": 5131,
+          "short_id": "BkTr0031",
+          "name": "Reading habits",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "book_viewed",
+                  "name": "book_viewed",
+                  "math": "total"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "book_viewed",
+                  "name": "book_viewed",
+                  "math": "dau"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "book_viewed",
+                  "name": "book_viewed",
+                  "math": "weekly_active"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "book_viewed",
+                  "name": "book_viewed",
+                  "math": "monthly_active"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "reader_opened",
+                  "name": "reader_opened",
+                  "math": "unique_session"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "reader_opened",
+                  "name": "reader_opened",
+                  "math": "avg",
+                  "math_property": "$session_duration",
+                  "math_property_type": "session"
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "schema": "dashlint.requirements/1",
+  "source": {
+    "platform": "posthog",
+    "host": "https://us.posthog.com",
+    "project": 1001,
+    "profile": "posthog"
+  },
+  "dashboards": [],
+  "tiles": [
+    {
+      "id": "insight:BkTr0031",
+      "title": "Reading habits",
+      "url": "https://us.posthog.com/project/1001/insights/BkTr0031",
+      "dashboards": [],
+      "kind": "trends",
+      "dateRange": {
+        "from": "-30d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "book_viewed",
+          "math": "total",
+          "filters": []
+        },
+        {
+          "ref": "B",
+          "node": "event",
+          "event": "book_viewed",
+          "math": "dau",
+          "filters": []
+        },
+        {
+          "ref": "C",
+          "node": "event",
+          "event": "book_viewed",
+          "math": "weekly_active",
+          "filters": []
+        },
+        {
+          "ref": "D",
+          "node": "event",
+          "event": "book_viewed",
+          "math": "monthly_active",
+          "filters": []
+        },
+        {
+          "ref": "E",
+          "node": "event",
+          "event": "reader_opened",
+          "math": "unique_session",
+          "filters": []
+        },
+        {
+          "ref": "F",
+          "node": "event",
+          "event": "reader_opened",
+          "math": "avg",
+          "mathProperty": {
+            "key": "$session_duration",
+            "scope": "session"
+          },
+          "filters": []
+        }
+      ],
+      "formulas": [],
+      "filters": [],
+      "breakdown": [],
+      "notChecked": []
+    }
+  ],
+  "alerts": []
+}

@@ -1,0 +1,334 @@
+{
+  "responses": {
+    "insights/?saved=true": {
+      "count": 8,
+      "next": null,
+      "previous": null,
+      "results": [
+        {
+          "id": 5161,
+          "short_id": "BkTr0061",
+          "name": "Views by format",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "book_viewed",
+                  "name": "book_viewed",
+                  "math": "total"
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4,
+              "breakdownFilter": {
+                "breakdowns": [
+                  {
+                    "type": "event",
+                    "property": "format"
+                  }
+                ],
+                "breakdown_limit": 25
+              }
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        },
+        {
+          "id": 5162,
+          "short_id": "BkTr0062",
+          "name": "Orders by payment and shelf",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "order_completed",
+                  "name": "order_completed",
+                  "math": "total"
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4,
+              "breakdownFilter": {
+                "breakdowns": [
+                  {
+                    "type": "event",
+                    "property": "payment_method"
+                  },
+                  {
+                    "type": "event",
+                    "property": "shelf"
+                  }
+                ],
+                "breakdown_limit": 10
+              }
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        },
+        {
+          "id": 5163,
+          "short_id": "BkTr0063",
+          "name": "Views by book",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "book_viewed",
+                  "name": "book_viewed",
+                  "math": "total"
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4,
+              "breakdownFilter": {
+                "breakdowns": [
+                  {
+                    "type": "event",
+                    "property": "book_id"
+                  }
+                ],
+                "breakdown_limit": 100
+              }
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        },
+        {
+          "id": 5164,
+          "short_id": "BkTr0064",
+          "name": "Visits by browser",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "$pageview",
+                  "name": "$pageview",
+                  "math": "total"
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4,
+              "breakdownFilter": {
+                "breakdowns": [
+                  {
+                    "type": "event",
+                    "property": "$browser"
+                  }
+                ]
+              }
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        },
+        {
+          "id": 5165,
+          "short_id": "BkTr0065",
+          "name": "Visits by referrer",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "$pageview",
+                  "name": "$pageview",
+                  "math": "total"
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4,
+              "breakdownFilter": {
+                "breakdowns": [
+                  {
+                    "type": "event",
+                    "property": "$referring_domain"
+                  }
+                ]
+              }
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        },
+        {
+          "id": 5166,
+          "short_id": "BkTr0066",
+          "name": "Opens by system",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "Application Opened",
+                  "name": "Application Opened",
+                  "math": "total"
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4,
+              "breakdownFilter": {
+                "breakdown": "$os_name",
+                "breakdown_type": "event"
+              }
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        },
+        {
+          "id": 5167,
+          "short_id": "BkTr0067",
+          "name": "Shares by genre",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "wishlist_shared",
+                  "name": "wishlist_shared",
+                  "math": "total"
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4,
+              "breakdownFilter": {
+                "breakdown": "genre",
+                "breakdown_type": "event",
+                "breakdown_limit": 10
+              }
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        },
+        {
+          "id": 5168,
+          "short_id": "BkTr0068",
+          "name": "Reviews submitted",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "review_submitted",
+                  "name": "review_submitted",
+                  "math": "total"
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4,
+              "breakdownFilter": {
+                "breakdown_type": "event"
+              }
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "schema": "dashlint.requirements/1",
+  "source": {
+    "platform": "posthog",
+    "host": "https://us.posthog.com",
+    "project": 1001,
+    "profile": "posthog"
+  },
+  "dashboards": [],
+  "tiles": [
+    {
+      "id": "insight:BkRe0001",
+      "title": "Buyers who come back to buy",
+      "url": "https://us.posthog.com/project/1001/insights/BkRe0001",
+      "dashboards": [],
+      "kind": "retention",
+      "dateRange": {
+        "from": "-12m",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "filters": [],
+      "breakdown": [],
+      "retention": {
+        "target": {
+          "node": "event",
+          "event": "order_completed",
+          "filters": []
+        },
+        "returning": {
+          "node": "event",
+          "event": "order_completed",
+          "filters": []
+        }
+      },
+      "notChecked": []
+    },
+    {
+      "id": "insight:BkRe0002",
+      "title": "Readers who come back at all",
+      "url": "https://us.posthog.com/project/1001/insights/BkRe0002",
+      "dashboards": [],
+      "kind": "retention",
+      "dateRange": {
+        "from": "-12m",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "filters": [],
+      "breakdown": [],
+      "retention": {
+        "target": {
+          "node": "event",
+          "event": "reader_opened",
+          "filters": []
+        },
+        "returning": {
+          "node": "all-events",
+          "filters": []
+        }
+      },
+      "notChecked": []
+    }
+  ],
+  "alerts": []
+}

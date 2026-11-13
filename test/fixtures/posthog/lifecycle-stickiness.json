@@ -1,0 +1,76 @@
+{
+  "responses": {
+    "insights/?saved=true": {
+      "count": 2,
+      "next": null,
+      "previous": null,
+      "results": [
+        {
+          "id": 5401,
+          "short_id": "BkLi0001",
+          "name": "App reader lifecycle",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "LifecycleQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "Application Opened",
+                  "name": "Application Opened",
+                  "math": "total"
+                }
+              ],
+              "interval": "week",
+              "dateRange": {
+                "date_from": "-12m"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 2
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        },
+        {
+          "id": 5402,
+          "short_id": "BkSt0001",
+          "name": "Reading days per week",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "StickinessQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "reader_opened",
+                  "name": "reader_opened",
+                  "math": "total"
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        }
+      ]
+    }
+  }
+}

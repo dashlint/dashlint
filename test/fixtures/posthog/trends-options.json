@@ -1,0 +1,116 @@
+{
+  "responses": {
+    "insights/?saved=true": {
+      "count": 3,
+      "next": null,
+      "previous": null,
+      "results": [
+        {
+          "id": 5181,
+          "short_id": "BkTr0081",
+          "name": "Orders this month vs last",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "order_completed",
+                  "name": "order_completed",
+                  "math": "total"
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-1d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4,
+              "compareFilter": {
+                "compare": true
+              }
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        },
+        {
+          "id": 5182,
+          "short_id": "BkTr0082",
+          "name": "Orders this year",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "order_completed",
+                  "name": "order_completed",
+                  "math": "total"
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-12m"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4,
+              "modifiers": {
+                "personsOnEventsMode": "person_id_override_properties_on_events"
+              }
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        },
+        {
+          "id": 5183,
+          "short_id": "BkTr0083",
+          "name": "Orders all time",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "order_completed",
+                  "name": "order_completed",
+                  "math": "total"
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "all"
+              },
+              "properties": [],
+              "filterTestAccounts": false,
+              "version": 4
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "responses": {
+    "insights/?saved=true": {
+      "count": 1,
+      "next": null,
+      "previous": null,
+      "results": [
+        {
+          "id": 5101,
+          "short_id": "BkTr0001",
+          "name": "Book views and searches",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "book_viewed",
+                  "name": "book_viewed",
+                  "math": "total"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "search_performed",
+                  "name": "search_performed",
+                  "math": "total"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "$pageview",
+                  "name": "$pageview",
+                  "math": "total"
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        }
+      ]
+    }
+  }
+}

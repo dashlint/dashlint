@@ -1,0 +1,68 @@
+{
+  "responses": {
+    "insights/?saved=true": {
+      "count": 1,
+      "next": null,
+      "previous": null,
+      "results": [
+        {
+          "id": 5141,
+          "short_id": "BkTr0041",
+          "name": "App and web traffic",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "$pageview",
+                  "name": "$pageview",
+                  "math": "total"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "$screen",
+                  "name": "$screen",
+                  "math": "total"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "$identify",
+                  "name": "$identify",
+                  "math": "total"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "Application Installed",
+                  "name": "Application Installed",
+                  "math": "total"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "Application Opened",
+                  "name": "Application Opened",
+                  "math": "total"
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        }
+      ]
+    }
+  }
+}

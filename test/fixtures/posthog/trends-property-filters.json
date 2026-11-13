@@ -1,0 +1,276 @@
+{
+  "responses": {
+    "insights/?saved=true": {
+      "count": 6,
+      "next": null,
+      "previous": null,
+      "results": [
+        {
+          "id": 5171,
+          "short_id": "BkTr0071",
+          "name": "Fiction and poetry views",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "book_viewed",
+                  "name": "book_viewed",
+                  "math": "total",
+                  "properties": [
+                    {
+                      "key": "genre",
+                      "type": "event",
+                      "operator": "exact",
+                      "value": ["fiction", "poetry"]
+                    }
+                  ]
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        },
+        {
+          "id": 5172,
+          "short_id": "BkTr0072",
+          "name": "Paperback orders",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "order_completed",
+                  "name": "order_completed",
+                  "math": "total",
+                  "properties": [
+                    {
+                      "key": "format",
+                      "type": "event",
+                      "operator": "exact",
+                      "value": "paperback"
+                    }
+                  ]
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        },
+        {
+          "id": 5173,
+          "short_id": "BkTr0073",
+          "name": "Full price orders",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "order_completed",
+                  "name": "order_completed",
+                  "math": "total",
+                  "properties": [
+                    {
+                      "key": "discount_percent",
+                      "type": "event",
+                      "operator": "exact",
+                      "value": 0
+                    }
+                  ]
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        },
+        {
+          "id": 5174,
+          "short_id": "BkTr0074",
+          "name": "Gift orders",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "order_completed",
+                  "name": "order_completed",
+                  "math": "total",
+                  "properties": [
+                    {
+                      "key": "is_gift",
+                      "type": "event",
+                      "operator": "exact",
+                      "value": ["true"]
+                    }
+                  ]
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        },
+        {
+          "id": 5175,
+          "short_id": "BkTr0075",
+          "name": "Dragon searches",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "search_performed",
+                  "name": "search_performed",
+                  "math": "total",
+                  "properties": [
+                    {
+                      "key": "search_query",
+                      "type": "event",
+                      "operator": "icontains",
+                      "value": "dragon"
+                    }
+                  ]
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        },
+        {
+          "id": 5176,
+          "short_id": "BkTr0076",
+          "name": "Card orders on the fiction shelf",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "order_completed",
+                  "name": "order_completed",
+                  "math": "total",
+                  "properties": [
+                    {
+                      "key": "payment_method",
+                      "type": "event",
+                      "operator": "exact",
+                      "value": ["card"]
+                    },
+                    {
+                      "key": "shelf",
+                      "type": "event",
+                      "operator": "exact",
+                      "value": ["fiction"]
+                    }
+                  ]
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "order_completed",
+                  "name": "order_completed",
+                  "math": "total"
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4,
+              "trendsFilter": {
+                "formulaNodes": [
+                  {
+                    "formula": "A/B"
+                  }
+                ]
+              }
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        }
+      ]
+    }
+  }
+}

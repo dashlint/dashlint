@@ -1,0 +1,104 @@
+{
+  "schema": "dashlint.requirements/1",
+  "source": {
+    "platform": "posthog",
+    "host": "https://us.posthog.com",
+    "project": 1001,
+    "profile": "posthog"
+  },
+  "dashboards": [
+    {
+      "id": "dashboard:301",
+      "name": "Bookshop growth",
+      "filters": []
+    },
+    {
+      "id": "dashboard:302",
+      "name": "Checkout",
+      "filters": []
+    }
+  ],
+  "tiles": [
+    {
+      "id": "insight:BkDa0001",
+      "title": "Orders",
+      "url": "https://us.posthog.com/project/1001/insights/BkDa0001",
+      "dashboards": [
+        "dashboard:301",
+        "dashboard:302"
+      ],
+      "kind": "trends",
+      "dateRange": {
+        "from": "-30d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "order_completed",
+          "math": "total",
+          "filters": []
+        }
+      ],
+      "formulas": [],
+      "filters": [],
+      "breakdown": [],
+      "notChecked": []
+    },
+    {
+      "id": "insight:BkDa0002",
+      "title": "Book views",
+      "url": "https://us.posthog.com/project/1001/insights/BkDa0002",
+      "dashboards": [
+        "dashboard:301"
+      ],
+      "kind": "trends",
+      "dateRange": {
+        "from": "-30d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "book_viewed",
+          "math": "total",
+          "filters": []
+        }
+      ],
+      "formulas": [],
+      "filters": [],
+      "breakdown": [],
+      "notChecked": []
+    },
+    {
+      "id": "insight:BkDa0003",
+      "title": "Draft: coupon use",
+      "url": "https://us.posthog.com/project/1001/insights/BkDa0003",
+      "dashboards": [],
+      "kind": "trends",
+      "dateRange": {
+        "from": "-30d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "coupon_applied",
+          "math": "total",
+          "filters": []
+        }
+      ],
+      "formulas": [],
+      "filters": [],
+      "breakdown": [],
+      "notChecked": []
+    }
+  ],
+  "alerts": []
+}

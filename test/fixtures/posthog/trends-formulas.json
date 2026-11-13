@@ -1,0 +1,359 @@
+{
+  "responses": {
+    "insights/?saved=true": {
+      "count": 6,
+      "next": null,
+      "previous": null,
+      "results": [
+        {
+          "id": 5151,
+          "short_id": "BkTr0051",
+          "name": "All shares",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "wishlist_shared",
+                  "name": "wishlist_shared",
+                  "math": "total"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "review_shared",
+                  "name": "review_shared",
+                  "math": "total"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "quote_shared",
+                  "name": "quote_shared",
+                  "math": "total"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "shelf_shared",
+                  "name": "shelf_shared",
+                  "math": "total"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "author_shared",
+                  "name": "author_shared",
+                  "math": "total"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "gift_card_shared",
+                  "name": "gift_card_shared",
+                  "math": "total"
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4,
+              "trendsFilter": {
+                "formulaNodes": [
+                  {
+                    "formula": "A+B+C+D+E+F",
+                    "custom_name": "Shares"
+                  }
+                ]
+              }
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        },
+        {
+          "id": 5152,
+          "short_id": "BkTr0052",
+          "name": "Checkout conversion",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "order_completed",
+                  "name": "order_completed",
+                  "math": "total"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "checkout_started",
+                  "name": "checkout_started",
+                  "math": "total"
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4,
+              "trendsFilter": {
+                "formulaNodes": [
+                  {
+                    "formula": "A/B"
+                  }
+                ]
+              }
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        },
+        {
+          "id": 5153,
+          "short_id": "BkTr0053",
+          "name": "Shares per reader",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "wishlist_shared",
+                  "name": "wishlist_shared",
+                  "math": "total"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "review_shared",
+                  "name": "review_shared",
+                  "math": "total"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "quote_shared",
+                  "name": "quote_shared",
+                  "math": "total"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "shelf_shared",
+                  "name": "shelf_shared",
+                  "math": "total"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "author_shared",
+                  "name": "author_shared",
+                  "math": "total"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "gift_card_shared",
+                  "name": "gift_card_shared",
+                  "math": "total"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "reader_opened",
+                  "name": "reader_opened",
+                  "math": "dau"
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4,
+              "trendsFilter": {
+                "formulaNodes": [
+                  {
+                    "formula": "(A+B+C+D+E+F)/G",
+                    "custom_name": "Shares per reader"
+                  }
+                ]
+              }
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        },
+        {
+          "id": 5154,
+          "short_id": "BkTr0054",
+          "name": "Shares per order",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "wishlist_shared",
+                  "name": "wishlist_shared",
+                  "math": "total"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "review_shared",
+                  "name": "review_shared",
+                  "math": "total"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "quote_shared",
+                  "name": "quote_shared",
+                  "math": "total"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "shelf_shared",
+                  "name": "shelf_shared",
+                  "math": "total"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "order_completed",
+                  "name": "order_completed",
+                  "math": "total"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "author_shared",
+                  "name": "author_shared",
+                  "math": "total"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "gift_card_shared",
+                  "name": "gift_card_shared",
+                  "math": "total"
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4,
+              "trendsFilter": {
+                "formulaNodes": [
+                  {
+                    "formula": "(A+B+C+D+F+G)/E"
+                  }
+                ]
+              }
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        },
+        {
+          "id": 5155,
+          "short_id": "BkTr0055",
+          "name": "Coupons applied",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "coupon_applied",
+                  "name": "coupon_applied",
+                  "math": "total"
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4,
+              "trendsFilter": {
+                "formulaNodes": []
+              }
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        },
+        {
+          "id": 5156,
+          "short_id": "BkTr0056",
+          "name": "Samples per view",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "book_sampled",
+                  "name": "book_sampled",
+                  "math": "total"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "book_viewed",
+                  "name": "book_viewed",
+                  "math": "total"
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4,
+              "trendsFilter": {
+                "formula": "A/B"
+              }
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        }
+      ]
+    }
+  }
+}

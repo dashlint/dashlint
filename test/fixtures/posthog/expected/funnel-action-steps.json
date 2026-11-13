@@ -1,0 +1,120 @@
+{
+  "schema": "dashlint.requirements/1",
+  "source": {
+    "platform": "posthog",
+    "host": "https://us.posthog.com",
+    "project": 1001,
+    "profile": "posthog"
+  },
+  "dashboards": [],
+  "tiles": [
+    {
+      "id": "insight:BkFu0011",
+      "title": "Cart to order via checkout",
+      "url": "https://us.posthog.com/project/1001/insights/BkFu0011",
+      "dashboards": [],
+      "kind": "funnels",
+      "dateRange": {
+        "from": "-30d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "added_to_cart",
+          "filters": []
+        },
+        {
+          "ref": "B",
+          "node": "action",
+          "action": {
+            "id": 77,
+            "name": "Checkout started (web or app)",
+            "steps": [
+              {
+                "event": "checkout_started",
+                "filters": []
+              },
+              {
+                "event": "checkout_started_native",
+                "filters": [
+                  {
+                    "key": "payment_method",
+                    "scope": "event",
+                    "op": "exact",
+                    "values": [
+                      "card"
+                    ]
+                  }
+                ]
+              },
+              {
+                "event": "$pageview",
+                "filters": [],
+                "unsupported": [
+                  "url"
+                ]
+              }
+            ]
+          },
+          "filters": []
+        },
+        {
+          "ref": "C",
+          "node": "event",
+          "event": "coupon_applied",
+          "filters": []
+        },
+        {
+          "ref": "D",
+          "node": "action",
+          "action": {
+            "id": 77,
+            "name": "Checkout started (web or app)",
+            "steps": [
+              {
+                "event": "checkout_started",
+                "filters": []
+              },
+              {
+                "event": "checkout_started_native",
+                "filters": [
+                  {
+                    "key": "payment_method",
+                    "scope": "event",
+                    "op": "exact",
+                    "values": [
+                      "card"
+                    ]
+                  }
+                ]
+              },
+              {
+                "event": "$pageview",
+                "filters": [],
+                "unsupported": [
+                  "url"
+                ]
+              }
+            ]
+          },
+          "filters": []
+        },
+        {
+          "ref": "E",
+          "node": "event",
+          "event": "order_completed",
+          "filters": []
+        }
+      ],
+      "filters": [],
+      "breakdown": [],
+      "exclusions": [],
+      "funnelVizType": "steps",
+      "notChecked": []
+    }
+  ],
+  "alerts": []
+}

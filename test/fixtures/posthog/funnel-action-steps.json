@@ -1,0 +1,126 @@
+{
+  "responses": {
+    "insights/?saved=true": {
+      "count": 1,
+      "next": null,
+      "previous": null,
+      "results": [
+        {
+          "id": 5211,
+          "short_id": "BkFu0011",
+          "name": "Cart to order via checkout",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "FunnelsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "added_to_cart",
+                  "name": "added_to_cart"
+                },
+                {
+                  "kind": "ActionsNode",
+                  "id": 77,
+                  "name": "Checkout started (web or app)"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "coupon_applied",
+                  "name": "coupon_applied"
+                },
+                {
+                  "kind": "ActionsNode",
+                  "id": 77,
+                  "name": "Checkout started (web or app)"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "order_completed",
+                  "name": "order_completed"
+                }
+              ],
+              "funnelsFilter": {
+                "funnelOrderType": "ordered",
+                "funnelWindowInterval": 14,
+                "funnelWindowIntervalUnit": "day",
+                "funnelVizType": "steps"
+              },
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 2
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        }
+      ]
+    },
+    "actions/77/": {
+      "id": 77,
+      "name": "Checkout started (web or app)",
+      "description": "",
+      "steps": [
+        {
+          "event": "checkout_started",
+          "properties": [],
+          "selector": null,
+          "selector_regex": null,
+          "selector_warning": null,
+          "tag_name": null,
+          "text": null,
+          "text_matching": null,
+          "href": null,
+          "href_matching": null,
+          "url": null,
+          "url_matching": null
+        },
+        {
+          "event": "checkout_started_native",
+          "properties": [
+            {
+              "key": "payment_method",
+              "value": "card",
+              "operator": "exact",
+              "type": "event"
+            }
+          ],
+          "selector": null,
+          "selector_regex": null,
+          "selector_warning": null,
+          "tag_name": null,
+          "text": null,
+          "text_matching": null,
+          "href": null,
+          "href_matching": null,
+          "url": null,
+          "url_matching": null
+        },
+        {
+          "event": "$pageview",
+          "properties": [],
+          "selector": null,
+          "selector_regex": null,
+          "selector_warning": null,
+          "tag_name": null,
+          "text": null,
+          "text_matching": null,
+          "href": null,
+          "href_matching": null,
+          "url": "/checkout",
+          "url_matching": "contains"
+        }
+      ],
+      "deleted": false,
+      "created_at": "2026-10-01T09:00:00Z"
+    }
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "responses": {
+    "insights/?saved=true": {
+      "count": 2,
+      "next": null,
+      "previous": null,
+      "results": [
+        {
+          "id": 5121,
+          "short_id": "BkTr0021",
+          "name": "Any book engagement",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "GroupNode",
+                  "operator": "OR",
+                  "name": "Book viewed or sampled",
+                  "math": "dau",
+                  "nodes": [
+                    {
+                      "kind": "EventsNode",
+                      "event": "book_viewed",
+                      "name": "book_viewed",
+                      "math": "total"
+                    },
+                    {
+                      "kind": "EventsNode",
+                      "event": "book_sampled",
+                      "name": "book_sampled",
+                      "math": "total"
+                    }
+                  ]
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        },
+        {
+          "id": 5122,
+          "short_id": "BkTr0022",
+          "name": "Cart and wishlist activity",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "GroupNode",
+                  "operator": "OR",
+                  "name": "Cart activity",
+                  "math": "total",
+                  "nodes": [
+                    {
+                      "kind": "EventsNode",
+                      "event": "added_to_cart",
+                      "name": "added_to_cart",
+                      "math": "total"
+                    },
+                    {
+                      "kind": "EventsNode",
+                      "event": "cart_opened",
+                      "name": "cart_opened",
+                      "math": "total"
+                    }
+                  ]
+                },
+                {
+                  "kind": "GroupNode",
+                  "operator": "OR",
+                  "name": "Wishlist activity",
+                  "math": "total",
+                  "nodes": [
+                    {
+                      "kind": "EventsNode",
+                      "event": "wishlist_added",
+                      "name": "wishlist_added",
+                      "math": "total"
+                    },
+                    {
+                      "kind": "EventsNode",
+                      "event": "wishlist_shared",
+                      "name": "wishlist_shared",
+                      "math": "total"
+                    }
+                  ]
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "order_completed",
+                  "name": "order_completed",
+                  "math": "total"
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        }
+      ]
+    }
+  }
+}

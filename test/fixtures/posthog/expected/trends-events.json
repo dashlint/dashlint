@@ -1,0 +1,52 @@
+{
+  "schema": "dashlint.requirements/1",
+  "source": {
+    "platform": "posthog",
+    "host": "https://us.posthog.com",
+    "project": 1001,
+    "profile": "posthog"
+  },
+  "dashboards": [],
+  "tiles": [
+    {
+      "id": "insight:BkTr0001",
+      "title": "Book views and searches",
+      "url": "https://us.posthog.com/project/1001/insights/BkTr0001",
+      "dashboards": [],
+      "kind": "trends",
+      "dateRange": {
+        "from": "-30d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "book_viewed",
+          "math": "total",
+          "filters": []
+        },
+        {
+          "ref": "B",
+          "node": "event",
+          "event": "search_performed",
+          "math": "total",
+          "filters": []
+        },
+        {
+          "ref": "C",
+          "node": "event",
+          "event": "$pageview",
+          "math": "total",
+          "filters": []
+        }
+      ],
+      "formulas": [],
+      "filters": [],
+      "breakdown": [],
+      "notChecked": []
+    }
+  ],
+  "alerts": []
+}

@@ -1,0 +1,66 @@
+{
+  "schema": "dashlint.requirements/1",
+  "source": {
+    "platform": "posthog",
+    "host": "https://us.posthog.com",
+    "project": 1001,
+    "profile": "posthog"
+  },
+  "dashboards": [],
+  "tiles": [
+    {
+      "id": "insight:BkTr0041",
+      "title": "App and web traffic",
+      "url": "https://us.posthog.com/project/1001/insights/BkTr0041",
+      "dashboards": [],
+      "kind": "trends",
+      "dateRange": {
+        "from": "-30d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "$pageview",
+          "math": "total",
+          "filters": []
+        },
+        {
+          "ref": "B",
+          "node": "event",
+          "event": "$screen",
+          "math": "total",
+          "filters": []
+        },
+        {
+          "ref": "C",
+          "node": "event",
+          "event": "$identify",
+          "math": "total",
+          "filters": []
+        },
+        {
+          "ref": "D",
+          "node": "event",
+          "event": "Application Installed",
+          "math": "total",
+          "filters": []
+        },
+        {
+          "ref": "E",
+          "node": "event",
+          "event": "Application Opened",
+          "math": "total",
+          "filters": []
+        }
+      ],
+      "formulas": [],
+      "filters": [],
+      "breakdown": [],
+      "notChecked": []
+    }
+  ],
+  "alerts": []
+}

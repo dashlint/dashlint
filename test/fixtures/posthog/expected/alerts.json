@@ -1,0 +1,205 @@
+{
+  "schema": "dashlint.requirements/1",
+  "source": {
+    "platform": "posthog",
+    "host": "https://us.posthog.com",
+    "project": 1001,
+    "profile": "posthog"
+  },
+  "dashboards": [],
+  "tiles": [
+    {
+      "id": "insight:BkAl0001",
+      "title": "Gift card redemptions",
+      "url": "https://us.posthog.com/project/1001/insights/BkAl0001",
+      "dashboards": [],
+      "kind": "trends",
+      "dateRange": {
+        "from": "-30d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "gift_card_redeemed",
+          "math": "total",
+          "filters": []
+        }
+      ],
+      "formulas": [],
+      "filters": [],
+      "breakdown": [],
+      "notChecked": []
+    },
+    {
+      "id": "insight:BkAl0002",
+      "title": "Wishlist shares",
+      "url": "https://us.posthog.com/project/1001/insights/BkAl0002",
+      "dashboards": [],
+      "kind": "trends",
+      "dateRange": {
+        "from": "-30d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "wishlist_shared",
+          "math": "total",
+          "filters": []
+        }
+      ],
+      "formulas": [],
+      "filters": [],
+      "breakdown": [],
+      "notChecked": []
+    },
+    {
+      "id": "insight:BkAl0003",
+      "title": "All shares (alerted)",
+      "url": "https://us.posthog.com/project/1001/insights/BkAl0003",
+      "dashboards": [],
+      "kind": "trends",
+      "dateRange": {
+        "from": "-30d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "wishlist_shared",
+          "math": "total",
+          "filters": []
+        },
+        {
+          "ref": "B",
+          "node": "event",
+          "event": "review_shared",
+          "math": "total",
+          "filters": []
+        },
+        {
+          "ref": "C",
+          "node": "event",
+          "event": "quote_shared",
+          "math": "total",
+          "filters": []
+        },
+        {
+          "ref": "D",
+          "node": "event",
+          "event": "shelf_shared",
+          "math": "total",
+          "filters": []
+        },
+        {
+          "ref": "E",
+          "node": "event",
+          "event": "author_shared",
+          "math": "total",
+          "filters": []
+        },
+        {
+          "ref": "F",
+          "node": "event",
+          "event": "gift_card_shared",
+          "math": "total",
+          "filters": []
+        }
+      ],
+      "formulas": [
+        {
+          "index": 0,
+          "expression": "A+B+C+D+E+F",
+          "refs": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F"
+          ]
+        }
+      ],
+      "filters": [],
+      "breakdown": [],
+      "notChecked": []
+    }
+  ],
+  "alerts": [
+    {
+      "id": "alert:00000001-0000-4000-8000-000000000001",
+      "name": "Gift card redemptions dropped",
+      "target": {
+        "kind": "series",
+        "index": 0
+      },
+      "tile": "insight:BkAl0001",
+      "condition": "relative_decrease",
+      "bounds": {
+        "lower": true,
+        "upper": true
+      },
+      "interval": "daily",
+      "enabled": true,
+      "state": "Firing"
+    },
+    {
+      "id": "alert:00000002-0000-4000-8000-000000000002",
+      "name": "Wishlist shares dropped",
+      "target": {
+        "kind": "series",
+        "index": 0
+      },
+      "tile": "insight:BkAl0002",
+      "condition": "relative_decrease",
+      "bounds": {
+        "lower": true,
+        "upper": false
+      },
+      "interval": "weekly",
+      "enabled": true,
+      "state": "Not firing"
+    },
+    {
+      "id": "alert:00000003-0000-4000-8000-000000000003",
+      "name": "Shares dropped",
+      "target": {
+        "kind": "formula",
+        "index": 0
+      },
+      "tile": "insight:BkAl0003",
+      "condition": "relative_decrease",
+      "bounds": {
+        "lower": false,
+        "upper": true
+      },
+      "interval": "weekly",
+      "enabled": false,
+      "state": "Errored"
+    },
+    {
+      "id": "alert:00000004-0000-4000-8000-000000000004",
+      "name": "Shares dropped (fourth line)",
+      "target": {
+        "kind": "formula",
+        "index": 3
+      },
+      "tile": "insight:BkAl0003",
+      "condition": "relative_decrease",
+      "bounds": {
+        "lower": true,
+        "upper": false
+      },
+      "interval": "daily",
+      "enabled": false,
+      "state": "Errored"
+    }
+  ]
+}

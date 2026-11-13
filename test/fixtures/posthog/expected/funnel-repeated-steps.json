@@ -1,0 +1,127 @@
+{
+  "schema": "dashlint.requirements/1",
+  "source": {
+    "platform": "posthog",
+    "host": "https://us.posthog.com",
+    "project": 1001,
+    "profile": "posthog"
+  },
+  "dashboards": [],
+  "tiles": [
+    {
+      "id": "insight:BkFu0001",
+      "title": "Checkout steps",
+      "url": "https://us.posthog.com/project/1001/insights/BkFu0001",
+      "dashboards": [],
+      "kind": "funnels",
+      "dateRange": {
+        "from": "-30d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "checkout_step_viewed",
+          "filters": [
+            {
+              "key": "checkout_step",
+              "scope": "event",
+              "op": "exact",
+              "values": [
+                "address"
+              ]
+            }
+          ]
+        },
+        {
+          "ref": "B",
+          "node": "event",
+          "event": "checkout_step_viewed",
+          "filters": [
+            {
+              "key": "checkout_step",
+              "scope": "event",
+              "op": "exact",
+              "values": [
+                "delivery"
+              ]
+            }
+          ]
+        },
+        {
+          "ref": "C",
+          "node": "event",
+          "event": "checkout_step_viewed",
+          "filters": [
+            {
+              "key": "checkout_step",
+              "scope": "event",
+              "op": "exact",
+              "values": [
+                "payment"
+              ]
+            }
+          ]
+        },
+        {
+          "ref": "D",
+          "node": "event",
+          "event": "order_completed",
+          "filters": []
+        }
+      ],
+      "filters": [],
+      "breakdown": [
+        {
+          "key": "format",
+          "scope": "event"
+        }
+      ],
+      "exclusions": [
+        {
+          "node": "event",
+          "event": "cart_emptied",
+          "fromStep": 0,
+          "toStep": 3,
+          "filters": []
+        }
+      ],
+      "funnelVizType": "steps",
+      "notChecked": []
+    },
+    {
+      "id": "insight:BkFu0002",
+      "title": "Time to first order",
+      "url": "https://us.posthog.com/project/1001/insights/BkFu0002",
+      "dashboards": [],
+      "kind": "funnels",
+      "dateRange": {
+        "from": "-30d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "account_created",
+          "filters": []
+        },
+        {
+          "ref": "B",
+          "node": "event",
+          "event": "order_completed",
+          "filters": []
+        }
+      ],
+      "filters": [],
+      "breakdown": [],
+      "exclusions": [],
+      "funnelVizType": "time_to_convert",
+      "notChecked": []
+    }
+  ],
+  "alerts": []
+}

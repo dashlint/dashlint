@@ -1,0 +1,242 @@
+{
+  "schema": "dashlint.requirements/1",
+  "source": {
+    "platform": "posthog",
+    "host": "https://us.posthog.com",
+    "project": 1001,
+    "profile": "posthog"
+  },
+  "dashboards": [],
+  "tiles": [
+    {
+      "id": "insight:BkTr0071",
+      "title": "Fiction and poetry views",
+      "url": "https://us.posthog.com/project/1001/insights/BkTr0071",
+      "dashboards": [],
+      "kind": "trends",
+      "dateRange": {
+        "from": "-30d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "book_viewed",
+          "math": "total",
+          "filters": [
+            {
+              "key": "genre",
+              "scope": "event",
+              "op": "exact",
+              "values": [
+                "fiction",
+                "poetry"
+              ]
+            }
+          ]
+        }
+      ],
+      "formulas": [],
+      "filters": [],
+      "breakdown": [],
+      "notChecked": []
+    },
+    {
+      "id": "insight:BkTr0072",
+      "title": "Paperback orders",
+      "url": "https://us.posthog.com/project/1001/insights/BkTr0072",
+      "dashboards": [],
+      "kind": "trends",
+      "dateRange": {
+        "from": "-30d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "order_completed",
+          "math": "total",
+          "filters": [
+            {
+              "key": "format",
+              "scope": "event",
+              "op": "exact",
+              "values": [
+                "paperback"
+              ]
+            }
+          ]
+        }
+      ],
+      "formulas": [],
+      "filters": [],
+      "breakdown": [],
+      "notChecked": []
+    },
+    {
+      "id": "insight:BkTr0073",
+      "title": "Full price orders",
+      "url": "https://us.posthog.com/project/1001/insights/BkTr0073",
+      "dashboards": [],
+      "kind": "trends",
+      "dateRange": {
+        "from": "-30d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "order_completed",
+          "math": "total",
+          "filters": [
+            {
+              "key": "discount_percent",
+              "scope": "event",
+              "op": "exact",
+              "values": [
+                0
+              ]
+            }
+          ]
+        }
+      ],
+      "formulas": [],
+      "filters": [],
+      "breakdown": [],
+      "notChecked": []
+    },
+    {
+      "id": "insight:BkTr0074",
+      "title": "Gift orders",
+      "url": "https://us.posthog.com/project/1001/insights/BkTr0074",
+      "dashboards": [],
+      "kind": "trends",
+      "dateRange": {
+        "from": "-30d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "order_completed",
+          "math": "total",
+          "filters": [
+            {
+              "key": "is_gift",
+              "scope": "event",
+              "op": "exact",
+              "values": [
+                "true"
+              ]
+            }
+          ]
+        }
+      ],
+      "formulas": [],
+      "filters": [],
+      "breakdown": [],
+      "notChecked": []
+    },
+    {
+      "id": "insight:BkTr0075",
+      "title": "Dragon searches",
+      "url": "https://us.posthog.com/project/1001/insights/BkTr0075",
+      "dashboards": [],
+      "kind": "trends",
+      "dateRange": {
+        "from": "-30d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "search_performed",
+          "math": "total",
+          "filters": [
+            {
+              "key": "search_query",
+              "scope": "event",
+              "op": "icontains",
+              "values": [
+                "dragon"
+              ]
+            }
+          ]
+        }
+      ],
+      "formulas": [],
+      "filters": [],
+      "breakdown": [],
+      "notChecked": []
+    },
+    {
+      "id": "insight:BkTr0076",
+      "title": "Card orders on the fiction shelf",
+      "url": "https://us.posthog.com/project/1001/insights/BkTr0076",
+      "dashboards": [],
+      "kind": "trends",
+      "dateRange": {
+        "from": "-30d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "order_completed",
+          "math": "total",
+          "filters": [
+            {
+              "key": "payment_method",
+              "scope": "event",
+              "op": "exact",
+              "values": [
+                "card"
+              ]
+            },
+            {
+              "key": "shelf",
+              "scope": "event",
+              "op": "exact",
+              "values": [
+                "fiction"
+              ]
+            }
+          ]
+        },
+        {
+          "ref": "B",
+          "node": "event",
+          "event": "order_completed",
+          "math": "total",
+          "filters": []
+        }
+      ],
+      "formulas": [
+        {
+          "index": 0,
+          "expression": "A/B",
+          "refs": [
+            "A",
+            "B"
+          ]
+        }
+      ],
+      "filters": [],
+      "breakdown": [],
+      "notChecked": []
+    }
+  ],
+  "alerts": []
+}

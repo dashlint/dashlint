@@ -1,0 +1,252 @@
+{
+  "schema": "dashlint.requirements/1",
+  "source": {
+    "platform": "posthog",
+    "host": "https://us.posthog.com",
+    "project": 1001,
+    "profile": "posthog"
+  },
+  "dashboards": [],
+  "tiles": [
+    {
+      "id": "insight:BkTr0061",
+      "title": "Views by format",
+      "url": "https://us.posthog.com/project/1001/insights/BkTr0061",
+      "dashboards": [],
+      "kind": "trends",
+      "dateRange": {
+        "from": "-30d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "book_viewed",
+          "math": "total",
+          "filters": []
+        }
+      ],
+      "formulas": [],
+      "filters": [],
+      "breakdown": [
+        {
+          "key": "format",
+          "scope": "event"
+        }
+      ],
+      "notChecked": []
+    },
+    {
+      "id": "insight:BkTr0062",
+      "title": "Orders by payment and shelf",
+      "url": "https://us.posthog.com/project/1001/insights/BkTr0062",
+      "dashboards": [],
+      "kind": "trends",
+      "dateRange": {
+        "from": "-30d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "order_completed",
+          "math": "total",
+          "filters": []
+        }
+      ],
+      "formulas": [],
+      "filters": [],
+      "breakdown": [
+        {
+          "key": "payment_method",
+          "scope": "event"
+        },
+        {
+          "key": "shelf",
+          "scope": "event"
+        }
+      ],
+      "notChecked": []
+    },
+    {
+      "id": "insight:BkTr0063",
+      "title": "Views by book",
+      "url": "https://us.posthog.com/project/1001/insights/BkTr0063",
+      "dashboards": [],
+      "kind": "trends",
+      "dateRange": {
+        "from": "-30d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "book_viewed",
+          "math": "total",
+          "filters": []
+        }
+      ],
+      "formulas": [],
+      "filters": [],
+      "breakdown": [
+        {
+          "key": "book_id",
+          "scope": "event"
+        }
+      ],
+      "notChecked": []
+    },
+    {
+      "id": "insight:BkTr0064",
+      "title": "Visits by browser",
+      "url": "https://us.posthog.com/project/1001/insights/BkTr0064",
+      "dashboards": [],
+      "kind": "trends",
+      "dateRange": {
+        "from": "-30d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "$pageview",
+          "math": "total",
+          "filters": []
+        }
+      ],
+      "formulas": [],
+      "filters": [],
+      "breakdown": [
+        {
+          "key": "$browser",
+          "scope": "event"
+        }
+      ],
+      "notChecked": []
+    },
+    {
+      "id": "insight:BkTr0065",
+      "title": "Visits by referrer",
+      "url": "https://us.posthog.com/project/1001/insights/BkTr0065",
+      "dashboards": [],
+      "kind": "trends",
+      "dateRange": {
+        "from": "-30d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "$pageview",
+          "math": "total",
+          "filters": []
+        }
+      ],
+      "formulas": [],
+      "filters": [],
+      "breakdown": [
+        {
+          "key": "$referring_domain",
+          "scope": "event"
+        }
+      ],
+      "notChecked": []
+    },
+    {
+      "id": "insight:BkTr0066",
+      "title": "Opens by system",
+      "url": "https://us.posthog.com/project/1001/insights/BkTr0066",
+      "dashboards": [],
+      "kind": "trends",
+      "dateRange": {
+        "from": "-30d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "Application Opened",
+          "math": "total",
+          "filters": []
+        }
+      ],
+      "formulas": [],
+      "filters": [],
+      "breakdown": [
+        {
+          "key": "$os_name",
+          "scope": "event"
+        }
+      ],
+      "notChecked": []
+    },
+    {
+      "id": "insight:BkTr0067",
+      "title": "Shares by genre",
+      "url": "https://us.posthog.com/project/1001/insights/BkTr0067",
+      "dashboards": [],
+      "kind": "trends",
+      "dateRange": {
+        "from": "-30d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "wishlist_shared",
+          "math": "total",
+          "filters": []
+        }
+      ],
+      "formulas": [],
+      "filters": [],
+      "breakdown": [
+        {
+          "key": "genre",
+          "scope": "event"
+        }
+      ],
+      "notChecked": []
+    },
+    {
+      "id": "insight:BkTr0068",
+      "title": "Reviews submitted",
+      "url": "https://us.posthog.com/project/1001/insights/BkTr0068",
+      "dashboards": [],
+      "kind": "trends",
+      "dateRange": {
+        "from": "-30d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "review_submitted",
+          "math": "total",
+          "filters": []
+        }
+      ],
+      "formulas": [],
+      "filters": [],
+      "breakdown": [],
+      "notChecked": []
+    }
+  ],
+  "alerts": []
+}

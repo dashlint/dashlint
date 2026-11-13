@@ -1,0 +1,399 @@
+{
+  "responses": {
+    "insights/?saved=true": {
+      "count": 3,
+      "next": null,
+      "previous": null,
+      "results": [
+        {
+          "id": 5701,
+          "short_id": "BkAl0001",
+          "name": "Gift card redemptions",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "gift_card_redeemed",
+                  "name": "gift_card_redeemed",
+                  "math": "total"
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        },
+        {
+          "id": 5702,
+          "short_id": "BkAl0002",
+          "name": "Wishlist shares",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "wishlist_shared",
+                  "name": "wishlist_shared",
+                  "math": "total"
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        },
+        {
+          "id": 5703,
+          "short_id": "BkAl0003",
+          "name": "All shares (alerted)",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "wishlist_shared",
+                  "name": "wishlist_shared",
+                  "math": "total"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "review_shared",
+                  "name": "review_shared",
+                  "math": "total"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "quote_shared",
+                  "name": "quote_shared",
+                  "math": "total"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "shelf_shared",
+                  "name": "shelf_shared",
+                  "math": "total"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "author_shared",
+                  "name": "author_shared",
+                  "math": "total"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "gift_card_shared",
+                  "name": "gift_card_shared",
+                  "math": "total"
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4,
+              "trendsFilter": {
+                "formulaNodes": [
+                  {
+                    "formula": "A+B+C+D+E+F"
+                  }
+                ]
+              }
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        }
+      ]
+    },
+    "alerts/": {
+      "count": 4,
+      "next": null,
+      "previous": null,
+      "results": [
+        {
+          "id": "00000001-0000-4000-8000-000000000001",
+          "name": "Gift card redemptions dropped",
+          "insight": {
+            "id": 5701,
+            "short_id": "BkAl0001",
+            "name": "Gift card redemptions",
+            "derived_name": null
+          },
+          "enabled": true,
+          "state": "Firing",
+          "condition": {
+            "type": "relative_decrease"
+          },
+          "threshold": {
+            "id": "00000005-0000-4000-8000-000000000005",
+            "created_at": "2026-10-01T09:00:00Z",
+            "name": "",
+            "configuration": {
+              "type": "percentage",
+              "bounds": {
+                "lower": 0.3,
+                "upper": 0.9
+              }
+            }
+          },
+          "config": {
+            "type": "TrendsAlertConfig",
+            "series_index": 0,
+            "check_ongoing_interval": false
+          },
+          "calculation_interval": "daily",
+          "detector_config": null,
+          "created_at": "2026-10-01T09:00:00Z",
+          "last_checked_at": "2026-11-01T09:00:00Z",
+          "last_notified_at": null,
+          "last_value": 0.42,
+          "checks_total": 1,
+          "checks": [
+            {
+              "id": "00000003-0000-4000-8000-000000000003",
+              "created_at": "2026-11-01T09:00:00Z",
+              "calculated_value": 0.42,
+              "state": "Firing",
+              "targets_notified": false,
+              "error": null,
+              "deliveries": null,
+              "anomaly_scores": null,
+              "triggered_points": null,
+              "triggered_dates": null,
+              "interval": null,
+              "triggered_metadata": null,
+              "investigation_notebook_short_id": null,
+              "investigation_status": null,
+              "investigation_verdict": null,
+              "investigation_summary": null,
+              "notification_sent_at": null,
+              "notification_suppressed_by_agent": false
+            }
+          ]
+        },
+        {
+          "id": "00000002-0000-4000-8000-000000000002",
+          "name": "Wishlist shares dropped",
+          "insight": {
+            "id": 5702,
+            "short_id": "BkAl0002",
+            "name": "Wishlist shares",
+            "derived_name": null
+          },
+          "enabled": true,
+          "state": "Not firing",
+          "condition": {
+            "type": "relative_decrease"
+          },
+          "threshold": {
+            "id": "00000006-0000-4000-8000-000000000006",
+            "created_at": "2026-10-01T09:00:00Z",
+            "name": "",
+            "configuration": {
+              "type": "percentage",
+              "bounds": {
+                "lower": 0.5
+              }
+            }
+          },
+          "config": {
+            "type": "TrendsAlertConfig",
+            "series_index": 0,
+            "check_ongoing_interval": false
+          },
+          "calculation_interval": "weekly",
+          "detector_config": null,
+          "created_at": "2026-10-01T09:00:00Z",
+          "last_checked_at": "2026-11-01T09:00:00Z",
+          "last_notified_at": null,
+          "last_value": 0.1,
+          "checks_total": 1,
+          "checks": [
+            {
+              "id": "00000004-0000-4000-8000-000000000004",
+              "created_at": "2026-11-01T09:00:00Z",
+              "calculated_value": 0.1,
+              "state": "Not firing",
+              "targets_notified": false,
+              "error": null,
+              "deliveries": null,
+              "anomaly_scores": null,
+              "triggered_points": null,
+              "triggered_dates": null,
+              "interval": null,
+              "triggered_metadata": null,
+              "investigation_notebook_short_id": null,
+              "investigation_status": null,
+              "investigation_verdict": null,
+              "investigation_summary": null,
+              "notification_sent_at": null,
+              "notification_suppressed_by_agent": false
+            }
+          ]
+        },
+        {
+          "id": "00000003-0000-4000-8000-000000000003",
+          "name": "Shares dropped",
+          "insight": {
+            "id": 5703,
+            "short_id": "BkAl0003",
+            "name": "All shares (alerted)",
+            "derived_name": null
+          },
+          "enabled": false,
+          "state": "Errored",
+          "condition": {
+            "type": "relative_decrease"
+          },
+          "threshold": {
+            "id": "00000007-0000-4000-8000-000000000007",
+            "created_at": "2026-10-01T09:00:00Z",
+            "name": "",
+            "configuration": {
+              "type": "percentage",
+              "bounds": {
+                "upper": 0.2
+              }
+            }
+          },
+          "config": {
+            "type": "TrendsAlertConfig",
+            "series_index": 0,
+            "check_ongoing_interval": false
+          },
+          "calculation_interval": "weekly",
+          "detector_config": null,
+          "created_at": "2026-10-01T09:00:00Z",
+          "last_checked_at": "2026-11-01T09:00:00Z",
+          "last_notified_at": null,
+          "last_value": null,
+          "checks_total": 1,
+          "checks": [
+            {
+              "id": "00000005-0000-4000-8000-000000000005",
+              "created_at": "2026-11-01T09:00:00Z",
+              "calculated_value": null,
+              "state": "Errored",
+              "targets_notified": false,
+              "error": {
+                "message": "The alert could not be evaluated"
+              },
+              "deliveries": null,
+              "anomaly_scores": null,
+              "triggered_points": null,
+              "triggered_dates": null,
+              "interval": null,
+              "triggered_metadata": null,
+              "investigation_notebook_short_id": null,
+              "investigation_status": null,
+              "investigation_verdict": null,
+              "investigation_summary": null,
+              "notification_sent_at": null,
+              "notification_suppressed_by_agent": false
+            }
+          ]
+        },
+        {
+          "id": "00000004-0000-4000-8000-000000000004",
+          "name": "Shares dropped (fourth line)",
+          "insight": {
+            "id": 5703,
+            "short_id": "BkAl0003",
+            "name": "All shares (alerted)",
+            "derived_name": null
+          },
+          "enabled": false,
+          "state": "Errored",
+          "condition": {
+            "type": "relative_decrease"
+          },
+          "threshold": {
+            "id": "00000008-0000-4000-8000-000000000008",
+            "created_at": "2026-10-01T09:00:00Z",
+            "name": "",
+            "configuration": {
+              "type": "percentage",
+              "bounds": {
+                "lower": 0.25
+              }
+            }
+          },
+          "config": {
+            "type": "TrendsAlertConfig",
+            "series_index": 3,
+            "check_ongoing_interval": false
+          },
+          "calculation_interval": "daily",
+          "detector_config": null,
+          "created_at": "2026-10-01T09:00:00Z",
+          "last_checked_at": "2026-11-01T09:00:00Z",
+          "last_notified_at": null,
+          "last_value": null,
+          "checks_total": 1,
+          "checks": [
+            {
+              "id": "00000006-0000-4000-8000-000000000006",
+              "created_at": "2026-11-01T09:00:00Z",
+              "calculated_value": null,
+              "state": "Errored",
+              "targets_notified": false,
+              "error": {
+                "message": "The alert could not be evaluated"
+              },
+              "deliveries": null,
+              "anomaly_scores": null,
+              "triggered_points": null,
+              "triggered_dates": null,
+              "interval": null,
+              "triggered_metadata": null,
+              "investigation_notebook_short_id": null,
+              "investigation_status": null,
+              "investigation_verdict": null,
+              "investigation_summary": null,
+              "notification_sent_at": null,
+              "notification_suppressed_by_agent": false
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

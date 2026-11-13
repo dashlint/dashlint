@@ -1,0 +1,54 @@
+{
+  "schema": "dashlint.requirements/1",
+  "source": {
+    "platform": "posthog",
+    "host": "https://us.posthog.com",
+    "project": 1001,
+    "profile": "posthog"
+  },
+  "dashboards": [],
+  "tiles": [
+    {
+      "id": "insight:BkOt0001",
+      "title": "Old saved insight",
+      "url": "https://us.posthog.com/project/1001/insights/BkOt0001",
+      "dashboards": [],
+      "kind": "other",
+      "notChecked": [
+        {
+          "reason": "insight has no query"
+        }
+      ]
+    },
+    {
+      "id": "insight:BkPa0001",
+      "title": "Paths from the home page",
+      "url": "https://us.posthog.com/project/1001/insights/BkPa0001",
+      "dashboards": [],
+      "kind": "paths",
+      "dateRange": {
+        "from": "-7d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "notChecked": [
+        {
+          "reason": "query kind PathsQuery is not checked"
+        }
+      ]
+    },
+    {
+      "id": "insight:BkSq0001",
+      "title": "Orders per day (SQL)",
+      "url": "https://us.posthog.com/project/1001/insights/BkSq0001",
+      "dashboards": [],
+      "kind": "sql",
+      "notChecked": [
+        {
+          "reason": "query kind HogQLQuery is not checked"
+        }
+      ]
+    }
+  ],
+  "alerts": []
+}

@@ -1,0 +1,107 @@
+{
+  "schema": "dashlint.requirements/1",
+  "source": {
+    "platform": "posthog",
+    "host": "https://us.posthog.com",
+    "project": 1001,
+    "profile": "posthog"
+  },
+  "dashboards": [],
+  "tiles": [
+    {
+      "id": "insight:BkTr0021",
+      "title": "Any book engagement",
+      "url": "https://us.posthog.com/project/1001/insights/BkTr0021",
+      "dashboards": [],
+      "kind": "trends",
+      "dateRange": {
+        "from": "-30d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "group",
+          "operator": "OR",
+          "events": [
+            {
+              "event": "book_viewed",
+              "filters": []
+            },
+            {
+              "event": "book_sampled",
+              "filters": []
+            }
+          ],
+          "math": "dau",
+          "filters": []
+        }
+      ],
+      "formulas": [],
+      "filters": [],
+      "breakdown": [],
+      "notChecked": []
+    },
+    {
+      "id": "insight:BkTr0022",
+      "title": "Cart and wishlist activity",
+      "url": "https://us.posthog.com/project/1001/insights/BkTr0022",
+      "dashboards": [],
+      "kind": "trends",
+      "dateRange": {
+        "from": "-30d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "group",
+          "operator": "OR",
+          "events": [
+            {
+              "event": "added_to_cart",
+              "filters": []
+            },
+            {
+              "event": "cart_opened",
+              "filters": []
+            }
+          ],
+          "math": "total",
+          "filters": []
+        },
+        {
+          "ref": "B",
+          "node": "group",
+          "operator": "OR",
+          "events": [
+            {
+              "event": "wishlist_added",
+              "filters": []
+            },
+            {
+              "event": "wishlist_shared",
+              "filters": []
+            }
+          ],
+          "math": "total",
+          "filters": []
+        },
+        {
+          "ref": "C",
+          "node": "event",
+          "event": "order_completed",
+          "math": "total",
+          "filters": []
+        }
+      ],
+      "formulas": [],
+      "filters": [],
+      "breakdown": [],
+      "notChecked": []
+    }
+  ],
+  "alerts": []
+}

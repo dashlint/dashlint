@@ -1,0 +1,148 @@
+{
+  "responses": {
+    "insights/?saved=true": {
+      "count": 2,
+      "next": null,
+      "previous": null,
+      "results": [
+        {
+          "id": 5201,
+          "short_id": "BkFu0001",
+          "name": "Checkout steps",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "FunnelsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "checkout_step_viewed",
+                  "name": "checkout_step_viewed",
+                  "properties": [
+                    {
+                      "key": "checkout_step",
+                      "type": "event",
+                      "operator": "exact",
+                      "value": ["address"]
+                    }
+                  ]
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "checkout_step_viewed",
+                  "name": "checkout_step_viewed",
+                  "properties": [
+                    {
+                      "key": "checkout_step",
+                      "type": "event",
+                      "operator": "exact",
+                      "value": ["delivery"]
+                    }
+                  ]
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "checkout_step_viewed",
+                  "name": "checkout_step_viewed",
+                  "properties": [
+                    {
+                      "key": "checkout_step",
+                      "type": "event",
+                      "operator": "exact",
+                      "value": ["payment"]
+                    }
+                  ]
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "order_completed",
+                  "name": "order_completed"
+                }
+              ],
+              "funnelsFilter": {
+                "funnelOrderType": "ordered",
+                "funnelWindowInterval": 14,
+                "funnelWindowIntervalUnit": "day",
+                "funnelVizType": "steps",
+                "breakdownAttributionType": "first_touch",
+                "exclusions": [
+                  {
+                    "kind": "EventsNode",
+                    "event": "cart_emptied",
+                    "name": "cart_emptied",
+                    "funnelFromStep": 0,
+                    "funnelToStep": 3
+                  }
+                ]
+              },
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 2,
+              "breakdownFilter": {
+                "breakdowns": [
+                  {
+                    "type": "event",
+                    "property": "format"
+                  }
+                ],
+                "breakdown_limit": 10
+              }
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        },
+        {
+          "id": 5202,
+          "short_id": "BkFu0002",
+          "name": "Time to first order",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "FunnelsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "account_created",
+                  "name": "account_created"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "order_completed",
+                  "name": "order_completed"
+                }
+              ],
+              "funnelsFilter": {
+                "funnelOrderType": "ordered",
+                "funnelWindowInterval": 14,
+                "funnelWindowIntervalUnit": "day",
+                "funnelVizType": "time_to_convert"
+              },
+              "dateRange": {
+                "date_from": "-30d"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 2
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        }
+      ]
+    }
+  }
+}

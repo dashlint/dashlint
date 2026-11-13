@@ -1,0 +1,89 @@
+{
+  "responses": {
+    "insights/?saved=true": {
+      "count": 2,
+      "next": null,
+      "previous": null,
+      "results": [
+        {
+          "id": 5301,
+          "short_id": "BkRe0001",
+          "name": "Buyers who come back to buy",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "RetentionQuery",
+              "retentionFilter": {
+                "targetEntity": {
+                  "id": "order_completed",
+                  "name": "order_completed",
+                  "type": "events"
+                },
+                "returningEntity": {
+                  "id": "order_completed",
+                  "name": "order_completed",
+                  "type": "events"
+                },
+                "period": "Week",
+                "totalIntervals": 8,
+                "retentionType": "retention_first_time"
+              },
+              "dateRange": {
+                "date_from": "-12m"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 2
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        },
+        {
+          "id": 5302,
+          "short_id": "BkRe0002",
+          "name": "Readers who come back at all",
+          "derived_name": null,
+          "description": "",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "RetentionQuery",
+              "retentionFilter": {
+                "targetEntity": {
+                  "id": "reader_opened",
+                  "name": "reader_opened",
+                  "type": "events"
+                },
+                "returningEntity": {
+                  "id": null,
+                  "name": "All events",
+                  "type": "events"
+                },
+                "period": "Week",
+                "totalIntervals": 8,
+                "retentionType": "retention_first_time"
+              },
+              "dateRange": {
+                "date_from": "-12m"
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 2
+            }
+          },
+          "dashboards": [],
+          "dashboard_tiles": [],
+          "saved": true,
+          "deleted": false,
+          "created_at": "2026-10-01T09:00:00Z"
+        }
+      ]
+    }
+  }
+}
