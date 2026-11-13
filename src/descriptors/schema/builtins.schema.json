@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/dashlint/dashlint/schema/builtins.schema.json",
+  "title": "dashlint SDK builtins",
+  "description": "Events and properties an SDK sends by itself (spec 6.3.3, ADR-003), each with the condition under which it is sent. Rules the schema cannot express (one test per condition, unique names) are checked by src/descriptors/loader.ts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["sdk", "events", "properties", "personProperties"],
+  "properties": {
+    "sdk": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "when"],
+        "properties": {
+          "name": { "$ref": "#/$defs/name" },
+          "when": { "$ref": "#/$defs/condition" }
+        }
+      }
+    },
+    "properties": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "events", "presence", "when"],
+        "properties": {
+          "name": { "$ref": "#/$defs/name" },
+          "events": {
+            "anyOf": [
+              { "const": "*" },
+              { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/name" } }
+            ],
+            "description": "The events the property rides on; `*` is every event the SDK sends."
+          },
+          "presence": { "enum": ["always", "sometimes"] },
+          "when": { "$ref": "#/$defs/condition" }
+        }
+      }
+    },
+    "personProperties": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "when"],
+        "properties": {
+          "name": { "$ref": "#/$defs/name" },
+          "when": { "$ref": "#/$defs/condition" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "name": { "type": "string", "pattern": "\\S" },
+    "condition": {
+      "description": "`always`; `{ option, not }`: sent unless the init option is that literal; `{ option, is: true }`: sent only when the option is a truthy literal (ADR-003); `{ unknown }`: not decidable from code, so the builtin is conditional.",
+      "anyOf": [
+        { "const": "always" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "option": {
+              "type": "string",
+              "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"
+            },
+            "not": { "type": ["string", "boolean", "number"] },
+            "is": { "type": ["string", "boolean", "number"] },
+            "unknown": { "type": "string", "pattern": "\\S" }
+          }
+        }
+      ]
+    }
+  }
+}

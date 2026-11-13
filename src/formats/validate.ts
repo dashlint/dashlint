@@ -21,14 +21,15 @@ export interface ValidationError {
 
 export type ValidationResult<T> = { ok: true; value: T } | { ok: false; errors: ValidationError[] };
 
-interface AjvError {
+export interface AjvError {
   keyword: string;
   instancePath: string;
   params: Record<string, unknown>;
   message?: string;
 }
 
-type GeneratedValidator = ((data: unknown) => boolean) & { errors?: AjvError[] | null };
+/** A validator scripts/build-validators.mjs generated from a JSON Schema. */
+export type GeneratedValidator = ((data: unknown) => boolean) & { errors?: AjvError[] | null };
 
 // The rate is written rounded to three decimals (spec 6.3.1 example: 58 / 61 -> 0.951).
 const RATE_TOLERANCE = 0.0005 + 1e-9;
@@ -49,7 +50,8 @@ function fromAjv(e: AjvError): ValidationError {
   return { path, message: e.message ?? validation.schemaMismatch };
 }
 
-function runSchema(validator: GeneratedValidator, data: unknown): ValidationError[] {
+/** Runs a generated validator; each error names its field (an unknown key is in the path). */
+export function runSchema(validator: GeneratedValidator, data: unknown): ValidationError[] {
   if (validator(data)) return [];
   return (validator.errors ?? []).map(fromAjv);
 }

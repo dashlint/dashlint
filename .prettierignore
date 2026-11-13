@@ -6,4 +6,5 @@ test/fixtures/posthog/expected
 test/fixtures/formats/requirements/valid
 test/fixtures/formats/requirements/yaml/*.expected.json
 src/formats/generated
+src/descriptors/generated
 .changeset/*.md

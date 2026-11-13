@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/dashlint/dashlint/schema/descriptor.schema.json",
+  "title": "dashlint SDK descriptor",
+  "description": "What one analytics SDK's calls mean, as data (spec 6.3.3): the members that send events, super properties, person properties and identity, matched by their resolved declaration (spec 6.4 item 3). Rules the schema cannot express (one role per call, members present in the stub) are checked by src/descriptors/loader.ts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "sdk",
+    "package",
+    "versions",
+    "verified",
+    "declaredIn",
+    "platforms",
+    "calls",
+    "builtins",
+    "stub"
+  ],
+  "properties": {
+    "sdk": { "$ref": "#/$defs/name", "description": "The descriptor id, used in catalogs." },
+    "package": {
+      "$ref": "#/$defs/packageName",
+      "description": "The npm package an app imports."
+    },
+    "versions": {
+      "type": "string",
+      "pattern": "^(?:(?:>=|<=|>|<|=)?\\d+\\.\\d+\\.\\d+)(?: (?:>=|<=|>|<|=)?\\d+\\.\\d+\\.\\d+)*$",
+      "description": "The version range this descriptor applies to: space-separated comparators, all of which must hold."
+    },
+    "verified": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "The version whose published types and source every member and builtin was checked against (V1, V2)."
+    },
+    "declaredIn": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/packageName" },
+      "description": "Packages whose declaration files may declare the matched members."
+    },
+    "platforms": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "enum": ["web", "ios", "android"] },
+      "description": "Default platforms of a source using this SDK."
+    },
+    "calls": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/call" } },
+    "builtins": {
+      "$ref": "#/$defs/relativeFile",
+      "description": "The builtins file, relative to this descriptor."
+    },
+    "stub": {
+      "$ref": "#/$defs/relativeFile",
+      "description": "The type stub used when the package is not installed, relative to this descriptor."
+    },
+    "unknownNames": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Name prefixes the SDK or the platform may send that cannot be cited as builtins (ADR-003): a requirement on such a name is not checked, never dead.",
+      "properties": {
+        "events": { "$ref": "#/$defs/prefixes" },
+        "properties": { "$ref": "#/$defs/prefixes" },
+        "personProperties": { "$ref": "#/$defs/prefixes" }
+      }
+    }
+  },
+  "$defs": {
+    "name": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "packageName": {
+      "type": "string",
+      "pattern": "^(?:@[a-z0-9][a-z0-9._-]*/)?[a-z0-9][a-z0-9._-]*$"
+    },
+    "identifier": { "type": "string", "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*$" },
+    "container": {
+      "type": "string",
+      "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$",
+      "description": "A class or interface name, optionally followed by property names whose type is an object type (`PostHog.people`)."
+    },
+    "relativeFile": {
+      "type": "string",
+      "pattern": "^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$"
+    },
+    "argPath": {
+      "type": "string",
+      "pattern": "^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$",
+      "description": "A call argument by position, optionally followed by object keys: `args[0]`, `args[1].$set`."
+    },
+    "prefixes": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "pattern": "\\S" }
+    },
+    "call": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "member": {
+          "$ref": "#/$defs/identifier",
+          "description": "The method or property name, matched by its resolved declaration."
+        },
+        "on": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/container" },
+          "description": "Containers that declare the member."
+        },
+        "hook": {
+          "$ref": "#/$defs/identifier",
+          "description": "A function returning the client; members called on its result are matched as above."
+        },
+        "event": {
+          "anyOf": [
+            { "$ref": "#/$defs/argPath" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["literal"],
+              "properties": { "literal": { "type": "string", "pattern": "\\S" } }
+            }
+          ],
+          "description": "Where the event name comes from: an argument, or a fixed name."
+        },
+        "properties": { "$ref": "#/$defs/argPath" },
+        "addProperties": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": { "$ref": "#/$defs/argPath" },
+          "description": "Properties the SDK adds to the event from other arguments."
+        },
+        "superProperties": { "$ref": "#/$defs/argPath" },
+        "identity": { "enum": ["identify", "reset"] },
+        "personSet": { "$ref": "#/$defs/argPath" },
+        "personSetOnce": { "$ref": "#/$defs/argPath" },
+        "personSetFallback": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["from", "omit"],
+          "description": "When the object at `personSet` is absent, the SDK sets the keys of `from` (less `omit`) instead.",
+          "properties": {
+            "from": { "$ref": "#/$defs/argPath" },
+            "omit": { "type": "array", "items": { "type": "string", "pattern": "\\S" } }
+          }
+        }
+      }
+    }
+  }
+}

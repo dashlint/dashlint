@@ -3,7 +3,16 @@ import eslintConfigPrettier from 'eslint-config-prettier';
 
 export default tseslint.config(
   {
-    ignores: ['dist/**', 'coverage/**', 'test/golden/**', 'src/formats/generated/**'],
+    // descriptors/stubs mirror upstream declarations (including their `any`); they are checked by
+    // test/unit/descriptors instead.
+    ignores: [
+      'dist/**',
+      'coverage/**',
+      'test/golden/**',
+      'src/formats/generated/**',
+      'src/descriptors/generated/**',
+      'descriptors/stubs/**',
+    ],
   },
   ...tseslint.configs.strict,
   {

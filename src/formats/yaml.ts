@@ -183,11 +183,19 @@ function fromYamlError(
   return { path: '', message, line: lc.linePos(e.pos[0]).line };
 }
 
+/** A parsed YAML text and the line of any JSON pointer into it. */
+export interface YamlText {
+  value: unknown;
+  lineOf(pointer: string): number | undefined;
+}
+
 /**
- * Reads a requirements file (YAML, or JSON) from text: parse, expand the shorthands, validate.
- * Every error carries the line it points at.
+ * Parses plain YAML 1.2 core (no custom or YAML 1.1 tags, no merge keys, no duplicate keys, finite
+ * numbers only). Every parse error carries its line.
  */
-export function loadRequirements(source: string): ValidationResult<Requirements> {
+export function readYaml(
+  source: string,
+): { ok: true; text: YamlText } | { ok: false; errors: ValidationError[] } {
   const lc = new LineCounter();
   const doc = parseDocument(source, {
     lineCounter: lc,
@@ -214,13 +222,30 @@ export function loadRequirements(source: string): ValidationResult<Requirements>
   });
   if (parseErrors.length)
     return { ok: false, errors: parseErrors.sort((a, b) => (a.line ?? 0) - (b.line ?? 0)) };
-  const result = validateRequirements(expandRequirements(doc.toJS({ maxAliasCount: 100 })));
-  if (result.ok) return result;
   return {
-    ok: false,
-    errors: result.errors.map((e) => {
-      const line = lineOf(doc, lc, e.path);
-      return line === undefined ? e : { ...e, line };
-    }),
+    ok: true,
+    text: {
+      value: doc.toJS({ maxAliasCount: 100 }),
+      lineOf: (pointer) => lineOf(doc, lc, pointer),
+    },
   };
+}
+
+/** Adds the source line to each error whose path points into `text`. */
+export function withLines(errors: ValidationError[], text: YamlText): ValidationError[] {
+  return errors.map((e) => {
+    const line = text.lineOf(e.path);
+    return line === undefined ? e : { ...e, line };
+  });
+}
+
+/**
+ * Reads a requirements file (YAML, or JSON) from text: parse, expand the shorthands, validate.
+ * Every error carries the line it points at.
+ */
+export function loadRequirements(source: string): ValidationResult<Requirements> {
+  const read = readYaml(source);
+  if (!read.ok) return read;
+  const result = validateRequirements(expandRequirements(read.text.value));
+  return result.ok ? result : { ok: false, errors: withLines(result.errors, read.text) };
 }
