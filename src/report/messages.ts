@@ -55,6 +55,9 @@ export const descriptorErrors = {
   sdkMismatch: (found: string, expected: string) =>
     `sdk is ${found} but the descriptor is ${expected}`,
   duplicateSdk: (sdk: string) => `sdk ${sdk} is described by two descriptors`,
+  ingestionCondition:
+    'an ingestion row is always or { unknown }: the SDK init options cannot switch it',
+  ingestionDuplicate: (name: string, builtins: string) => `"${name}" is also listed in ${builtins}`,
   stubPackageMissing: (pkg: string, stub: string) => `${stub} does not declare module "${pkg}"`,
   stubForeignModule: (module: string, pkg: string, stub: string) =>
     `${stub} declares module "${module}", which is not ${pkg} or one of its subpaths`,

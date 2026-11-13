@@ -125,6 +125,30 @@ describe('resolveBuiltins: the catalog fields', () => {
   });
 });
 
+// ADR-012, ADR-029: what PostHog adds on ingestion is unknown whatever the init options say.
+describe('resolveBuiltins: PostHog ingestion-time $geoip_* properties', () => {
+  const GEO = ['$geoip_city_name', '$geoip_country_code', '$geoip_time_zone'];
+
+  it.each(['posthog-js/geoip', 'posthog-react-native/geoip', 'posthog-react-native/lifecycle-off'])(
+    '%s: conditional, never sent or off',
+    (repo) => {
+      const scan = builtins(repo);
+      expect(scan.inits).toHaveLength(1);
+      expect(scan.builtins.conditional).toEqual(expect.arrayContaining(GEO));
+      for (const name of GEO) {
+        expect(scan.off).not.toContain(name);
+        expect(scan.properties.map((p) => p.name)).not.toContain(name);
+      }
+    },
+  );
+
+  it('literal options still decide the SDK builtins next to them', () => {
+    const scan = builtins('posthog-js/geoip');
+    expect(scan.off).toEqual(expect.arrayContaining(['$autocapture', '$pageview']));
+    expect(scan.builtins.conditional).not.toContain('$pageview');
+  });
+});
+
 describe('resolveBuiltins: options with a spread, and two SDKs in one source', () => {
   it('a key written after a spread decides; a key the spread may hold is conditional', () => {
     const scan = builtins('posthog-js/init-spread');

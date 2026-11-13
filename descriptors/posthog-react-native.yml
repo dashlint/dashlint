@@ -48,6 +48,8 @@ init:
   - component: PostHogProvider
     options: options
 builtins: builtins/posthog-react-native.yml
+# What PostHog adds on ingestion (GeoIP), whichever SDK sent the event (ADR-029).
+ingestion: builtins/posthog-ingestion.yml
 stub: stubs/posthog-react-native.d.ts
 unknownNames:
   # PostHog derives $initial_* person properties by concatenation (ADR-003); kept unknown here too.

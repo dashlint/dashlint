@@ -313,6 +313,80 @@ describe('loadDescriptor', () => {
     const errors = errorsOf(writeSet({ descriptor: `sdk: a\n${DESCRIPTOR}` }));
     expect(errors[0]?.message).toBe('duplicate key "sdk"');
   });
+
+  describe('ingestion rows (ADR-029)', () => {
+    const INGESTION = `sdk: shelf-vendor
+events: []
+properties:
+  - { name: $geo_city, events: '*', presence: sometimes, when: { unknown: added on ingestion } }
+personProperties:
+  - { name: $geo_city, when: { unknown: added on ingestion } }
+`;
+    const withIngestion = DESCRIPTOR.replace(
+      'stub: stubs/shelf-sdk.d.ts\n',
+      'ingestion: builtins/shelf-vendor.yml\nstub: stubs/shelf-sdk.d.ts\n',
+    );
+    function ingestionSet(ingestion: string): string {
+      const dir = writeSet({ descriptor: withIngestion });
+      if (ingestion !== '') writeFileSync(join(dir, 'builtins/shelf-vendor.yml'), ingestion);
+      return dir;
+    }
+
+    it('appends the ingestion rows to the SDK builtins', () => {
+      const r = loadDescriptor(join(ingestionSet(INGESTION), 'shelf-sdk.yml'));
+      if (!r.ok) throw new Error(formatDescriptorErrors(r.errors).join('\n'));
+      expect(r.value.builtins.sdk).toBe('shelf-sdk');
+      expect(r.value.builtins.properties.map((p) => p.name)).toEqual([
+        '$lib',
+        '$prev_page',
+        '$geo_city',
+      ]);
+      expect(r.value.builtins.personProperties).toEqual([
+        { name: '$geo_city', when: { unknown: 'added on ingestion' } },
+      ]);
+      expect('ingestion' in r.value).toBe(false);
+    });
+
+    it('refuses an ingestion row switched by an init option (negative control)', () => {
+      const errors = errorsOf(
+        ingestionSet(
+          INGESTION.replace(
+            'when: { unknown: added on ingestion } }\nperson',
+            'when: { option: geo, not: false } }\nperson',
+          ),
+        ),
+      );
+      expect(errors).toEqual([
+        expect.objectContaining({
+          file: expect.stringContaining(join('builtins', 'shelf-vendor.yml')),
+          path: '/properties/0/when',
+          line: 4,
+          message:
+            'an ingestion row is always or { unknown }: the SDK init options cannot switch it',
+        }),
+      ]);
+    });
+
+    it('refuses an ingestion row that repeats an SDK builtin', () => {
+      const errors = errorsOf(ingestionSet(INGESTION.replace('$geo_city, events', '$lib, events')));
+      expect(errors).toEqual([
+        expect.objectContaining({
+          path: '/properties/0/name',
+          message: '"$lib" is also listed in builtins/shelf-sdk.yml',
+        }),
+      ]);
+    });
+
+    it('refuses a missing ingestion file, naming it, and checks the file without SDK builtins', () => {
+      const missing = errorsOf(ingestionSet(''));
+      expect(missing[0]).toMatchObject({ path: '/ingestion' });
+      expect(missing[0]?.message).toMatch(/^cannot read shelf-vendor\.yml: /);
+      const dir = ingestionSet(`${INGESTION}extra: 1\n`);
+      rmSync(join(dir, 'builtins/shelf-sdk.yml'));
+      const both = errorsOf(dir);
+      expect(both.map((e) => e.path)).toEqual(['/builtins', '/extra']);
+    });
+  });
 });
 
 describe('descriptor rules', () => {

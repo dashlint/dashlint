@@ -86,6 +86,11 @@ export interface DescriptorFile {
   init?: InitEntry[];
   /** Relative to the descriptor file. */
   builtins: string;
+  /**
+   * Relative to the descriptor file: what the vendor adds on ingestion (ADR-029), a builtins file
+   * whose conditions are `always` or `unknown`. Its rows join `builtins`.
+   */
+  ingestion?: string;
   /** Relative to the descriptor file. */
   stub: string;
   unknownNames?: UnknownNames;
@@ -138,9 +143,10 @@ export interface StubSurface {
 }
 
 /** A descriptor with its builtins and stub loaded and checked against each other. */
-export interface Descriptor extends Omit<DescriptorFile, 'builtins' | 'stub'> {
+export interface Descriptor extends Omit<DescriptorFile, 'builtins' | 'ingestion' | 'stub'> {
   /** Absolute path of the descriptor file. */
   file: string;
+  /** The SDK's builtins followed by the vendor's ingestion rows. */
   builtins: Builtins;
   stub: { file: string; modules: string[] };
 }

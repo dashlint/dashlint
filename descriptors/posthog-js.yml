@@ -47,6 +47,8 @@ init:
   - component: PostHogProvider
     options: options
 builtins: builtins/posthog-js.yml
+# What PostHog adds on ingestion (GeoIP), whichever SDK sent the event (ADR-029).
+ingestion: builtins/posthog-ingestion.yml
 stub: stubs/posthog-js.d.ts
 unknownNames:
   # $initial_* person properties are built by concatenation (ADR-003).

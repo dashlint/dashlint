@@ -260,7 +260,11 @@ export function loadDescriptor(file: string): DescriptorResult<Descriptor> {
   if (!source.ok) return { ok: false, errors: [{ file, path: '', message: source.error }] };
   const parsed = parseFile(source.text, descriptorSchema as GeneratedValidator, descriptorRules);
   if (!parsed.ok) return { ok: false, errors: inFile(file, parsed.errors) };
-  const { value: d, text } = parsed;
+  // The ingestion file joins the builtins; the loaded descriptor keeps no `ingestion` key.
+  const {
+    value: { ingestion, ...d },
+    text,
+  } = parsed;
   const dir = dirname(file);
   const errors: DescriptorError[] = [];
 
@@ -283,6 +287,12 @@ export function loadDescriptor(file: string): DescriptorResult<Descriptor> {
     else builtins = b.value;
   }
 
+  if (ingestion !== undefined) {
+    const rows = loadIngestion(file, text, resolve(dir, ingestion), d.builtins, builtins);
+    if (rows.ok) builtins = rows.value;
+    else errors.push(...rows.errors);
+  }
+
   const stubFile = resolve(dir, d.stub);
   let modules: string[] = [];
   const stubText = readText(stubFile);
@@ -296,6 +306,65 @@ export function loadDescriptor(file: string): DescriptorResult<Descriptor> {
 
   if (errors.length || !builtins) return { ok: false, errors };
   return { ok: true, value: { ...d, file, builtins, stub: { file: stubFile, modules } } };
+}
+
+/**
+ * The vendor's ingestion rows (ADR-029) appended to the SDK's builtins. The file is a builtins
+ * file; its rows are `always` or `unknown` (no init option switches what the server adds), and no
+ * name repeats one of the SDK's. With the SDK's builtins missing, the file is still checked.
+ */
+function loadIngestion(
+  descriptorFile: string,
+  descriptorText: YamlText,
+  file: string,
+  builtinsPath: string,
+  builtins: Builtins | undefined,
+): DescriptorResult<Builtins | undefined> {
+  const source = readText(file);
+  if (!source.ok)
+    return {
+      ok: false,
+      errors: inFile(
+        descriptorFile,
+        withLines([{ path: '/ingestion', message: source.error }], descriptorText),
+      ),
+    };
+  const parsed = parseFile<Builtins>(source.text, builtinsSchema as GeneratedValidator, (b) => [
+    ...builtinsRules(b),
+    ...ingestionRules(b, builtins, builtinsPath),
+  ]);
+  if (!parsed.ok) return { ok: false, errors: inFile(file, parsed.errors) };
+  const rows = parsed.value;
+  return {
+    ok: true,
+    value: builtins && {
+      sdk: builtins.sdk,
+      events: [...builtins.events, ...rows.events],
+      properties: [...builtins.properties, ...rows.properties],
+      personProperties: [...builtins.personProperties, ...rows.personProperties],
+    },
+  };
+}
+
+function ingestionRules(
+  b: Builtins,
+  sdk: Builtins | undefined,
+  builtinsPath: string,
+): ValidationError[] {
+  const errors: ValidationError[] = [];
+  for (const list of ['events', 'properties', 'personProperties'] as const) {
+    const own = new Set(sdk?.[list].map((e) => e.name));
+    b[list].forEach((entry, i) => {
+      if (entry.when !== 'always' && !('unknown' in entry.when))
+        errors.push({ path: `/${list}/${i}/when`, message: msg.ingestionCondition });
+      if (own.has(entry.name))
+        errors.push({
+          path: `/${list}/${i}/name`,
+          message: msg.ingestionDuplicate(entry.name, builtinsPath),
+        });
+    });
+  }
+  return errors;
 }
 
 /** Loads every `*.yml` descriptor in `dir` (not its subfolders), in file name order. */

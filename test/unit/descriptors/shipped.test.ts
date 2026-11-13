@@ -120,6 +120,23 @@ describe('shipped descriptors', () => {
     for (const e of lifecycle)
       expect(e.when).toEqual({ option: 'captureAppLifecycleEvents', not: false });
   });
+
+  // ADR-012, ADR-029: PostHog's GeoIP transformation, cited in notes/research/t39-ingestion.md.
+  it.each(descriptors.map((d) => [d.sdk, d] as const))(
+    '%s carries the $geoip_* ingestion rows, each unknown',
+    (_, d) => {
+      const geo = (list: { name: string }[]) =>
+        list.map((b) => b.name).filter((n) => n.startsWith('$geoip_'));
+      expect(geo(d.builtins.properties)).toHaveLength(14);
+      expect(geo(d.builtins.personProperties)).toHaveLength(15);
+      expect(geo(d.builtins.events)).toEqual([]);
+      const country = d.builtins.properties.find((p) => p.name === '$geoip_country_code');
+      expect(country).toMatchObject({ events: '*', presence: 'sometimes' });
+      for (const b of [...d.builtins.properties, ...d.builtins.personProperties])
+        if (b.name.startsWith('$geoip_'))
+          expect(b.when, b.name).toEqual({ unknown: expect.stringContaining('GeoIP') });
+    },
+  );
 });
 
 // Resolves each call in the fixture app through the checker with the stub as the only source of

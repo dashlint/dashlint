@@ -931,11 +931,11 @@ return errors === 0;
 validate20.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const descriptor = validate21;
-const schema39 = {"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://github.com/dashlint/dashlint/schema/descriptor.schema.json","title":"dashlint SDK descriptor","description":"What one analytics SDK's calls mean, as data (spec 6.3.3): the members that send events, super properties, person properties and identity, matched by their resolved declaration (spec 6.4 item 3). Rules the schema cannot express (one role per call, members present in the stub) are checked by src/descriptors/loader.ts.","type":"object","additionalProperties":false,"required":["sdk","package","versions","verified","declaredIn","platforms","calls","builtins","stub"],"properties":{"sdk":{"$ref":"#/$defs/name","description":"The descriptor id, used in catalogs."},"package":{"$ref":"#/$defs/packageName","description":"The npm package an app imports."},"versions":{"type":"string","pattern":"^(?:(?:>=|<=|>|<|=)?\\d+\\.\\d+\\.\\d+)(?: (?:>=|<=|>|<|=)?\\d+\\.\\d+\\.\\d+)*$","description":"The version range this descriptor applies to: space-separated comparators, all of which must hold."},"verified":{"type":"string","pattern":"^\\d+\\.\\d+\\.\\d+$","description":"The version whose published types and source every member and builtin was checked against (V1, V2)."},"declaredIn":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/packageName"},"description":"Packages whose declaration files may declare the matched members."},"platforms":{"type":"array","minItems":1,"items":{"enum":["web","ios","android"]},"description":"Default platforms of a source using this SDK."},"calls":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/call"}},"init":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/init"},"description":"Where the app creates the client and passes the init options that builtin conditions read (spec 6.4 item 8)."},"builtins":{"$ref":"#/$defs/relativeFile","description":"The builtins file, relative to this descriptor."},"stub":{"$ref":"#/$defs/relativeFile","description":"The type stub used when the package is not installed, relative to this descriptor."},"unknownNames":{"type":"object","additionalProperties":false,"description":"Name prefixes the SDK or the platform may send that cannot be cited as builtins (ADR-003): a requirement on such a name is not checked, never dead.","properties":{"events":{"$ref":"#/$defs/prefixes"},"properties":{"$ref":"#/$defs/prefixes"},"personProperties":{"$ref":"#/$defs/prefixes"}}}},"$defs":{"name":{"type":"string","pattern":"^[a-z0-9][a-z0-9._-]*$"},"packageName":{"type":"string","pattern":"^(?:@[a-z0-9][a-z0-9._-]*/)?[a-z0-9][a-z0-9._-]*$"},"identifier":{"type":"string","pattern":"^[A-Za-z_$][A-Za-z0-9_$]*$"},"container":{"type":"string","pattern":"^[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$","description":"A class or interface name, optionally followed by property names whose type is an object type (`PostHog.people`)."},"relativeFile":{"type":"string","pattern":"^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$"},"argPath":{"type":"string","pattern":"^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$","description":"A call argument by position, optionally followed by object keys: `args[0]`, `args[1].$set`."},"prefixes":{"type":"array","minItems":1,"items":{"type":"string","pattern":"\\S"}},"init":{"anyOf":[{"type":"object","additionalProperties":false,"required":["member","on","options"],"properties":{"member":{"$ref":"#/$defs/identifier","description":"The method, or `constructor` for `new`, matched by its resolved declaration."},"on":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/container"}},"options":{"$ref":"#/$defs/argPath"}}},{"type":"object","additionalProperties":false,"required":["component","options"],"properties":{"component":{"$ref":"#/$defs/identifier","description":"A component that creates the client; one given a `client` prop is not an init."},"options":{"$ref":"#/$defs/identifier","description":"The prop that holds the init options."}}}]},"call":{"type":"object","additionalProperties":false,"properties":{"member":{"$ref":"#/$defs/identifier","description":"The method or property name, matched by its resolved declaration."},"on":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/container"},"description":"Containers that declare the member."},"hook":{"$ref":"#/$defs/identifier","description":"A function returning the client; members called on its result are matched as above."},"event":{"anyOf":[{"$ref":"#/$defs/argPath"},{"type":"object","additionalProperties":false,"required":["literal"],"properties":{"literal":{"type":"string","pattern":"\\S"}}}],"description":"Where the event name comes from: an argument, or a fixed name."},"properties":{"$ref":"#/$defs/argPath"},"addProperties":{"type":"object","minProperties":1,"additionalProperties":{"$ref":"#/$defs/argPath"},"description":"Properties the SDK adds to the event from other arguments."},"superProperties":{"$ref":"#/$defs/argPath"},"identity":{"enum":["identify","reset"]},"personSet":{"$ref":"#/$defs/argPath"},"personSetOnce":{"$ref":"#/$defs/argPath"},"personSetFallback":{"type":"object","additionalProperties":false,"required":["from","omit"],"description":"When the object at `personSet` is absent, the SDK sets the keys of `from` (less `omit`) instead.","properties":{"from":{"$ref":"#/$defs/argPath"},"omit":{"type":"array","items":{"type":"string","pattern":"\\S"}}}}}}}};
+const schema39 = {"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://github.com/dashlint/dashlint/schema/descriptor.schema.json","title":"dashlint SDK descriptor","description":"What one analytics SDK's calls mean, as data (spec 6.3.3): the members that send events, super properties, person properties and identity, matched by their resolved declaration (spec 6.4 item 3). Rules the schema cannot express (one role per call, members present in the stub) are checked by src/descriptors/loader.ts.","type":"object","additionalProperties":false,"required":["sdk","package","versions","verified","declaredIn","platforms","calls","builtins","stub"],"properties":{"sdk":{"$ref":"#/$defs/name","description":"The descriptor id, used in catalogs."},"package":{"$ref":"#/$defs/packageName","description":"The npm package an app imports."},"versions":{"type":"string","pattern":"^(?:(?:>=|<=|>|<|=)?\\d+\\.\\d+\\.\\d+)(?: (?:>=|<=|>|<|=)?\\d+\\.\\d+\\.\\d+)*$","description":"The version range this descriptor applies to: space-separated comparators, all of which must hold."},"verified":{"type":"string","pattern":"^\\d+\\.\\d+\\.\\d+$","description":"The version whose published types and source every member and builtin was checked against (V1, V2)."},"declaredIn":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/packageName"},"description":"Packages whose declaration files may declare the matched members."},"platforms":{"type":"array","minItems":1,"items":{"enum":["web","ios","android"]},"description":"Default platforms of a source using this SDK."},"calls":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/call"}},"init":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/init"},"description":"Where the app creates the client and passes the init options that builtin conditions read (spec 6.4 item 8)."},"builtins":{"$ref":"#/$defs/relativeFile","description":"The builtins file, relative to this descriptor."},"ingestion":{"$ref":"#/$defs/relativeFile","description":"Properties the vendor adds on ingestion, whatever the SDK sends (ADR-029): a builtins file, relative to this descriptor, whose conditions are always or unknown. Its rows join the SDK's builtins."},"stub":{"$ref":"#/$defs/relativeFile","description":"The type stub used when the package is not installed, relative to this descriptor."},"unknownNames":{"type":"object","additionalProperties":false,"description":"Name prefixes the SDK or the platform may send that cannot be cited as builtins (ADR-003): a requirement on such a name is not checked, never dead.","properties":{"events":{"$ref":"#/$defs/prefixes"},"properties":{"$ref":"#/$defs/prefixes"},"personProperties":{"$ref":"#/$defs/prefixes"}}}},"$defs":{"name":{"type":"string","pattern":"^[a-z0-9][a-z0-9._-]*$"},"packageName":{"type":"string","pattern":"^(?:@[a-z0-9][a-z0-9._-]*/)?[a-z0-9][a-z0-9._-]*$"},"identifier":{"type":"string","pattern":"^[A-Za-z_$][A-Za-z0-9_$]*$"},"container":{"type":"string","pattern":"^[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$","description":"A class or interface name, optionally followed by property names whose type is an object type (`PostHog.people`)."},"relativeFile":{"type":"string","pattern":"^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$"},"argPath":{"type":"string","pattern":"^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$","description":"A call argument by position, optionally followed by object keys: `args[0]`, `args[1].$set`."},"prefixes":{"type":"array","minItems":1,"items":{"type":"string","pattern":"\\S"}},"init":{"anyOf":[{"type":"object","additionalProperties":false,"required":["member","on","options"],"properties":{"member":{"$ref":"#/$defs/identifier","description":"The method, or `constructor` for `new`, matched by its resolved declaration."},"on":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/container"}},"options":{"$ref":"#/$defs/argPath"}}},{"type":"object","additionalProperties":false,"required":["component","options"],"properties":{"component":{"$ref":"#/$defs/identifier","description":"A component that creates the client; one given a `client` prop is not an init."},"options":{"$ref":"#/$defs/identifier","description":"The prop that holds the init options."}}}]},"call":{"type":"object","additionalProperties":false,"properties":{"member":{"$ref":"#/$defs/identifier","description":"The method or property name, matched by its resolved declaration."},"on":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/container"},"description":"Containers that declare the member."},"hook":{"$ref":"#/$defs/identifier","description":"A function returning the client; members called on its result are matched as above."},"event":{"anyOf":[{"$ref":"#/$defs/argPath"},{"type":"object","additionalProperties":false,"required":["literal"],"properties":{"literal":{"type":"string","pattern":"\\S"}}}],"description":"Where the event name comes from: an argument, or a fixed name."},"properties":{"$ref":"#/$defs/argPath"},"addProperties":{"type":"object","minProperties":1,"additionalProperties":{"$ref":"#/$defs/argPath"},"description":"Properties the SDK adds to the event from other arguments."},"superProperties":{"$ref":"#/$defs/argPath"},"identity":{"enum":["identify","reset"]},"personSet":{"$ref":"#/$defs/argPath"},"personSetOnce":{"$ref":"#/$defs/argPath"},"personSetFallback":{"type":"object","additionalProperties":false,"required":["from","omit"],"description":"When the object at `personSet` is absent, the SDK sets the keys of `from` (less `omit`) instead.","properties":{"from":{"$ref":"#/$defs/argPath"},"omit":{"type":"array","items":{"type":"string","pattern":"\\S"}}}}}}}};
 const schema40 = {"type":"string","pattern":"^[a-z0-9][a-z0-9._-]*$"};
 const schema41 = {"type":"string","pattern":"^(?:@[a-z0-9][a-z0-9._-]*/)?[a-z0-9][a-z0-9._-]*$"};
 const schema60 = {"type":"string","pattern":"^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$"};
-const schema62 = {"type":"array","minItems":1,"items":{"type":"string","pattern":"\\S"}};
+const schema63 = {"type":"array","minItems":1,"items":{"type":"string","pattern":"\\S"}};
 const func1 = Object.prototype.hasOwnProperty;
 const pattern16 = new RegExp("^(?:@[a-z0-9][a-z0-9._-]*/)?[a-z0-9][a-z0-9._-]*$", "u");
 const pattern17 = new RegExp("^(?:(?:>=|<=|>|<|=)?\\d+\\.\\d+\\.\\d+)(?: (?:>=|<=|>|<|=)?\\d+\\.\\d+\\.\\d+)*$", "u");
@@ -2175,11 +2175,11 @@ vErrors.push(err30);
 errors++;
 }
 }
-if(data.stub !== undefined){
-let data13 = data.stub;
+if(data.ingestion !== undefined){
+let data13 = data.ingestion;
 if(typeof data13 === "string"){
 if(!pattern37.test(data13)){
-const err31 = {instancePath:instancePath+"/stub",schemaPath:"#/$defs/relativeFile/pattern",keyword:"pattern",params:{pattern: "^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$"},message:"must match pattern \""+"^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$"+"\""};
+const err31 = {instancePath:instancePath+"/ingestion",schemaPath:"#/$defs/relativeFile/pattern",keyword:"pattern",params:{pattern: "^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$"},message:"must match pattern \""+"^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$"+"\""};
 if(vErrors === null){
 vErrors = [err31];
 }
@@ -2190,7 +2190,7 @@ errors++;
 }
 }
 else {
-const err32 = {instancePath:instancePath+"/stub",schemaPath:"#/$defs/relativeFile/type",keyword:"type",params:{type: "string"},message:"must be string"};
+const err32 = {instancePath:instancePath+"/ingestion",schemaPath:"#/$defs/relativeFile/type",keyword:"type",params:{type: "string"},message:"must be string"};
 if(vErrors === null){
 vErrors = [err32];
 }
@@ -2200,12 +2200,11 @@ vErrors.push(err32);
 errors++;
 }
 }
-if(data.unknownNames !== undefined){
-let data14 = data.unknownNames;
-if(data14 && typeof data14 == "object" && !Array.isArray(data14)){
-for(const key1 in data14){
-if(!(((key1 === "events") || (key1 === "properties")) || (key1 === "personProperties"))){
-const err33 = {instancePath:instancePath+"/unknownNames",schemaPath:"#/properties/unknownNames/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key1},message:"must NOT have additional properties"};
+if(data.stub !== undefined){
+let data14 = data.stub;
+if(typeof data14 === "string"){
+if(!pattern37.test(data14)){
+const err33 = {instancePath:instancePath+"/stub",schemaPath:"#/$defs/relativeFile/pattern",keyword:"pattern",params:{pattern: "^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$"},message:"must match pattern \""+"^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$"+"\""};
 if(vErrors === null){
 vErrors = [err33];
 }
@@ -2215,11 +2214,8 @@ vErrors.push(err33);
 errors++;
 }
 }
-if(data14.events !== undefined){
-let data15 = data14.events;
-if(Array.isArray(data15)){
-if(data15.length < 1){
-const err34 = {instancePath:instancePath+"/unknownNames/events",schemaPath:"#/$defs/prefixes/minItems",keyword:"minItems",params:{limit: 1},message:"must NOT have fewer than 1 items"};
+else {
+const err34 = {instancePath:instancePath+"/stub",schemaPath:"#/$defs/relativeFile/type",keyword:"type",params:{type: "string"},message:"must be string"};
 if(vErrors === null){
 vErrors = [err34];
 }
@@ -2228,12 +2224,13 @@ vErrors.push(err34);
 }
 errors++;
 }
-const len4 = data15.length;
-for(let i4=0; i4<len4; i4++){
-let data16 = data15[i4];
-if(typeof data16 === "string"){
-if(!pattern5.test(data16)){
-const err35 = {instancePath:instancePath+"/unknownNames/events/" + i4,schemaPath:"#/$defs/prefixes/items/pattern",keyword:"pattern",params:{pattern: "\\S"},message:"must match pattern \""+"\\S"+"\""};
+}
+if(data.unknownNames !== undefined){
+let data15 = data.unknownNames;
+if(data15 && typeof data15 == "object" && !Array.isArray(data15)){
+for(const key1 in data15){
+if(!(((key1 === "events") || (key1 === "properties")) || (key1 === "personProperties"))){
+const err35 = {instancePath:instancePath+"/unknownNames",schemaPath:"#/properties/unknownNames/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key1},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err35];
 }
@@ -2243,8 +2240,11 @@ vErrors.push(err35);
 errors++;
 }
 }
-else {
-const err36 = {instancePath:instancePath+"/unknownNames/events/" + i4,schemaPath:"#/$defs/prefixes/items/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(data15.events !== undefined){
+let data16 = data15.events;
+if(Array.isArray(data16)){
+if(data16.length < 1){
+const err36 = {instancePath:instancePath+"/unknownNames/events",schemaPath:"#/$defs/prefixes/minItems",keyword:"minItems",params:{limit: 1},message:"must NOT have fewer than 1 items"};
 if(vErrors === null){
 vErrors = [err36];
 }
@@ -2253,10 +2253,12 @@ vErrors.push(err36);
 }
 errors++;
 }
-}
-}
-else {
-const err37 = {instancePath:instancePath+"/unknownNames/events",schemaPath:"#/$defs/prefixes/type",keyword:"type",params:{type: "array"},message:"must be array"};
+const len4 = data16.length;
+for(let i4=0; i4<len4; i4++){
+let data17 = data16[i4];
+if(typeof data17 === "string"){
+if(!pattern5.test(data17)){
+const err37 = {instancePath:instancePath+"/unknownNames/events/" + i4,schemaPath:"#/$defs/prefixes/items/pattern",keyword:"pattern",params:{pattern: "\\S"},message:"must match pattern \""+"\\S"+"\""};
 if(vErrors === null){
 vErrors = [err37];
 }
@@ -2266,11 +2268,8 @@ vErrors.push(err37);
 errors++;
 }
 }
-if(data14.properties !== undefined){
-let data17 = data14.properties;
-if(Array.isArray(data17)){
-if(data17.length < 1){
-const err38 = {instancePath:instancePath+"/unknownNames/properties",schemaPath:"#/$defs/prefixes/minItems",keyword:"minItems",params:{limit: 1},message:"must NOT have fewer than 1 items"};
+else {
+const err38 = {instancePath:instancePath+"/unknownNames/events/" + i4,schemaPath:"#/$defs/prefixes/items/type",keyword:"type",params:{type: "string"},message:"must be string"};
 if(vErrors === null){
 vErrors = [err38];
 }
@@ -2279,12 +2278,10 @@ vErrors.push(err38);
 }
 errors++;
 }
-const len5 = data17.length;
-for(let i5=0; i5<len5; i5++){
-let data18 = data17[i5];
-if(typeof data18 === "string"){
-if(!pattern5.test(data18)){
-const err39 = {instancePath:instancePath+"/unknownNames/properties/" + i5,schemaPath:"#/$defs/prefixes/items/pattern",keyword:"pattern",params:{pattern: "\\S"},message:"must match pattern \""+"\\S"+"\""};
+}
+}
+else {
+const err39 = {instancePath:instancePath+"/unknownNames/events",schemaPath:"#/$defs/prefixes/type",keyword:"type",params:{type: "array"},message:"must be array"};
 if(vErrors === null){
 vErrors = [err39];
 }
@@ -2294,8 +2291,11 @@ vErrors.push(err39);
 errors++;
 }
 }
-else {
-const err40 = {instancePath:instancePath+"/unknownNames/properties/" + i5,schemaPath:"#/$defs/prefixes/items/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(data15.properties !== undefined){
+let data18 = data15.properties;
+if(Array.isArray(data18)){
+if(data18.length < 1){
+const err40 = {instancePath:instancePath+"/unknownNames/properties",schemaPath:"#/$defs/prefixes/minItems",keyword:"minItems",params:{limit: 1},message:"must NOT have fewer than 1 items"};
 if(vErrors === null){
 vErrors = [err40];
 }
@@ -2304,10 +2304,12 @@ vErrors.push(err40);
 }
 errors++;
 }
-}
-}
-else {
-const err41 = {instancePath:instancePath+"/unknownNames/properties",schemaPath:"#/$defs/prefixes/type",keyword:"type",params:{type: "array"},message:"must be array"};
+const len5 = data18.length;
+for(let i5=0; i5<len5; i5++){
+let data19 = data18[i5];
+if(typeof data19 === "string"){
+if(!pattern5.test(data19)){
+const err41 = {instancePath:instancePath+"/unknownNames/properties/" + i5,schemaPath:"#/$defs/prefixes/items/pattern",keyword:"pattern",params:{pattern: "\\S"},message:"must match pattern \""+"\\S"+"\""};
 if(vErrors === null){
 vErrors = [err41];
 }
@@ -2317,11 +2319,8 @@ vErrors.push(err41);
 errors++;
 }
 }
-if(data14.personProperties !== undefined){
-let data19 = data14.personProperties;
-if(Array.isArray(data19)){
-if(data19.length < 1){
-const err42 = {instancePath:instancePath+"/unknownNames/personProperties",schemaPath:"#/$defs/prefixes/minItems",keyword:"minItems",params:{limit: 1},message:"must NOT have fewer than 1 items"};
+else {
+const err42 = {instancePath:instancePath+"/unknownNames/properties/" + i5,schemaPath:"#/$defs/prefixes/items/type",keyword:"type",params:{type: "string"},message:"must be string"};
 if(vErrors === null){
 vErrors = [err42];
 }
@@ -2330,12 +2329,10 @@ vErrors.push(err42);
 }
 errors++;
 }
-const len6 = data19.length;
-for(let i6=0; i6<len6; i6++){
-let data20 = data19[i6];
-if(typeof data20 === "string"){
-if(!pattern5.test(data20)){
-const err43 = {instancePath:instancePath+"/unknownNames/personProperties/" + i6,schemaPath:"#/$defs/prefixes/items/pattern",keyword:"pattern",params:{pattern: "\\S"},message:"must match pattern \""+"\\S"+"\""};
+}
+}
+else {
+const err43 = {instancePath:instancePath+"/unknownNames/properties",schemaPath:"#/$defs/prefixes/type",keyword:"type",params:{type: "array"},message:"must be array"};
 if(vErrors === null){
 vErrors = [err43];
 }
@@ -2345,8 +2342,11 @@ vErrors.push(err43);
 errors++;
 }
 }
-else {
-const err44 = {instancePath:instancePath+"/unknownNames/personProperties/" + i6,schemaPath:"#/$defs/prefixes/items/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(data15.personProperties !== undefined){
+let data20 = data15.personProperties;
+if(Array.isArray(data20)){
+if(data20.length < 1){
+const err44 = {instancePath:instancePath+"/unknownNames/personProperties",schemaPath:"#/$defs/prefixes/minItems",keyword:"minItems",params:{limit: 1},message:"must NOT have fewer than 1 items"};
 if(vErrors === null){
 vErrors = [err44];
 }
@@ -2355,10 +2355,12 @@ vErrors.push(err44);
 }
 errors++;
 }
-}
-}
-else {
-const err45 = {instancePath:instancePath+"/unknownNames/personProperties",schemaPath:"#/$defs/prefixes/type",keyword:"type",params:{type: "array"},message:"must be array"};
+const len6 = data20.length;
+for(let i6=0; i6<len6; i6++){
+let data21 = data20[i6];
+if(typeof data21 === "string"){
+if(!pattern5.test(data21)){
+const err45 = {instancePath:instancePath+"/unknownNames/personProperties/" + i6,schemaPath:"#/$defs/prefixes/items/pattern",keyword:"pattern",params:{pattern: "\\S"},message:"must match pattern \""+"\\S"+"\""};
 if(vErrors === null){
 vErrors = [err45];
 }
@@ -2368,9 +2370,8 @@ vErrors.push(err45);
 errors++;
 }
 }
-}
 else {
-const err46 = {instancePath:instancePath+"/unknownNames",schemaPath:"#/properties/unknownNames/type",keyword:"type",params:{type: "object"},message:"must be object"};
+const err46 = {instancePath:instancePath+"/unknownNames/personProperties/" + i6,schemaPath:"#/$defs/prefixes/items/type",keyword:"type",params:{type: "string"},message:"must be string"};
 if(vErrors === null){
 vErrors = [err46];
 }
@@ -2382,12 +2383,36 @@ errors++;
 }
 }
 else {
-const err47 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+const err47 = {instancePath:instancePath+"/unknownNames/personProperties",schemaPath:"#/$defs/prefixes/type",keyword:"type",params:{type: "array"},message:"must be array"};
 if(vErrors === null){
 vErrors = [err47];
 }
 else {
 vErrors.push(err47);
+}
+errors++;
+}
+}
+}
+else {
+const err48 = {instancePath:instancePath+"/unknownNames",schemaPath:"#/properties/unknownNames/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err48];
+}
+else {
+vErrors.push(err48);
+}
+errors++;
+}
+}
+}
+else {
+const err49 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err49];
+}
+else {
+vErrors.push(err49);
 }
 errors++;
 }

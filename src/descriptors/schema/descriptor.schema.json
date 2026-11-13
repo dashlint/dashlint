@@ -55,6 +55,10 @@
       "$ref": "#/$defs/relativeFile",
       "description": "The builtins file, relative to this descriptor."
     },
+    "ingestion": {
+      "$ref": "#/$defs/relativeFile",
+      "description": "Properties the vendor adds on ingestion, whatever the SDK sends (ADR-029): a builtins file, relative to this descriptor, whose conditions are always or unknown. Its rows join the SDK's builtins."
+    },
     "stub": {
       "$ref": "#/$defs/relativeFile",
       "description": "The type stub used when the package is not installed, relative to this descriptor."
