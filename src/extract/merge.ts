@@ -4,19 +4,19 @@
 // property is `always` only when every site in every catalog sends it always, and any open site
 // keeps "no" facts unknown (G15).
 import type { Descriptor, UnknownNames } from '../descriptors/index.js';
-import type {
-  CallSite,
-  Catalog,
-  EventSite,
-  OpenWorldSite,
-  Presence,
-  PropertyFact,
-  ValueDomain,
+import {
+  MIN_NAME_RESOLUTION_RATE,
+  type CallSite,
+  type Catalog,
+  type EventSite,
+  type OpenWorldSite,
+  type Presence,
+  type PropertyFact,
+  type ValueDomain,
 } from '../formats/catalog.js';
 import { mergeSiteProperties, unionDomains, type PropertyFactValue } from './properties.js';
 
-/** D9: below this name-resolution rate a source gives no event-level "no" from code alone. */
-export const MIN_NAME_RESOLUTION_RATE = 0.7;
+export { MIN_NAME_RESOLUTION_RATE };
 
 /** One SDK's builtins table, whatever each row's condition (the catalog says which were not sent). */
 export interface BuiltinTable {

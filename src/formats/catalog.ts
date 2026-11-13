@@ -34,6 +34,9 @@ export interface CatalogSource {
   sdks: CatalogSdk[];
 }
 
+/** D9: below this name-resolution rate a source gives no event-level "no" from code alone. */
+export const MIN_NAME_RESOLUTION_RATE = 0.7;
+
 export interface Coverage {
   files: number;
   excludedFiles: number;
