@@ -73,6 +73,7 @@ export const FAIL_ON = ['dead', 'partly-dead', 'degraded', 'never'] as const;
 export type FailOn = (typeof FAIL_ON)[number];
 
 export const COMMANDS: Readonly<Record<string, Readonly<Record<string, FlagSpec>>>> = {
+  init: { yes: { kind: 'boolean' } },
   extract: { source: { kind: 'string' }, out: { kind: 'string' } },
   pull: { out: { kind: 'string' } },
   check: {
@@ -146,10 +147,13 @@ export function parseArgs(argv: readonly string[]): ParsedArgs {
     const eq = arg.indexOf('=');
     const name = eq === -1 ? arg.slice(2) : arg.slice(2, eq);
     const inline = eq === -1 ? undefined : arg.slice(eq + 1);
-    // Every command flag takes a value; only global flags are switches.
     if (!Object.hasOwn(GLOBAL_FLAGS, name) && !flagsOf(undefined).includes(name))
       throw unknownFlag(name);
-    if (GLOBAL_FLAGS[name]?.kind === 'boolean') {
+    // A switch takes no value; whether a command flag is one does not depend on the command.
+    const isSwitch =
+      GLOBAL_FLAGS[name]?.kind === 'boolean' ||
+      Object.values(COMMANDS).some((c) => c[name]?.kind === 'boolean');
+    if (isSwitch) {
       if (inline !== undefined) throw usageError(cliMessages.flagTakesNoValue(`--${name}`));
       pending.push({ name, value: true });
     } else if (inline === undefined) {

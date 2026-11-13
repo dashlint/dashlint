@@ -1,0 +1,9 @@
+{
+  "name": "bookshop",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "!packages/legacy"
+  ]
+}

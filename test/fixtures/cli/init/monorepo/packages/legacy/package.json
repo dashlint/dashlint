@@ -1,0 +1,7 @@
+{
+  "name": "@bookshop/legacy",
+  "private": true,
+  "dependencies": {
+    "posthog-js": "^1.100.0"
+  }
+}

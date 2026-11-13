@@ -9,6 +9,7 @@ import { COMMANDS, CliError, parseArgs, usageError, type ParsedArgs } from './ar
 import { checkCommand } from './commands/check.js';
 import type { CommandContext } from './commands/common.js';
 import { extractCommand } from './commands/extract.js';
+import { initCommand } from './commands/init.js';
 import { pullCommand, type PullCommandContext } from './commands/pull.js';
 
 export function readVersion(): string {
@@ -72,6 +73,7 @@ export async function run(argv: readonly string[], ctx: MainContext): Promise<nu
       ...(parsed.globals.config === undefined ? {} : { config: parsed.globals.config }),
       ...(ctx.now === undefined ? {} : { now: ctx.now }),
     };
+    if (command === 'init') return initCommand(parsed.flags, commandCtx);
     return command === 'extract'
       ? extractCommand(parsed.flags, commandCtx)
       : checkCommand(parsed.flags, commandCtx);

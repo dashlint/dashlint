@@ -1,0 +1,7 @@
+{
+  "name": "@bookshop/ui",
+  "private": true,
+  "dependencies": {
+    "react": "^19.0.0"
+  }
+}

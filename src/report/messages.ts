@@ -538,6 +538,8 @@ export const cliMessages = {
 Usage: dashlint <command> [options]
 
 Commands:
+  init [--yes]
+      find the apps that use an SDK and write dashlint.config.yml (--yes replaces one)
   extract [--source <name>] [--out <file>]
       write the catalog JSON of each source (no network)
   pull [--out <file>]
@@ -560,7 +562,7 @@ Exit codes: 0 nothing at or above failOn, 1 findings at or above failOn, 2 usage
     `dashlint${command === undefined ? '' : ` ${command}`}: ${message}`,
   bug: (command: string | undefined, message: string) =>
     `dashlint${command === undefined ? '' : ` ${command}`}: unexpected error: ${message}\n${BUG_REPORT}`,
-  noCommand: 'name a command: extract, pull or check (dashlint --help lists them)',
+  noCommand: 'name a command: init, extract, pull or check (dashlint --help lists them)',
   unknownCommand: (name: string, suggestion: string | undefined) =>
     `unknown command ${name}${suggestion === undefined ? '' : `; did you mean ${suggestion}?`}`,
   unknownFlag: (flag: string, suggestion: string | undefined) =>
@@ -602,6 +604,13 @@ Exit codes: 0 nothing at or above failOn, 1 findings at or above failOn, 2 usage
   wroteCatalog: (file: string, source: string, events: number, rate: number) =>
     `extract: wrote ${file} (source ${source}, ${events} event${events === 1 ? '' : 's'}, name resolution ${Math.round(rate * 1000) / 10}%)`,
   wroteReport: (file: string) => `check: wrote ${file}`,
+  configExists: (file: string) =>
+    `${file} already exists and was left as it is; pass --yes to replace it`,
+  packageJsonUnreadable: (file: string) => `${file} is not readable JSON; it was skipped`,
+  wroteConfig: (file: string, sources: string[]) =>
+    sources.length === 0
+      ? `init: wrote ${file} with no sources: no app here depends on an SDK dashlint describes; add one under sources`
+      : `init: wrote ${file} with ${String(sources.length)} source${sources.length === 1 ? '' : 's'}: ${sources.join('; ')}. Set the PostHog project in it, then run dashlint pull`,
   markdownNeedsDiff:
     '--format markdown writes the pull request comment, which compares two commits; check prints text, json or html',
   warning: (command: string, message: string) => `${command}: ${message}`,

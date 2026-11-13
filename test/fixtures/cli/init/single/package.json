@@ -1,0 +1,8 @@
+{
+  "name": "@bookshop/storefront",
+  "private": true,
+  "dependencies": {
+    "posthog-js": "^1.200.0",
+    "react": "^19.0.0"
+  }
+}
