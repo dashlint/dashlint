@@ -62,6 +62,8 @@ export interface SdkTypes {
 
 export interface SourceProgram {
   program: ts.Program;
+  /** The repository root, absolute with `/` separators; catalog paths are relative to it. */
+  repoRoot: string;
   /** "." for the repository root, otherwise relative with `/` separators. */
   root: string;
   /** The tsconfig whose options the program uses, relative to the repository root. */
@@ -391,6 +393,7 @@ export function createSourceProgram(input: ProgramInput): ProgramResult {
     ok: true,
     value: {
       program,
+      repoRoot: slash(repoRoot),
       root: sourceRel === '' ? '.' : sourceRel,
       tsconfig: found.config ? rel(found.config) : null,
       files,
