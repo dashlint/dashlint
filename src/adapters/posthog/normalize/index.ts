@@ -15,7 +15,10 @@ import {
   type ActionLookup,
   type Raw,
 } from './common.js';
+import { applyDashboards } from './dashboards.js';
+import { funnelsParts } from './funnels.js';
 import { lifecycleParts } from './lifecycle.js';
+import { retentionParts } from './retention.js';
 import { stickinessParts } from './stickiness.js';
 import { trendsParts } from './trends.js';
 
@@ -27,21 +30,31 @@ export interface NormalizeContext {
   project: number | string;
   /** Expands an action node's steps (T5.4); without it action nodes are not checked. */
   actions?: ActionLookup;
+  /**
+   * Dashboard bodies (`dashboards/<id>/`, T5.3); without them `dashboards` is empty and each tile
+   * keeps the dashboards its insight lists.
+   */
+  dashboards?: readonly unknown[];
 }
 
-type Parts = Partial<Pick<Tile, 'series' | 'formulas' | 'filters' | 'breakdown'>>;
+type Parts = Partial<
+  Pick<
+    Tile,
+    'series' | 'formulas' | 'filters' | 'breakdown' | 'exclusions' | 'funnelVizType' | 'retention'
+  >
+>;
 type Handler = (query: Raw, notChecked: NotCheckedList, actions?: ActionLookup) => Parts;
 
 const HANDLERS: Readonly<Record<string, { kind: TileKind; parts: Handler }>> = {
   TrendsQuery: { kind: 'trends', parts: trendsParts },
   LifecycleQuery: { kind: 'lifecycle', parts: lifecycleParts },
   StickinessQuery: { kind: 'stickiness', parts: stickinessParts },
+  FunnelsQuery: { kind: 'funnels', parts: funnelsParts },
+  RetentionQuery: { kind: 'retention', parts: retentionParts },
 };
 
-// The tile kind of a query kind that is not (yet) read.
+// The tile kind of a query kind that is not read (spec 6.3.2: paths, SQL and other kinds).
 const UNREAD_KINDS: Readonly<Record<string, TileKind>> = {
-  FunnelsQuery: 'funnels',
-  RetentionQuery: 'retention',
   PathsQuery: 'paths',
   PathsV2Query: 'paths',
   HogQLQuery: 'sql',
@@ -77,6 +90,16 @@ function header(
     url: `${ctx.host}/project/${String(ctx.project)}/insights/${short}`,
     dashboards,
   };
+}
+
+// The lists of a kind, all empty, for a query that is not read: nothing from PostHog's defaults is
+// claimed (no funnel viz type, retention entities as never-checked nodes rather than $pageview).
+function emptyParts(handler: Handler): Parts {
+  const parts = handler({}, new NotCheckedList());
+  delete parts.funnelVizType;
+  if (parts.retention !== undefined)
+    parts.retention = { target: { node: 'warehouse' }, returning: { node: 'warehouse' } };
+  return parts;
 }
 
 function notCheckedTile(
@@ -115,19 +138,14 @@ export function normalizeInsight(insight: Raw, ctx: NormalizeContext): Tile {
   }
   const versionReason = unknownVersion(source, kindName);
   if (versionReason !== undefined)
-    return notCheckedTile(
-      head,
-      handler.kind,
-      versionReason,
-      handler.parts({}, new NotCheckedList()),
-    );
+    return notCheckedTile(head, handler.kind, versionReason, emptyParts(handler.parts));
   const notChecked = new NotCheckedList();
   let parts: Parts;
   try {
     parts = handler.parts(source, notChecked, ctx.actions);
   } catch (e) {
     const reason = `query kind ${kindName} could not be read (${e instanceof Error ? e.message : String(e)})`;
-    return notCheckedTile(head, handler.kind, reason, handler.parts({}, new NotCheckedList()));
+    return notCheckedTile(head, handler.kind, reason, emptyParts(handler.parts));
   }
   const dateRange = dateRangeOf(source);
   return {
@@ -140,23 +158,47 @@ export function normalizeInsight(insight: Raw, ctx: NormalizeContext): Tile {
   };
 }
 
+// A dashboard tile's `insight` (an object with `short_id` or `id`, or a bare id) as a lookup key.
+function insightKeys(ref: unknown): string[] {
+  const keys: string[] = [];
+  const add = (prefix: string, v: unknown): void => {
+    if ((typeof v === 'number' && Number.isFinite(v)) || (typeof v === 'string' && v !== ''))
+      keys.push(`${prefix}:${String(v)}`);
+  };
+  if (isRecord(ref)) {
+    add('short', ref.short_id);
+    add('id', ref.id);
+  } else add('id', ref);
+  return keys;
+}
+
 /**
- * The requirements of a project's saved insights, before dashboards, alerts and observed data are
- * added (T5.3, T5.4) and `pulledAt` and `tool` are stamped (T5.5). Deleted insights are left out;
- * tiles are sorted by id (code point).
+ * The requirements of a project's saved insights and dashboards, before alerts and observed data are
+ * added (T5.4) and `pulledAt` and `tool` are stamped (T5.5). Deleted insights are left out; tiles
+ * and dashboards are sorted by id (code point).
  */
 export function normalizeInsights(
   insights: readonly unknown[],
   ctx: NormalizeContext,
 ): Requirements {
+  const tileOf = new Map<string, string>();
   const tiles = insights
     .filter((i): i is Raw => isRecord(i) && i.deleted !== true)
-    .map((i) => normalizeInsight(i, ctx))
+    .map((i) => {
+      const tile = normalizeInsight(i, ctx);
+      for (const key of insightKeys(i)) if (!tileOf.has(key)) tileOf.set(key, tile.id);
+      return tile;
+    })
     .sort((a, b) => byCodePoint(a.id, b.id));
+  const dashboards = applyDashboards(ctx.dashboards ?? [], tiles, (ref) =>
+    insightKeys(ref)
+      .map((k) => tileOf.get(k))
+      .find((t) => t !== undefined),
+  );
   return {
     schema: REQUIREMENTS_SCHEMA,
     source: { platform: 'posthog', host: ctx.host, project: ctx.project, profile: 'posthog' },
-    dashboards: [],
+    dashboards,
     tiles,
     alerts: [],
   };

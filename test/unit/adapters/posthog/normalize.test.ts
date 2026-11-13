@@ -20,11 +20,25 @@ type Raw = Record<string, unknown>;
 const dir = new URL('../../../fixtures/posthog/', import.meta.url);
 const ctx: NormalizeContext = { host: 'https://us.posthog.com', project: 1001 };
 
+function responsesOf(shape: string): Record<string, unknown> {
+  return (
+    JSON.parse(readFileSync(new URL(`${shape}.json`, dir), 'utf8')) as {
+      responses: Record<string, unknown>;
+    }
+  ).responses;
+}
+
 function insightsOf(shape: string): Raw[] {
-  const raw = JSON.parse(readFileSync(new URL(`${shape}.json`, dir), 'utf8')) as {
-    responses: Record<string, { results: Raw[] }>;
-  };
-  return dropOnArrival(raw.responses['insights/?saved=true']?.results ?? []) as Raw[];
+  const page = responsesOf(shape)['insights/?saved=true'] as { results: Raw[] } | undefined;
+  return dropOnArrival(page?.results ?? []) as Raw[];
+}
+
+/** The twin's context: its dashboard bodies (`dashboards/<id>/`), as `pull` reads them. */
+function ctxOf(shape: string): NormalizeContext {
+  const dashboards = Object.entries(responsesOf(shape))
+    .filter(([path]) => /^dashboards\/[^/]+\/$/.test(path))
+    .map(([, body]) => body);
+  return { ...ctx, dashboards };
 }
 
 function expectedOf(shape: string): Requirements {
@@ -47,33 +61,44 @@ const TWINS = [
   'trends-property-filters',
   'trends-options',
   'lifecycle-stickiness',
+  'funnel-repeated-steps',
+  'retention',
+  'not-checked-kinds',
+  'dashboards',
 ];
 
 describe('twins (T2.4) normalise byte for byte', () => {
   it.each(TWINS)('%s', (shape) => {
-    const out = normalizeInsights(insightsOf(shape), ctx);
+    const out = normalizeInsights(insightsOf(shape), ctxOf(shape));
     expectValid(out);
     expect(toCanonicalJson(out)).toBe(readFileSync(new URL(`expected/${shape}.json`, dir), 'utf8'));
   });
 
-  // Twins that also need dashboards, alerts, funnels or retention (T5.3, T5.4): every trends,
-  // lifecycle and stickiness tile in them is already exact.
+  // Twins that also need actions or alerts (T5.4): their tiles are exact up to the expansion of
+  // action nodes (only the action id is compared, and "was not read" entries are dropped).
   const others = readdirSync(dir)
     .filter((f) => f.endsWith('.json'))
     .map((f) => f.slice(0, -5))
     .filter((s) => !TWINS.includes(s));
-  it.each(others)('%s: trends, lifecycle and stickiness tiles', (shape) => {
-    const expected = expectedOf(shape).tiles.filter((t) =>
-      ['trends', 'lifecycle', 'stickiness'].includes(t.kind),
+  const withoutActions = (t: Tile): string =>
+    JSON.stringify(
+      {
+        ...t,
+        notChecked: (t.notChecked ?? []).filter((n) => !/^action .* was not read$/.test(n.reason)),
+      },
+      (key, v: unknown) =>
+        key === 'action' && typeof v === 'object' && v !== null ? { id: (v as Raw).id } : v,
     );
-    const got = normalizeInsights(insightsOf(shape), ctx).tiles.filter((t) =>
-      expected.some((e) => e.id === t.id),
+  it.each(others)('%s: tiles up to action expansion', (shape) => {
+    const expected = expectedOf(shape).tiles;
+    const got = normalizeInsights(insightsOf(shape), ctxOf(shape)).tiles;
+    expect(toCanonicalJson(got.map((t) => JSON.parse(withoutActions(t)) as unknown))).toBe(
+      toCanonicalJson(expected.map((t) => JSON.parse(withoutActions(t)) as unknown)),
     );
-    expect(got.map((t) => toCanonicalJson(t))).toEqual(expected.map((t) => toCanonicalJson(t)));
   });
 
-  it('cover every twin of the three kinds', () => {
-    expect(TWINS.length + 6).toBe(readdirSync(dir).filter((f) => f.endsWith('.json')).length);
+  it('cover every twin but the two T5.4 completes', () => {
+    expect(others).toEqual(['alerts', 'funnel-action-steps']);
   });
 });
 
@@ -760,6 +785,22 @@ describe('outputs always validate and never throw', () => {
     'series',
     'dateRange',
     'date_from',
+    'funnelFromStep',
+    'funnelToStep',
+    'exclusions',
+    'funnelVizType',
+    'targetEntity',
+    'returningEntity',
+    'aggregationType',
+    'aggregationProperty',
+    'name',
+    'filters',
+    'filters_overrides',
+    'ignoreDashboardFilters',
+    'breakdown_filter',
+    'insight',
+    'short_id',
+    'deleted',
   ];
   const ATOMS: unknown[] = [
     null,
@@ -779,6 +820,16 @@ describe('outputs always validate and never throw', () => {
     'cohort',
     'exact',
     'Weird Op',
+    'actions',
+    'events',
+    'data_warehouse',
+    'new_entity',
+    'sum',
+    'steps',
+    '$pageview',
+    'Zz000001',
+    7,
+    1,
     0,
     4,
     5,
@@ -798,7 +849,13 @@ describe('outputs always validate and never throw', () => {
   };
 
   it('500 random queries of each kind', () => {
-    for (const kind of ['TrendsQuery', 'LifecycleQuery', 'StickinessQuery']) {
+    for (const kind of [
+      'TrendsQuery',
+      'LifecycleQuery',
+      'StickinessQuery',
+      'FunnelsQuery',
+      'RetentionQuery',
+    ]) {
       for (let i = 0; i < 500; i++) {
         const source = { ...(junk(4) as Raw), kind, version: pick([undefined, 1, 4, 5]) };
         if (rnd() < 0.7) source.series = Array.from({ length: 3 }, () => junk(4));
@@ -806,15 +863,48 @@ describe('outputs always validate and never throw', () => {
           source.trendsFilter = junk(3);
           source.breakdownFilter = junk(3);
         }
+        if (kind === 'FunnelsQuery') {
+          source.funnelsFilter = { ...(junk(3) as Raw), exclusions: junk(4) };
+          source.breakdownFilter = junk(3);
+        }
+        if (kind === 'RetentionQuery')
+          source.retentionFilter = {
+            ...(junk(3) as Raw),
+            targetEntity: junk(3),
+            returningEntity: junk(3),
+          };
         source.properties = junk(4);
         expect(() => tile(insight(source))).not.toThrow();
       }
     }
   });
+
+  it('500 random dashboard sets', () => {
+    for (let i = 0; i < 500; i++) {
+      const dashboards = Array.from({ length: 3 }, () => ({
+        ...(junk(3) as Raw),
+        id: pick([1, 2, 'x', '', null]),
+        filters: junk(4),
+        tiles: [{ insight: { id: 7, short_id: 'Zz000001' }, filters_overrides: junk(4) }, junk(3)],
+      }));
+      const insights = [
+        insight(trends([ev('book_viewed', { properties: junk(3) })], { properties: junk(3) }), {
+          dashboards: junk(1),
+        }),
+        insight(
+          { kind: 'RetentionQuery', retentionFilter: junk(3) },
+          { id: 8, short_id: 'Zz000002' },
+        ),
+      ];
+      let r: Requirements | undefined;
+      expect(() => (r = normalizeInsights(insights, { ...ctx, dashboards }))).not.toThrow();
+      expectValid(r as Requirements);
+    }
+  });
 });
 
 describe('recorded demo responses', () => {
-  it('normalise to valid requirements; every trends tile is read', () => {
+  it('normalise to valid requirements; every trends and funnel tile is read', () => {
     const rec = JSON.parse(
       readFileSync(
         new URL('../../../fixtures/posthog-recorded/demo.json', import.meta.url),
@@ -827,14 +917,30 @@ describe('recorded demo responses', () => {
     const insights = Object.entries(rec.responses)
       .filter(([p]) => p.startsWith('insights/'))
       .flatMap(([, b]) => b.results ?? []);
+    const dashboards = Object.entries(rec.responses)
+      .filter(([p]) => /^dashboards\/\d+\/$/.test(p))
+      .map(([, b]) => b);
     const r = normalizeInsights(insights, {
       host: rec.recorded.host,
       project: rec.recorded.project,
+      dashboards,
     });
     expectValid(r);
+    expect(r.dashboards?.map((d) => d.name)).toEqual(['Bookshop growth', 'Checkout', 'Mobile']);
     const trendsTiles = r.tiles.filter((t) => t.kind === 'trends');
+    const funnelTiles = r.tiles.filter((t) => t.kind === 'funnels');
     expect(trendsTiles.length).toBeGreaterThan(20);
-    for (const t of trendsTiles)
+    expect(funnelTiles.length).toBeGreaterThan(0);
+    for (const t of [...trendsTiles, ...funnelTiles])
       for (const n of t.notChecked ?? []) expect(n.reason).toMatch(/^action \d+ was not read$/);
+    // The dashboard bodies' tiles agree with each insight's own list, and most tiles are on one.
+    const own = new Map(
+      insights.map((i) => [
+        `insight:${String(i.short_id)}`,
+        (i.dashboards as number[]).map((d) => `dashboard:${d}`).sort(),
+      ]),
+    );
+    for (const t of r.tiles) expect(t.dashboards).toEqual(own.get(t.id));
+    expect(r.tiles.filter((t) => (t.dashboards ?? []).length > 0).length).toBeGreaterThan(30);
   });
 });
