@@ -9,7 +9,6 @@
       "id": "insight:Fn01",
       "title": "Bookshop tile",
       "kind": "funnels",
-      "funnelVizType": "steps",
       "series": [
         {
           "ref": "A",
@@ -20,7 +19,9 @@
               "key": "step",
               "scope": "event",
               "op": "exact",
-              "values": ["address"]
+              "values": [
+                "address"
+              ]
             }
           ]
         },
@@ -33,7 +34,9 @@
               "key": "step",
               "scope": "event",
               "op": "exact",
-              "values": ["payment"]
+              "values": [
+                "payment"
+              ]
             }
           ]
         },
@@ -46,7 +49,9 @@
               "key": "step",
               "scope": "event",
               "op": "exact",
-              "values": ["review"]
+              "values": [
+                "review"
+              ]
             }
           ]
         },
@@ -54,6 +59,12 @@
           "ref": "D",
           "node": "event",
           "event": "order_completed"
+        }
+      ],
+      "breakdown": [
+        {
+          "key": "store",
+          "scope": "event"
         }
       ],
       "exclusions": [
@@ -70,12 +81,7 @@
           "filters": []
         }
       ],
-      "breakdown": [
-        {
-          "key": "store",
-          "scope": "event"
-        }
-      ]
+      "funnelVizType": "steps"
     }
   ]
 }

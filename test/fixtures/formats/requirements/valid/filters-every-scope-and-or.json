@@ -4,53 +4,101 @@
     "platform": "posthog",
     "profile": "posthog"
   },
+  "dashboards": [
+    {
+      "id": "dashboard:7",
+      "filters": [
+        {
+          "key": "store",
+          "scope": "event",
+          "op": "exact",
+          "values": [
+            "web"
+          ]
+        }
+      ]
+    }
+  ],
   "tiles": [
     {
       "id": "insight:Bk01",
       "title": "Bookshop tile",
       "kind": "trends",
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "book_viewed",
+          "filters": [
+            {
+              "key": "shelf",
+              "scope": "event",
+              "op": "is_not",
+              "values": [
+                "bargain",
+                0,
+                false
+              ]
+            }
+          ]
+        }
+      ],
       "filters": [
         {
           "key": "is_member",
           "scope": "person",
           "op": "exact",
-          "values": [true]
+          "values": [
+            true
+          ]
         },
         {
           "key": "is_member",
           "scope": "person",
           "op": "exact",
-          "values": ["true"]
+          "values": [
+            "true"
+          ]
         },
         {
           "key": "$session_duration",
           "scope": "session",
           "op": "gt",
-          "values": [30]
+          "values": [
+            30
+          ]
         },
         {
           "key": "id",
           "scope": "cohort",
           "op": "in",
-          "values": [12]
+          "values": [
+            12
+          ]
         },
         {
           "key": "name",
           "scope": "group",
           "op": "exact",
-          "values": ["Riverside branch"]
+          "values": [
+            "Riverside branch"
+          ]
         },
         {
           "key": "tag_name",
           "scope": "element",
           "op": "exact",
-          "values": ["button"]
+          "values": [
+            "button"
+          ]
         },
         {
           "key": "gift-wrap",
           "scope": "feature",
           "op": "exact",
-          "values": ["on"]
+          "values": [
+            "on"
+          ]
         },
         {
           "key": "properties.genre = 'Poetry'",
@@ -62,7 +110,9 @@
           "key": "warehouse_col",
           "scope": "other",
           "op": "exact",
-          "values": [null]
+          "values": [
+            null
+          ]
         },
         {
           "key": "coupon_code",
@@ -74,7 +124,10 @@
           "key": "pages",
           "scope": "event",
           "op": "between",
-          "values": [100, 300]
+          "values": [
+            100,
+            300
+          ]
         },
         {
           "any": [
@@ -82,43 +135,19 @@
               "key": "format",
               "scope": "event",
               "op": "exact",
-              "values": ["paperback"]
+              "values": [
+                "paperback"
+              ]
             },
             {
               "key": "format",
               "scope": "event",
               "op": "icontains",
-              "values": ["audio"]
+              "values": [
+                "audio"
+              ]
             }
           ]
-        }
-      ],
-      "series": [
-        {
-          "ref": "A",
-          "node": "event",
-          "event": "book_viewed",
-          "filters": [
-            {
-              "key": "shelf",
-              "scope": "event",
-              "op": "is_not",
-              "values": ["bargain", 0, false]
-            }
-          ]
-        }
-      ]
-    }
-  ],
-  "dashboards": [
-    {
-      "id": "dashboard:7",
-      "filters": [
-        {
-          "key": "store",
-          "scope": "event",
-          "op": "exact",
-          "values": ["web"]
         }
       ]
     }

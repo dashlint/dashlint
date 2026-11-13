@@ -3,5 +3,7 @@ coverage
 node_modules
 test/golden
 test/fixtures/posthog/expected
+test/fixtures/formats/requirements/valid
+test/fixtures/formats/requirements/yaml/*.expected.json
 src/formats/generated
 .changeset/*.md

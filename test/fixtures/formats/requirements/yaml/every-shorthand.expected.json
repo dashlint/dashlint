@@ -1,12 +1,23 @@
 {
   "schema": "dashlint.requirements/1",
-  "source": { "platform": "posthog", "note": "Shop board, copied by hand" },
+  "source": {
+    "platform": "posthog",
+    "note": "Shop board, copied by hand"
+  },
   "dashboards": [
     {
       "id": "shop",
       "name": "Shop",
       "filters": [
-        { "key": "storefront", "scope": "event", "op": "exact", "values": ["web", "app"] }
+        {
+          "key": "storefront",
+          "scope": "event",
+          "op": "exact",
+          "values": [
+            "web",
+            "app"
+          ]
+        }
       ]
     }
   ],
@@ -14,20 +25,45 @@
     {
       "id": "shop/browse-to-order",
       "title": "Browse to order",
-      "dashboards": ["shop"],
+      "dashboards": [
+        "shop"
+      ],
       "kind": "funnels",
       "series": [
-        { "ref": "A", "node": "event", "event": "book_viewed" },
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "book_viewed"
+        },
         {
           "ref": "B",
           "node": "event",
           "event": "cart_opened",
           "filters": [
-            { "key": "format", "scope": "event", "op": "icontains", "values": ["paper"] },
+            {
+              "key": "format",
+              "scope": "event",
+              "op": "icontains",
+              "values": [
+                "paper"
+              ]
+            },
             {
               "any": [
-                { "key": "gift_wrap", "scope": "event", "op": "exact", "values": [true] },
-                { "key": "gift_note", "scope": "event", "op": "is_set", "values": [] }
+                {
+                  "key": "gift_wrap",
+                  "scope": "event",
+                  "op": "exact",
+                  "values": [
+                    true
+                  ]
+                },
+                {
+                  "key": "gift_note",
+                  "scope": "event",
+                  "op": "is_set",
+                  "values": []
+                }
               ]
             }
           ]
@@ -36,10 +72,28 @@
           "ref": "Z",
           "node": "event",
           "event": "order_completed",
-          "filters": [{ "key": "plan", "scope": "person", "op": "exact", "values": ["1", 1, null] }]
+          "filters": [
+            {
+              "key": "plan",
+              "scope": "person",
+              "op": "exact",
+              "values": [
+                "1",
+                1,
+                null
+              ]
+            }
+          ]
         }
       ],
-      "exclusions": [{ "node": "event", "event": "wishlist_shared", "fromStep": 0, "toStep": 1 }],
+      "exclusions": [
+        {
+          "node": "event",
+          "event": "wishlist_shared",
+          "fromStep": 0,
+          "toStep": 1
+        }
+      ],
       "funnelVizType": "steps"
     },
     {
@@ -52,9 +106,16 @@
           "node": "event",
           "event": "order_completed",
           "math": "sum",
-          "mathProperty": { "key": "order_total", "scope": "event" }
+          "mathProperty": {
+            "key": "order_total",
+            "scope": "event"
+          }
         },
-        { "ref": "B", "node": "all-events", "math": "dau" },
+        {
+          "ref": "B",
+          "node": "all-events",
+          "math": "dau"
+        },
         {
           "ref": "C",
           "node": "group",
@@ -62,9 +123,20 @@
           "events": [
             {
               "event": "book_viewed",
-              "filters": [{ "key": "format", "scope": "event", "op": "exact", "values": ["audio"] }]
+              "filters": [
+                {
+                  "key": "format",
+                  "scope": "event",
+                  "op": "exact",
+                  "values": [
+                    "audio"
+                  ]
+                }
+              ]
             },
-            { "event": "book_previewed" }
+            {
+              "event": "book_previewed"
+            }
           ]
         },
         {
@@ -77,20 +149,59 @@
               {
                 "event": "checkout_started",
                 "filters": [
-                  { "key": "coupon", "scope": "event", "op": "is_not", "values": ["none"] }
+                  {
+                    "key": "coupon",
+                    "scope": "event",
+                    "op": "is_not",
+                    "values": [
+                      "none"
+                    ]
+                  }
                 ]
               },
-              { "event": null, "unsupported": ["url"] }
+              {
+                "event": null,
+                "unsupported": [
+                  "url"
+                ]
+              }
             ]
           }
         }
       ],
-      "formulas": [{ "index": 4, "expression": "A / B", "refs": ["A", "B"] }],
-      "filters": [{ "key": "currency", "scope": "event", "op": "exact", "values": ["EUR"] }],
+      "formulas": [
+        {
+          "index": 4,
+          "expression": "A / B",
+          "refs": [
+            "A",
+            "B"
+          ]
+        }
+      ],
+      "filters": [
+        {
+          "key": "currency",
+          "scope": "event",
+          "op": "exact",
+          "values": [
+            "EUR"
+          ]
+        }
+      ],
       "breakdown": [
-        { "key": "format", "scope": "event" },
-        { "key": "storefront", "scope": "event" },
-        { "key": "country", "scope": "person" }
+        {
+          "key": "format",
+          "scope": "event"
+        },
+        {
+          "key": "storefront",
+          "scope": "event"
+        },
+        {
+          "key": "country",
+          "scope": "person"
+        }
       ]
     },
     {
@@ -101,19 +212,36 @@
         "target": {
           "node": "event",
           "event": "reader_opened",
-          "filters": [{ "key": "format", "scope": "event", "op": "exact", "values": ["ebook"] }]
+          "filters": [
+            {
+              "key": "format",
+              "scope": "event",
+              "op": "exact",
+              "values": [
+                "ebook"
+              ]
+            }
+          ]
         },
-        "returning": { "node": "all-events" }
+        "returning": {
+          "node": "all-events"
+        }
       }
     }
   ],
   "alerts": [
     {
       "id": "shop-orders-drop",
+      "target": {
+        "kind": "series",
+        "index": 0
+      },
       "tile": "shop/revenue",
-      "target": { "kind": "series", "index": 0 },
       "condition": "relative_decrease",
-      "bounds": { "lower": true, "upper": false }
+      "bounds": {
+        "lower": true,
+        "upper": false
+      }
     }
   ]
 }

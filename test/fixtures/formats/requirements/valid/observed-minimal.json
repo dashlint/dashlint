@@ -21,12 +21,12 @@
   "observed": {
     "windowDays": 7,
     "events": {
-      "book_viewed": {
-        "defined": true,
-        "lastSeenAt": null
-      },
       "book_returned": {
         "defined": false,
+        "lastSeenAt": null
+      },
+      "book_viewed": {
+        "defined": true,
         "lastSeenAt": null
       },
       "gift_card_redeemed": {

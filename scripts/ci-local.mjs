@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // ci:local (spec T1.4, G17): the full gate a commit must pass before it is pushed. Steps run in
 // order and all run even after a failure, so one `npm run ci:local` shows every problem at once.
-// The schema step checks that the generated validators match the schemas (T2.1).
+// The schema step checks that the generated validators match the schemas (T2.1); check:formats is
+// the E-FORMATS gate over every format fixture (T2.5).
 //
 // Usage: node scripts/ci-local.mjs
 // Exit: 0 all steps passed, 1 at least one step failed.
@@ -28,6 +29,7 @@ export function run() {
     runNpm(['test:coverage'], 'test:coverage'),
     runNpm(['lint'], 'lint'),
     runNode('scripts/build-validators.mjs', ['--check'], 'schema checks'),
+    runNode('scripts/check-formats.mjs', [], 'check:formats'),
     runNode('scripts/denylist-scan.mjs', [], 'denylist scan'),
     runNode('scripts/copy-check.mjs', [], 'copy check'),
     runNode('scripts/size-check.mjs', [], 'size check'),

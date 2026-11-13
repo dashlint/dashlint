@@ -19,7 +19,9 @@
               "key": "payment_method",
               "scope": "event",
               "op": "exact",
-              "values": ["card"]
+              "values": [
+                "card"
+              ]
             }
           ]
         }

@@ -21,11 +21,11 @@
   "alerts": [
     {
       "id": "alert:1",
-      "tile": "insight:Bk01",
       "target": {
         "kind": "series",
         "index": 0
       },
+      "tile": "insight:Bk01",
       "condition": "relative_decrease",
       "bounds": {
         "lower": true,
@@ -34,11 +34,11 @@
     },
     {
       "id": "alert:2",
-      "tile": "insight:Bk01",
       "target": {
         "kind": "formula",
         "index": 0
       },
+      "tile": "insight:Bk01",
       "condition": "relative_increase",
       "bounds": {
         "lower": false,
@@ -48,11 +48,11 @@
     },
     {
       "id": "alert:3",
-      "tile": "insight:Fn01",
       "target": {
         "kind": "funnel-step",
         "index": 2
       },
+      "tile": "insight:Fn01",
       "condition": "absolute_value",
       "bounds": {
         "lower": true,
@@ -62,10 +62,10 @@
     },
     {
       "id": "alert:4",
-      "tile": "insight:Bk01",
       "target": {
         "kind": "hogql"
       },
+      "tile": "insight:Bk01",
       "condition": "absolute_value",
       "bounds": {
         "lower": false,
@@ -74,10 +74,10 @@
     },
     {
       "id": "alert:5",
-      "tile": "insight:Bk01",
       "target": {
         "kind": "metrics"
       },
+      "tile": "insight:Bk01",
       "condition": "absolute_value",
       "bounds": {
         "lower": true,
@@ -86,10 +86,10 @@
     },
     {
       "id": "alert:6",
-      "tile": "insight:Bk01",
       "target": {
         "kind": "other"
       },
+      "tile": "insight:Bk01",
       "condition": "detector",
       "bounds": {
         "lower": false,
@@ -99,11 +99,11 @@
     {
       "id": "alert:7",
       "name": "Gift cards below one",
-      "tile": "insight:Bk01",
       "target": {
         "kind": "series",
         "index": 3
       },
+      "tile": "insight:Bk01",
       "condition": "relative_decrease",
       "bounds": {
         "lower": true,
@@ -114,11 +114,11 @@
     },
     {
       "id": "alert:8",
-      "tile": "insight:Bk01",
       "target": {
         "kind": "series",
         "index": 0
       },
+      "tile": "insight:Bk01",
       "condition": "absolute_value",
       "bounds": {
         "lower": true,

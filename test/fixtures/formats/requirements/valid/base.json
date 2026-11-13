@@ -20,7 +20,9 @@
       "id": "insight:Ab12Cd34",
       "title": "Wishlist shares, fiction",
       "url": "https://us.posthog.com/project/12345/insights/Ab12Cd34",
-      "dashboards": ["dashboard:41"],
+      "dashboards": [
+        "dashboard:41"
+      ],
       "kind": "trends",
       "dateRange": {
         "from": "-30d",
@@ -38,7 +40,9 @@
               "key": "genre",
               "scope": "event",
               "op": "exact",
-              "values": ["Fiction"]
+              "values": [
+                "Fiction"
+              ]
             }
           ]
         }
@@ -64,7 +68,6 @@
           "ref": "B",
           "node": "group",
           "operator": "OR",
-          "math": "dau",
           "events": [
             {
               "event": "book_viewed",
@@ -74,7 +77,8 @@
               "event": "reader_opened",
               "filters": []
             }
-          ]
+          ],
+          "math": "dau"
         },
         {
           "ref": "C",
@@ -85,7 +89,6 @@
         {
           "ref": "D",
           "node": "action",
-          "math": "total",
           "action": {
             "id": 7,
             "name": "Purchased",
@@ -95,7 +98,8 @@
                 "filters": []
               }
             ]
-          }
+          },
+          "math": "total"
         },
         {
           "ref": "E",
@@ -113,7 +117,10 @@
         {
           "index": 0,
           "expression": "A/B",
-          "refs": ["A", "B"]
+          "refs": [
+            "A",
+            "B"
+          ]
         }
       ],
       "breakdown": [
@@ -128,11 +135,11 @@
     {
       "id": "alert:0b7e",
       "name": "Gift cards dropped",
-      "tile": "insight:Gh90Ij12",
       "target": {
         "kind": "series",
         "index": 0
       },
+      "tile": "insight:Gh90Ij12",
       "condition": "relative_decrease",
       "bounds": {
         "lower": true,
@@ -146,23 +153,30 @@
   "observed": {
     "windowDays": 30,
     "events": {
+      "gift_card_redeemed": {
+        "defined": false
+      },
       "wishlist_shared": {
         "defined": true,
         "lastSeenAt": "2026-12-17T22:41:00Z",
         "enforcement": "allow"
-      },
-      "gift_card_redeemed": {
-        "defined": false
       }
     },
     "eventProperties": {
       "wishlist_shared": {
-        "seen": ["genre_id", "channel"],
-        "notSeen": ["genre"]
+        "seen": [
+          "genre_id",
+          "channel"
+        ],
+        "notSeen": [
+          "genre"
+        ]
       }
     },
     "personProperties": {
-      "seen": ["plan"],
+      "seen": [
+        "plan"
+      ],
       "notSeen": []
     }
   }

@@ -58,11 +58,16 @@
               },
               {
                 "event": "$autocapture",
-                "unsupported": ["selector", "text"]
+                "unsupported": [
+                  "selector",
+                  "text"
+                ]
               },
               {
                 "event": "$pageview",
-                "unsupported": ["url"]
+                "unsupported": [
+                  "url"
+                ]
               }
             ]
           }
