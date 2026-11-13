@@ -40,6 +40,12 @@ describe('posthog-js client in an untyped binding', () => {
     ]);
   });
 
+  it('follows Promise.all of dynamic imports, an array parameter and a ?? fallback', () => {
+    expect(open.filter((o) => o.startsWith('src/combined.ts'))).toEqual([
+      'src/combined.ts:15 unresolved-import',
+    ]);
+  });
+
   it('makes calls on a class field filled by new of a required SDK class open world', () => {
     expect(open.filter((o) => o.startsWith('src/field.ts'))).toEqual([
       'src/field.ts:12 unresolved-import',
@@ -88,7 +94,7 @@ describe('posthog-js client in an untyped binding', () => {
   it('counts the untyped calls as open sites, so the rate falls below 1', () => {
     const names = resolveEventNames(sp, followWrappers(sp, descriptors));
     expect(names.sites.map((s) => s.names)).toEqual([['book_returned']]);
-    expect(names.coverage.openSites).toBe(11);
+    expect(names.coverage.openSites).toBe(12);
     expect(names.coverage.nameResolutionRate).toBeLessThan(1);
   });
 });

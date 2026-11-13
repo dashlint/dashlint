@@ -36,6 +36,31 @@ function skipOuter(e: ts.Expression): ts.Expression {
   return e;
 }
 
+const FALLBACK = new Set([
+  ts.SyntaxKind.QuestionQuestionToken,
+  ts.SyntaxKind.BarBarToken,
+  ts.SyntaxKind.AmpersandAmpersandToken,
+]);
+
+// `Promise.all([import("x"), ...])` and its siblings: the result holds what the arguments hold.
+function combined(e: ts.Expression): boolean {
+  if (!ts.isCallExpression(e)) return false;
+  const callee = skipOuter(e.expression);
+  return (
+    ts.isPropertyAccessExpression(callee) &&
+    ts.isIdentifier(callee.expression) &&
+    callee.expression.text === 'Promise' &&
+    ['all', 'allSettled', 'any', 'race'].includes(callee.name.text)
+  );
+}
+
+// `{ a }`, `[a]` and their elements, up to the declaration that holds the pattern.
+function isBindingPart(node: ts.Node): boolean {
+  return (
+    ts.isBindingElement(node) || ts.isObjectBindingPattern(node) || ts.isArrayBindingPattern(node)
+  );
+}
+
 function isUntyped(type: ts.Type): boolean {
   return (type.flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown)) !== 0;
 }
@@ -129,7 +154,7 @@ export class UntypedClients {
     if (!decl || seen.has(decl)) return undefined;
     seen.add(decl);
     let holder: ts.Node = decl;
-    while (ts.isBindingElement(holder) || ts.isObjectBindingPattern(holder)) holder = holder.parent;
+    while (isBindingPart(holder)) holder = holder.parent;
     return ts.isVariableDeclaration(holder) ? holder : undefined;
   }
 
@@ -141,6 +166,25 @@ export class UntypedClients {
     if (loaded !== undefined) return this.sdk(packageName(loaded));
     const typed = this.typedOrigin(e);
     if (typed !== undefined) return typed;
+    // Either side may hold the client: `m?.default ?? m`, `a || b`, `c ? a : b`, `[a, b]`.
+    const parts = ts.isBinaryExpression(e)
+      ? FALLBACK.has(e.operatorToken.kind)
+        ? [e.left, e.right]
+        : []
+      : ts.isConditionalExpression(e)
+        ? [e.whenTrue, e.whenFalse]
+        : ts.isArrayLiteralExpression(e)
+          ? [...e.elements]
+          : combined(e)
+            ? [...(e as ts.CallExpression).arguments]
+            : undefined;
+    if (parts) {
+      for (const part of parts) {
+        const pkg = this.origin(part, seen);
+        if (pkg !== undefined) return pkg;
+      }
+      return undefined;
+    }
     if (ts.isNewExpression(e)) return this.origin(e.expression, seen);
     if (
       ts.isCallExpression(e) ||
@@ -196,7 +240,7 @@ export class UntypedClients {
   // The parameter of a callback given to `.then` on an SDK value: `import("x").then((m) => ...)`.
   private thenParameter(decl: ts.Declaration, seen: Set<ts.Node>): string | undefined {
     let param: ts.Node = decl;
-    while (ts.isBindingElement(param) || ts.isObjectBindingPattern(param)) param = param.parent;
+    while (isBindingPart(param)) param = param.parent;
     if (!ts.isParameter(param)) return undefined;
     const fn = param.parent;
     const call = fn.parent;
