@@ -22,5 +22,14 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'error',
     },
   },
+  {
+    // The untyped-client fixtures are about code that holds the SDK client in `any` (ADR-045).
+    files: ['test/fixtures/extract/*/untyped-client/**'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-require-imports': 'off',
+      'prefer-const': 'off',
+    },
+  },
   eslintConfigPrettier,
 );

@@ -1,8 +1,9 @@
 // SDK calls matched by their resolved declaration (spec 6.4 item 3, T4, T3.3): `posthog.capture`,
 // `ph.capture` and `const { capture } = usePostHog()` all resolve to the same declaration, while a
 // local function that happens to be called `capture` resolves to the user's own code and is never
-// a site. A call whose callee comes from an SDK import that does not resolve cannot be matched
-// either way, so it is open world with the reason (G15), never a guess.
+// a site. A call whose callee comes from an SDK import that does not resolve, or from an untyped
+// binding that holds an SDK value (ADR-045), cannot be matched either way, so it is open world with
+// the reason (G15), never a guess.
 import { relative } from 'node:path';
 import ts from 'typescript';
 import {
@@ -17,6 +18,7 @@ import {
 } from '../descriptors/index.js';
 import type { OpenWorldSite } from '../formats/catalog.js';
 import type { SourceProgram } from './program.js';
+import { UntypedClients } from './untyped.js';
 
 export interface SdkCall {
   call: ts.CallExpression;
@@ -173,6 +175,13 @@ export function findSdkCalls(sp: SourceProgram, descriptors: readonly Descriptor
     const sf = decl.getSourceFile();
     return sf.isDeclarationFile ? packages.packageOf(sf.fileName) : undefined;
   };
+  const untypedClients = new UntypedClients(
+    sp,
+    checker,
+    new Set(ordered.flatMap((d) => d.declaredIn)),
+    packageOf,
+  );
+  const describedNames = new Set(ordered.flatMap((d) => [...memberNames(d)]));
 
   for (const fileName of sp.files) {
     const sf = sp.program.getSourceFile(fileName);
@@ -188,19 +197,33 @@ export function findSdkCalls(sp: SourceProgram, descriptors: readonly Descriptor
           if (match)
             calls.push({ call: node, file, line: lineOf(calledNode(node.expression)), ...match });
         } else {
-          const specifier = tracer.unresolved(node.expression);
-          const pkg = specifier === undefined ? undefined : packageName(specifier);
           const name = calledName(node.expression, checker);
-          const sdks = ordered.filter(
-            (d) =>
-              pkg !== undefined && d.declaredIn.includes(pkg) && memberNames(d).has(name ?? ''),
-          );
-          if (specifier !== undefined && sdks.length > 0)
+          const described = (pkg: string | undefined): Descriptor | undefined =>
+            ordered.find(
+              (d) =>
+                pkg !== undefined && d.declaredIn.includes(pkg) && memberNames(d).has(name ?? ''),
+            );
+          const specifier = tracer.unresolved(node.expression);
+          const sdk = described(specifier === undefined ? undefined : packageName(specifier));
+          // Only a described member name asks where an untyped receiver comes from.
+          const untyped =
+            !sdk && name !== undefined && describedNames.has(name)
+              ? untypedClients.receiverOf(node.expression)
+              : undefined;
+          const viaUntyped = untyped ? described(untyped.pkg) : undefined;
+          if (sdk)
             openWorld.push({
               file,
               line: lineOf(calledNode(node.expression)),
               kind: 'unresolved-import',
-              reason: `\`${name}\` comes from "${specifier}", which does not resolve, so it may be a ${sdks[0]?.sdk} call`,
+              reason: `\`${name}\` comes from "${specifier}", which does not resolve, so it may be a ${sdk.sdk} call`,
+            });
+          else if (untyped && viaUntyped)
+            openWorld.push({
+              file,
+              line: lineOf(calledNode(node.expression)),
+              kind: 'unresolved-import',
+              reason: `\`${name}\` is called on \`${untyped.binding}\`, typed \`${untyped.type}\` but holding a value from "${untyped.pkg}", so it may be a ${viaUntyped.sdk} call`,
             });
         }
       }
