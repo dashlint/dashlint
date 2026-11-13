@@ -125,6 +125,8 @@ function context(
     propertyKeys: (e) => Object.keys(merged(e)?.properties ?? {}),
     personPropertyKeys: Object.keys(m.personProperties),
     sites: (e) => (merged(e)?.sites ?? []).map((s) => ({ file: `web/${s.file}`, line: s.line })),
+    platforms: m.platforms,
+    eventPlatforms: (e) => merged(e)?.platforms ?? [],
   };
   return {
     facts: { code, ...(observed === undefined ? {} : { observed }), pulledAt: PULLED },

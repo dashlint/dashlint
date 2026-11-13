@@ -168,7 +168,7 @@ function filterPart(event: string | null, f: PropertyFilter): PropertyPart {
 
 // OR of members: a member that keeps every event keeps every event (degraded); the group drops
 // everything only when every member does (dead); one live member makes it live; otherwise unknown.
-function orEffect(effects: readonly PartEffect[]): PartEffect {
+export function orEffect(effects: readonly PartEffect[]): PartEffect {
   if (effects.includes('degraded')) return 'degraded';
   if (effects.length > 0 && effects.every((e) => e === 'dead')) return 'dead';
   if (effects.includes('live')) return 'live';

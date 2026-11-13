@@ -23,6 +23,10 @@ export interface CodeIndex {
   personPropertyKeys: readonly string[];
   /** The event's call sites, by source, then file and line; empty for a builtin-only event. */
   sites(event: string): readonly Location[];
+  /** Every platform the merged catalogs cover, sorted. */
+  platforms: readonly string[];
+  /** The platforms that feed an event (its sites and builtin senders); empty when no code sends it. */
+  eventPlatforms(event: string): readonly string[];
 }
 
 export interface CheckContext {

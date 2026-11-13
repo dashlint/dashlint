@@ -1,5 +1,6 @@
 // What a rules profile decides (spec 6.6): platform semantics the checks must not guess.
 import type { JsonScalar } from '../../formats/catalog.js';
+import type { TileKind } from '../../formats/report.js';
 import type { Scope } from '../../formats/requirements.js';
 
 export type Tri = 'yes' | 'no' | 'unknown';
@@ -30,4 +31,9 @@ export interface RulesProfile {
   checksScope(scope: Scope): boolean;
   /** Row 8: a person property is "no" only when observed person properties also lack it. */
   personNeedsObserved: boolean;
+  /**
+   * Tile kinds a cut (spec 7.4 items 5 and 6) turns into "not checked"; absent while nothing is
+   * cut.
+   */
+  notCheckedKinds?: readonly TileKind[];
 }
