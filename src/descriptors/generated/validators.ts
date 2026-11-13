@@ -931,16 +931,16 @@ return errors === 0;
 validate20.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const descriptor = validate21;
-const schema39 = {"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://github.com/dashlint/dashlint/schema/descriptor.schema.json","title":"dashlint SDK descriptor","description":"What one analytics SDK's calls mean, as data (spec 6.3.3): the members that send events, super properties, person properties and identity, matched by their resolved declaration (spec 6.4 item 3). Rules the schema cannot express (one role per call, members present in the stub) are checked by src/descriptors/loader.ts.","type":"object","additionalProperties":false,"required":["sdk","package","versions","verified","declaredIn","platforms","calls","builtins","stub"],"properties":{"sdk":{"$ref":"#/$defs/name","description":"The descriptor id, used in catalogs."},"package":{"$ref":"#/$defs/packageName","description":"The npm package an app imports."},"versions":{"type":"string","pattern":"^(?:(?:>=|<=|>|<|=)?\\d+\\.\\d+\\.\\d+)(?: (?:>=|<=|>|<|=)?\\d+\\.\\d+\\.\\d+)*$","description":"The version range this descriptor applies to: space-separated comparators, all of which must hold."},"verified":{"type":"string","pattern":"^\\d+\\.\\d+\\.\\d+$","description":"The version whose published types and source every member and builtin was checked against (V1, V2)."},"declaredIn":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/packageName"},"description":"Packages whose declaration files may declare the matched members."},"platforms":{"type":"array","minItems":1,"items":{"enum":["web","ios","android"]},"description":"Default platforms of a source using this SDK."},"calls":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/call"}},"builtins":{"$ref":"#/$defs/relativeFile","description":"The builtins file, relative to this descriptor."},"stub":{"$ref":"#/$defs/relativeFile","description":"The type stub used when the package is not installed, relative to this descriptor."},"unknownNames":{"type":"object","additionalProperties":false,"description":"Name prefixes the SDK or the platform may send that cannot be cited as builtins (ADR-003): a requirement on such a name is not checked, never dead.","properties":{"events":{"$ref":"#/$defs/prefixes"},"properties":{"$ref":"#/$defs/prefixes"},"personProperties":{"$ref":"#/$defs/prefixes"}}}},"$defs":{"name":{"type":"string","pattern":"^[a-z0-9][a-z0-9._-]*$"},"packageName":{"type":"string","pattern":"^(?:@[a-z0-9][a-z0-9._-]*/)?[a-z0-9][a-z0-9._-]*$"},"identifier":{"type":"string","pattern":"^[A-Za-z_$][A-Za-z0-9_$]*$"},"container":{"type":"string","pattern":"^[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$","description":"A class or interface name, optionally followed by property names whose type is an object type (`PostHog.people`)."},"relativeFile":{"type":"string","pattern":"^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$"},"argPath":{"type":"string","pattern":"^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$","description":"A call argument by position, optionally followed by object keys: `args[0]`, `args[1].$set`."},"prefixes":{"type":"array","minItems":1,"items":{"type":"string","pattern":"\\S"}},"call":{"type":"object","additionalProperties":false,"properties":{"member":{"$ref":"#/$defs/identifier","description":"The method or property name, matched by its resolved declaration."},"on":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/container"},"description":"Containers that declare the member."},"hook":{"$ref":"#/$defs/identifier","description":"A function returning the client; members called on its result are matched as above."},"event":{"anyOf":[{"$ref":"#/$defs/argPath"},{"type":"object","additionalProperties":false,"required":["literal"],"properties":{"literal":{"type":"string","pattern":"\\S"}}}],"description":"Where the event name comes from: an argument, or a fixed name."},"properties":{"$ref":"#/$defs/argPath"},"addProperties":{"type":"object","minProperties":1,"additionalProperties":{"$ref":"#/$defs/argPath"},"description":"Properties the SDK adds to the event from other arguments."},"superProperties":{"$ref":"#/$defs/argPath"},"identity":{"enum":["identify","reset"]},"personSet":{"$ref":"#/$defs/argPath"},"personSetOnce":{"$ref":"#/$defs/argPath"},"personSetFallback":{"type":"object","additionalProperties":false,"required":["from","omit"],"description":"When the object at `personSet` is absent, the SDK sets the keys of `from` (less `omit`) instead.","properties":{"from":{"$ref":"#/$defs/argPath"},"omit":{"type":"array","items":{"type":"string","pattern":"\\S"}}}}}}}};
+const schema39 = {"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://github.com/dashlint/dashlint/schema/descriptor.schema.json","title":"dashlint SDK descriptor","description":"What one analytics SDK's calls mean, as data (spec 6.3.3): the members that send events, super properties, person properties and identity, matched by their resolved declaration (spec 6.4 item 3). Rules the schema cannot express (one role per call, members present in the stub) are checked by src/descriptors/loader.ts.","type":"object","additionalProperties":false,"required":["sdk","package","versions","verified","declaredIn","platforms","calls","builtins","stub"],"properties":{"sdk":{"$ref":"#/$defs/name","description":"The descriptor id, used in catalogs."},"package":{"$ref":"#/$defs/packageName","description":"The npm package an app imports."},"versions":{"type":"string","pattern":"^(?:(?:>=|<=|>|<|=)?\\d+\\.\\d+\\.\\d+)(?: (?:>=|<=|>|<|=)?\\d+\\.\\d+\\.\\d+)*$","description":"The version range this descriptor applies to: space-separated comparators, all of which must hold."},"verified":{"type":"string","pattern":"^\\d+\\.\\d+\\.\\d+$","description":"The version whose published types and source every member and builtin was checked against (V1, V2)."},"declaredIn":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/packageName"},"description":"Packages whose declaration files may declare the matched members."},"platforms":{"type":"array","minItems":1,"items":{"enum":["web","ios","android"]},"description":"Default platforms of a source using this SDK."},"calls":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/call"}},"init":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/init"},"description":"Where the app creates the client and passes the init options that builtin conditions read (spec 6.4 item 8)."},"builtins":{"$ref":"#/$defs/relativeFile","description":"The builtins file, relative to this descriptor."},"stub":{"$ref":"#/$defs/relativeFile","description":"The type stub used when the package is not installed, relative to this descriptor."},"unknownNames":{"type":"object","additionalProperties":false,"description":"Name prefixes the SDK or the platform may send that cannot be cited as builtins (ADR-003): a requirement on such a name is not checked, never dead.","properties":{"events":{"$ref":"#/$defs/prefixes"},"properties":{"$ref":"#/$defs/prefixes"},"personProperties":{"$ref":"#/$defs/prefixes"}}}},"$defs":{"name":{"type":"string","pattern":"^[a-z0-9][a-z0-9._-]*$"},"packageName":{"type":"string","pattern":"^(?:@[a-z0-9][a-z0-9._-]*/)?[a-z0-9][a-z0-9._-]*$"},"identifier":{"type":"string","pattern":"^[A-Za-z_$][A-Za-z0-9_$]*$"},"container":{"type":"string","pattern":"^[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$","description":"A class or interface name, optionally followed by property names whose type is an object type (`PostHog.people`)."},"relativeFile":{"type":"string","pattern":"^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$"},"argPath":{"type":"string","pattern":"^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$","description":"A call argument by position, optionally followed by object keys: `args[0]`, `args[1].$set`."},"prefixes":{"type":"array","minItems":1,"items":{"type":"string","pattern":"\\S"}},"init":{"anyOf":[{"type":"object","additionalProperties":false,"required":["member","on","options"],"properties":{"member":{"$ref":"#/$defs/identifier","description":"The method, or `constructor` for `new`, matched by its resolved declaration."},"on":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/container"}},"options":{"$ref":"#/$defs/argPath"}}},{"type":"object","additionalProperties":false,"required":["component","options"],"properties":{"component":{"$ref":"#/$defs/identifier","description":"A component that creates the client; one given a `client` prop is not an init."},"options":{"$ref":"#/$defs/identifier","description":"The prop that holds the init options."}}}]},"call":{"type":"object","additionalProperties":false,"properties":{"member":{"$ref":"#/$defs/identifier","description":"The method or property name, matched by its resolved declaration."},"on":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/container"},"description":"Containers that declare the member."},"hook":{"$ref":"#/$defs/identifier","description":"A function returning the client; members called on its result are matched as above."},"event":{"anyOf":[{"$ref":"#/$defs/argPath"},{"type":"object","additionalProperties":false,"required":["literal"],"properties":{"literal":{"type":"string","pattern":"\\S"}}}],"description":"Where the event name comes from: an argument, or a fixed name."},"properties":{"$ref":"#/$defs/argPath"},"addProperties":{"type":"object","minProperties":1,"additionalProperties":{"$ref":"#/$defs/argPath"},"description":"Properties the SDK adds to the event from other arguments."},"superProperties":{"$ref":"#/$defs/argPath"},"identity":{"enum":["identify","reset"]},"personSet":{"$ref":"#/$defs/argPath"},"personSetOnce":{"$ref":"#/$defs/argPath"},"personSetFallback":{"type":"object","additionalProperties":false,"required":["from","omit"],"description":"When the object at `personSet` is absent, the SDK sets the keys of `from` (less `omit`) instead.","properties":{"from":{"$ref":"#/$defs/argPath"},"omit":{"type":"array","items":{"type":"string","pattern":"\\S"}}}}}}}};
 const schema40 = {"type":"string","pattern":"^[a-z0-9][a-z0-9._-]*$"};
 const schema41 = {"type":"string","pattern":"^(?:@[a-z0-9][a-z0-9._-]*/)?[a-z0-9][a-z0-9._-]*$"};
-const schema54 = {"type":"string","pattern":"^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$"};
-const schema56 = {"type":"array","minItems":1,"items":{"type":"string","pattern":"\\S"}};
+const schema60 = {"type":"string","pattern":"^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$"};
+const schema62 = {"type":"array","minItems":1,"items":{"type":"string","pattern":"\\S"}};
 const func1 = Object.prototype.hasOwnProperty;
 const pattern16 = new RegExp("^(?:@[a-z0-9][a-z0-9._-]*/)?[a-z0-9][a-z0-9._-]*$", "u");
 const pattern17 = new RegExp("^(?:(?:>=|<=|>|<|=)?\\d+\\.\\d+\\.\\d+)(?: (?:>=|<=|>|<|=)?\\d+\\.\\d+\\.\\d+)*$", "u");
 const pattern18 = new RegExp("^\\d+\\.\\d+\\.\\d+$", "u");
-const pattern32 = new RegExp("^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$", "u");
+const pattern37 = new RegExp("^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$", "u");
 const schema43 = {"type":"object","additionalProperties":false,"properties":{"member":{"$ref":"#/$defs/identifier","description":"The method or property name, matched by its resolved declaration."},"on":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/container"},"description":"Containers that declare the member."},"hook":{"$ref":"#/$defs/identifier","description":"A function returning the client; members called on its result are matched as above."},"event":{"anyOf":[{"$ref":"#/$defs/argPath"},{"type":"object","additionalProperties":false,"required":["literal"],"properties":{"literal":{"type":"string","pattern":"\\S"}}}],"description":"Where the event name comes from: an argument, or a fixed name."},"properties":{"$ref":"#/$defs/argPath"},"addProperties":{"type":"object","minProperties":1,"additionalProperties":{"$ref":"#/$defs/argPath"},"description":"Properties the SDK adds to the event from other arguments."},"superProperties":{"$ref":"#/$defs/argPath"},"identity":{"enum":["identify","reset"]},"personSet":{"$ref":"#/$defs/argPath"},"personSetOnce":{"$ref":"#/$defs/argPath"},"personSetFallback":{"type":"object","additionalProperties":false,"required":["from","omit"],"description":"When the object at `personSet` is absent, the SDK sets the keys of `from` (less `omit`) instead.","properties":{"from":{"$ref":"#/$defs/argPath"},"omit":{"type":"array","items":{"type":"string","pattern":"\\S"}}}}}};
 const schema44 = {"type":"string","pattern":"^[A-Za-z_$][A-Za-z0-9_$]*$"};
 const schema45 = {"type":"string","pattern":"^[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$","description":"A class or interface name, optionally followed by property names whose type is an object type (`PostHog.people`)."};
@@ -1477,6 +1477,310 @@ return errors === 0;
 }
 validate22.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
+const schema54 = {"anyOf":[{"type":"object","additionalProperties":false,"required":["member","on","options"],"properties":{"member":{"$ref":"#/$defs/identifier","description":"The method, or `constructor` for `new`, matched by its resolved declaration."},"on":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/container"}},"options":{"$ref":"#/$defs/argPath"}}},{"type":"object","additionalProperties":false,"required":["component","options"],"properties":{"component":{"$ref":"#/$defs/identifier","description":"A component that creates the client; one given a `client` prop is not an init."},"options":{"$ref":"#/$defs/identifier","description":"The prop that holds the init options."}}}]};
+
+function validate24(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate24.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+const _errs0 = errors;
+let valid0 = false;
+const _errs1 = errors;
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.member === undefined){
+const err0 = {instancePath,schemaPath:"#/anyOf/0/required",keyword:"required",params:{missingProperty: "member"},message:"must have required property '"+"member"+"'"};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+if(data.on === undefined){
+const err1 = {instancePath,schemaPath:"#/anyOf/0/required",keyword:"required",params:{missingProperty: "on"},message:"must have required property '"+"on"+"'"};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+if(data.options === undefined){
+const err2 = {instancePath,schemaPath:"#/anyOf/0/required",keyword:"required",params:{missingProperty: "options"},message:"must have required property '"+"options"+"'"};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+for(const key0 in data){
+if(!(((key0 === "member") || (key0 === "on")) || (key0 === "options"))){
+const err3 = {instancePath,schemaPath:"#/anyOf/0/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err3];
+}
+else {
+vErrors.push(err3);
+}
+errors++;
+}
+}
+if(data.member !== undefined){
+let data0 = data.member;
+if(typeof data0 === "string"){
+if(!pattern20.test(data0)){
+const err4 = {instancePath:instancePath+"/member",schemaPath:"#/$defs/identifier/pattern",keyword:"pattern",params:{pattern: "^[A-Za-z_$][A-Za-z0-9_$]*$"},message:"must match pattern \""+"^[A-Za-z_$][A-Za-z0-9_$]*$"+"\""};
+if(vErrors === null){
+vErrors = [err4];
+}
+else {
+vErrors.push(err4);
+}
+errors++;
+}
+}
+else {
+const err5 = {instancePath:instancePath+"/member",schemaPath:"#/$defs/identifier/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err5];
+}
+else {
+vErrors.push(err5);
+}
+errors++;
+}
+}
+if(data.on !== undefined){
+let data1 = data.on;
+if(Array.isArray(data1)){
+if(data1.length < 1){
+const err6 = {instancePath:instancePath+"/on",schemaPath:"#/anyOf/0/properties/on/minItems",keyword:"minItems",params:{limit: 1},message:"must NOT have fewer than 1 items"};
+if(vErrors === null){
+vErrors = [err6];
+}
+else {
+vErrors.push(err6);
+}
+errors++;
+}
+const len0 = data1.length;
+for(let i0=0; i0<len0; i0++){
+let data2 = data1[i0];
+if(typeof data2 === "string"){
+if(!pattern6.test(data2)){
+const err7 = {instancePath:instancePath+"/on/" + i0,schemaPath:"#/$defs/container/pattern",keyword:"pattern",params:{pattern: "^[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"},message:"must match pattern \""+"^[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"+"\""};
+if(vErrors === null){
+vErrors = [err7];
+}
+else {
+vErrors.push(err7);
+}
+errors++;
+}
+}
+else {
+const err8 = {instancePath:instancePath+"/on/" + i0,schemaPath:"#/$defs/container/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err8];
+}
+else {
+vErrors.push(err8);
+}
+errors++;
+}
+}
+}
+else {
+const err9 = {instancePath:instancePath+"/on",schemaPath:"#/anyOf/0/properties/on/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err9];
+}
+else {
+vErrors.push(err9);
+}
+errors++;
+}
+}
+if(data.options !== undefined){
+let data3 = data.options;
+if(typeof data3 === "string"){
+if(!pattern23.test(data3)){
+const err10 = {instancePath:instancePath+"/options",schemaPath:"#/$defs/argPath/pattern",keyword:"pattern",params:{pattern: "^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"},message:"must match pattern \""+"^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"+"\""};
+if(vErrors === null){
+vErrors = [err10];
+}
+else {
+vErrors.push(err10);
+}
+errors++;
+}
+}
+else {
+const err11 = {instancePath:instancePath+"/options",schemaPath:"#/$defs/argPath/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err11];
+}
+else {
+vErrors.push(err11);
+}
+errors++;
+}
+}
+}
+else {
+const err12 = {instancePath,schemaPath:"#/anyOf/0/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err12];
+}
+else {
+vErrors.push(err12);
+}
+errors++;
+}
+var _valid0 = _errs1 === errors;
+valid0 = valid0 || _valid0;
+if(_valid0){
+var props0 = true;
+}
+const _errs15 = errors;
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.component === undefined){
+const err13 = {instancePath,schemaPath:"#/anyOf/1/required",keyword:"required",params:{missingProperty: "component"},message:"must have required property '"+"component"+"'"};
+if(vErrors === null){
+vErrors = [err13];
+}
+else {
+vErrors.push(err13);
+}
+errors++;
+}
+if(data.options === undefined){
+const err14 = {instancePath,schemaPath:"#/anyOf/1/required",keyword:"required",params:{missingProperty: "options"},message:"must have required property '"+"options"+"'"};
+if(vErrors === null){
+vErrors = [err14];
+}
+else {
+vErrors.push(err14);
+}
+errors++;
+}
+for(const key1 in data){
+if(!((key1 === "component") || (key1 === "options"))){
+const err15 = {instancePath,schemaPath:"#/anyOf/1/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key1},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err15];
+}
+else {
+vErrors.push(err15);
+}
+errors++;
+}
+}
+if(data.component !== undefined){
+let data4 = data.component;
+if(typeof data4 === "string"){
+if(!pattern20.test(data4)){
+const err16 = {instancePath:instancePath+"/component",schemaPath:"#/$defs/identifier/pattern",keyword:"pattern",params:{pattern: "^[A-Za-z_$][A-Za-z0-9_$]*$"},message:"must match pattern \""+"^[A-Za-z_$][A-Za-z0-9_$]*$"+"\""};
+if(vErrors === null){
+vErrors = [err16];
+}
+else {
+vErrors.push(err16);
+}
+errors++;
+}
+}
+else {
+const err17 = {instancePath:instancePath+"/component",schemaPath:"#/$defs/identifier/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err17];
+}
+else {
+vErrors.push(err17);
+}
+errors++;
+}
+}
+if(data.options !== undefined){
+let data5 = data.options;
+if(typeof data5 === "string"){
+if(!pattern20.test(data5)){
+const err18 = {instancePath:instancePath+"/options",schemaPath:"#/$defs/identifier/pattern",keyword:"pattern",params:{pattern: "^[A-Za-z_$][A-Za-z0-9_$]*$"},message:"must match pattern \""+"^[A-Za-z_$][A-Za-z0-9_$]*$"+"\""};
+if(vErrors === null){
+vErrors = [err18];
+}
+else {
+vErrors.push(err18);
+}
+errors++;
+}
+}
+else {
+const err19 = {instancePath:instancePath+"/options",schemaPath:"#/$defs/identifier/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err19];
+}
+else {
+vErrors.push(err19);
+}
+errors++;
+}
+}
+}
+else {
+const err20 = {instancePath,schemaPath:"#/anyOf/1/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err20];
+}
+else {
+vErrors.push(err20);
+}
+errors++;
+}
+var _valid0 = _errs15 === errors;
+valid0 = valid0 || _valid0;
+if(_valid0){
+if(props0 !== true){
+props0 = true;
+}
+}
+if(!valid0){
+const err21 = {instancePath,schemaPath:"#/anyOf",keyword:"anyOf",params:{},message:"must match a schema in anyOf"};
+if(vErrors === null){
+vErrors = [err21];
+}
+else {
+vErrors.push(err21);
+}
+errors++;
+}
+else {
+errors = _errs0;
+if(vErrors !== null){
+if(_errs0){
+vErrors.length = _errs0;
+}
+else {
+vErrors = null;
+}
+}
+}
+validate24.errors = vErrors;
+evaluated0.props = props0;
+return errors === 0;
+}
+validate24.evaluated = {"dynamicProps":true,"dynamicItems":false};
+
 
 function validate21(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="https://github.com/dashlint/dashlint/schema/descriptor.schema.json" */;
@@ -1814,11 +2118,11 @@ vErrors.push(err26);
 errors++;
 }
 }
-if(data.builtins !== undefined){
-let data10 = data.builtins;
-if(typeof data10 === "string"){
-if(!pattern32.test(data10)){
-const err27 = {instancePath:instancePath+"/builtins",schemaPath:"#/$defs/relativeFile/pattern",keyword:"pattern",params:{pattern: "^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$"},message:"must match pattern \""+"^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$"+"\""};
+if(data.init !== undefined){
+let data10 = data.init;
+if(Array.isArray(data10)){
+if(data10.length < 1){
+const err27 = {instancePath:instancePath+"/init",schemaPath:"#/properties/init/minItems",keyword:"minItems",params:{limit: 1},message:"must NOT have fewer than 1 items"};
 if(vErrors === null){
 vErrors = [err27];
 }
@@ -1827,9 +2131,16 @@ vErrors.push(err27);
 }
 errors++;
 }
+const len3 = data10.length;
+for(let i3=0; i3<len3; i3++){
+if(!(validate24(data10[i3], {instancePath:instancePath+"/init/" + i3,parentData:data10,parentDataProperty:i3,rootData,dynamicAnchors}))){
+vErrors = vErrors === null ? validate24.errors : vErrors.concat(validate24.errors);
+errors = vErrors.length;
+}
+}
 }
 else {
-const err28 = {instancePath:instancePath+"/builtins",schemaPath:"#/$defs/relativeFile/type",keyword:"type",params:{type: "string"},message:"must be string"};
+const err28 = {instancePath:instancePath+"/init",schemaPath:"#/properties/init/type",keyword:"type",params:{type: "array"},message:"must be array"};
 if(vErrors === null){
 vErrors = [err28];
 }
@@ -1839,11 +2150,11 @@ vErrors.push(err28);
 errors++;
 }
 }
-if(data.stub !== undefined){
-let data11 = data.stub;
-if(typeof data11 === "string"){
-if(!pattern32.test(data11)){
-const err29 = {instancePath:instancePath+"/stub",schemaPath:"#/$defs/relativeFile/pattern",keyword:"pattern",params:{pattern: "^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$"},message:"must match pattern \""+"^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$"+"\""};
+if(data.builtins !== undefined){
+let data12 = data.builtins;
+if(typeof data12 === "string"){
+if(!pattern37.test(data12)){
+const err29 = {instancePath:instancePath+"/builtins",schemaPath:"#/$defs/relativeFile/pattern",keyword:"pattern",params:{pattern: "^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$"},message:"must match pattern \""+"^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$"+"\""};
 if(vErrors === null){
 vErrors = [err29];
 }
@@ -1854,7 +2165,7 @@ errors++;
 }
 }
 else {
-const err30 = {instancePath:instancePath+"/stub",schemaPath:"#/$defs/relativeFile/type",keyword:"type",params:{type: "string"},message:"must be string"};
+const err30 = {instancePath:instancePath+"/builtins",schemaPath:"#/$defs/relativeFile/type",keyword:"type",params:{type: "string"},message:"must be string"};
 if(vErrors === null){
 vErrors = [err30];
 }
@@ -1864,12 +2175,11 @@ vErrors.push(err30);
 errors++;
 }
 }
-if(data.unknownNames !== undefined){
-let data12 = data.unknownNames;
-if(data12 && typeof data12 == "object" && !Array.isArray(data12)){
-for(const key1 in data12){
-if(!(((key1 === "events") || (key1 === "properties")) || (key1 === "personProperties"))){
-const err31 = {instancePath:instancePath+"/unknownNames",schemaPath:"#/properties/unknownNames/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key1},message:"must NOT have additional properties"};
+if(data.stub !== undefined){
+let data13 = data.stub;
+if(typeof data13 === "string"){
+if(!pattern37.test(data13)){
+const err31 = {instancePath:instancePath+"/stub",schemaPath:"#/$defs/relativeFile/pattern",keyword:"pattern",params:{pattern: "^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$"},message:"must match pattern \""+"^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$"+"\""};
 if(vErrors === null){
 vErrors = [err31];
 }
@@ -1879,11 +2189,8 @@ vErrors.push(err31);
 errors++;
 }
 }
-if(data12.events !== undefined){
-let data13 = data12.events;
-if(Array.isArray(data13)){
-if(data13.length < 1){
-const err32 = {instancePath:instancePath+"/unknownNames/events",schemaPath:"#/$defs/prefixes/minItems",keyword:"minItems",params:{limit: 1},message:"must NOT have fewer than 1 items"};
+else {
+const err32 = {instancePath:instancePath+"/stub",schemaPath:"#/$defs/relativeFile/type",keyword:"type",params:{type: "string"},message:"must be string"};
 if(vErrors === null){
 vErrors = [err32];
 }
@@ -1892,12 +2199,13 @@ vErrors.push(err32);
 }
 errors++;
 }
-const len3 = data13.length;
-for(let i3=0; i3<len3; i3++){
-let data14 = data13[i3];
-if(typeof data14 === "string"){
-if(!pattern5.test(data14)){
-const err33 = {instancePath:instancePath+"/unknownNames/events/" + i3,schemaPath:"#/$defs/prefixes/items/pattern",keyword:"pattern",params:{pattern: "\\S"},message:"must match pattern \""+"\\S"+"\""};
+}
+if(data.unknownNames !== undefined){
+let data14 = data.unknownNames;
+if(data14 && typeof data14 == "object" && !Array.isArray(data14)){
+for(const key1 in data14){
+if(!(((key1 === "events") || (key1 === "properties")) || (key1 === "personProperties"))){
+const err33 = {instancePath:instancePath+"/unknownNames",schemaPath:"#/properties/unknownNames/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key1},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err33];
 }
@@ -1907,8 +2215,11 @@ vErrors.push(err33);
 errors++;
 }
 }
-else {
-const err34 = {instancePath:instancePath+"/unknownNames/events/" + i3,schemaPath:"#/$defs/prefixes/items/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(data14.events !== undefined){
+let data15 = data14.events;
+if(Array.isArray(data15)){
+if(data15.length < 1){
+const err34 = {instancePath:instancePath+"/unknownNames/events",schemaPath:"#/$defs/prefixes/minItems",keyword:"minItems",params:{limit: 1},message:"must NOT have fewer than 1 items"};
 if(vErrors === null){
 vErrors = [err34];
 }
@@ -1917,10 +2228,12 @@ vErrors.push(err34);
 }
 errors++;
 }
-}
-}
-else {
-const err35 = {instancePath:instancePath+"/unknownNames/events",schemaPath:"#/$defs/prefixes/type",keyword:"type",params:{type: "array"},message:"must be array"};
+const len4 = data15.length;
+for(let i4=0; i4<len4; i4++){
+let data16 = data15[i4];
+if(typeof data16 === "string"){
+if(!pattern5.test(data16)){
+const err35 = {instancePath:instancePath+"/unknownNames/events/" + i4,schemaPath:"#/$defs/prefixes/items/pattern",keyword:"pattern",params:{pattern: "\\S"},message:"must match pattern \""+"\\S"+"\""};
 if(vErrors === null){
 vErrors = [err35];
 }
@@ -1930,11 +2243,8 @@ vErrors.push(err35);
 errors++;
 }
 }
-if(data12.properties !== undefined){
-let data15 = data12.properties;
-if(Array.isArray(data15)){
-if(data15.length < 1){
-const err36 = {instancePath:instancePath+"/unknownNames/properties",schemaPath:"#/$defs/prefixes/minItems",keyword:"minItems",params:{limit: 1},message:"must NOT have fewer than 1 items"};
+else {
+const err36 = {instancePath:instancePath+"/unknownNames/events/" + i4,schemaPath:"#/$defs/prefixes/items/type",keyword:"type",params:{type: "string"},message:"must be string"};
 if(vErrors === null){
 vErrors = [err36];
 }
@@ -1943,12 +2253,10 @@ vErrors.push(err36);
 }
 errors++;
 }
-const len4 = data15.length;
-for(let i4=0; i4<len4; i4++){
-let data16 = data15[i4];
-if(typeof data16 === "string"){
-if(!pattern5.test(data16)){
-const err37 = {instancePath:instancePath+"/unknownNames/properties/" + i4,schemaPath:"#/$defs/prefixes/items/pattern",keyword:"pattern",params:{pattern: "\\S"},message:"must match pattern \""+"\\S"+"\""};
+}
+}
+else {
+const err37 = {instancePath:instancePath+"/unknownNames/events",schemaPath:"#/$defs/prefixes/type",keyword:"type",params:{type: "array"},message:"must be array"};
 if(vErrors === null){
 vErrors = [err37];
 }
@@ -1958,8 +2266,11 @@ vErrors.push(err37);
 errors++;
 }
 }
-else {
-const err38 = {instancePath:instancePath+"/unknownNames/properties/" + i4,schemaPath:"#/$defs/prefixes/items/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(data14.properties !== undefined){
+let data17 = data14.properties;
+if(Array.isArray(data17)){
+if(data17.length < 1){
+const err38 = {instancePath:instancePath+"/unknownNames/properties",schemaPath:"#/$defs/prefixes/minItems",keyword:"minItems",params:{limit: 1},message:"must NOT have fewer than 1 items"};
 if(vErrors === null){
 vErrors = [err38];
 }
@@ -1968,10 +2279,12 @@ vErrors.push(err38);
 }
 errors++;
 }
-}
-}
-else {
-const err39 = {instancePath:instancePath+"/unknownNames/properties",schemaPath:"#/$defs/prefixes/type",keyword:"type",params:{type: "array"},message:"must be array"};
+const len5 = data17.length;
+for(let i5=0; i5<len5; i5++){
+let data18 = data17[i5];
+if(typeof data18 === "string"){
+if(!pattern5.test(data18)){
+const err39 = {instancePath:instancePath+"/unknownNames/properties/" + i5,schemaPath:"#/$defs/prefixes/items/pattern",keyword:"pattern",params:{pattern: "\\S"},message:"must match pattern \""+"\\S"+"\""};
 if(vErrors === null){
 vErrors = [err39];
 }
@@ -1981,11 +2294,8 @@ vErrors.push(err39);
 errors++;
 }
 }
-if(data12.personProperties !== undefined){
-let data17 = data12.personProperties;
-if(Array.isArray(data17)){
-if(data17.length < 1){
-const err40 = {instancePath:instancePath+"/unknownNames/personProperties",schemaPath:"#/$defs/prefixes/minItems",keyword:"minItems",params:{limit: 1},message:"must NOT have fewer than 1 items"};
+else {
+const err40 = {instancePath:instancePath+"/unknownNames/properties/" + i5,schemaPath:"#/$defs/prefixes/items/type",keyword:"type",params:{type: "string"},message:"must be string"};
 if(vErrors === null){
 vErrors = [err40];
 }
@@ -1994,12 +2304,10 @@ vErrors.push(err40);
 }
 errors++;
 }
-const len5 = data17.length;
-for(let i5=0; i5<len5; i5++){
-let data18 = data17[i5];
-if(typeof data18 === "string"){
-if(!pattern5.test(data18)){
-const err41 = {instancePath:instancePath+"/unknownNames/personProperties/" + i5,schemaPath:"#/$defs/prefixes/items/pattern",keyword:"pattern",params:{pattern: "\\S"},message:"must match pattern \""+"\\S"+"\""};
+}
+}
+else {
+const err41 = {instancePath:instancePath+"/unknownNames/properties",schemaPath:"#/$defs/prefixes/type",keyword:"type",params:{type: "array"},message:"must be array"};
 if(vErrors === null){
 vErrors = [err41];
 }
@@ -2009,8 +2317,11 @@ vErrors.push(err41);
 errors++;
 }
 }
-else {
-const err42 = {instancePath:instancePath+"/unknownNames/personProperties/" + i5,schemaPath:"#/$defs/prefixes/items/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(data14.personProperties !== undefined){
+let data19 = data14.personProperties;
+if(Array.isArray(data19)){
+if(data19.length < 1){
+const err42 = {instancePath:instancePath+"/unknownNames/personProperties",schemaPath:"#/$defs/prefixes/minItems",keyword:"minItems",params:{limit: 1},message:"must NOT have fewer than 1 items"};
 if(vErrors === null){
 vErrors = [err42];
 }
@@ -2019,10 +2330,12 @@ vErrors.push(err42);
 }
 errors++;
 }
-}
-}
-else {
-const err43 = {instancePath:instancePath+"/unknownNames/personProperties",schemaPath:"#/$defs/prefixes/type",keyword:"type",params:{type: "array"},message:"must be array"};
+const len6 = data19.length;
+for(let i6=0; i6<len6; i6++){
+let data20 = data19[i6];
+if(typeof data20 === "string"){
+if(!pattern5.test(data20)){
+const err43 = {instancePath:instancePath+"/unknownNames/personProperties/" + i6,schemaPath:"#/$defs/prefixes/items/pattern",keyword:"pattern",params:{pattern: "\\S"},message:"must match pattern \""+"\\S"+"\""};
 if(vErrors === null){
 vErrors = [err43];
 }
@@ -2032,9 +2345,8 @@ vErrors.push(err43);
 errors++;
 }
 }
-}
 else {
-const err44 = {instancePath:instancePath+"/unknownNames",schemaPath:"#/properties/unknownNames/type",keyword:"type",params:{type: "object"},message:"must be object"};
+const err44 = {instancePath:instancePath+"/unknownNames/personProperties/" + i6,schemaPath:"#/$defs/prefixes/items/type",keyword:"type",params:{type: "string"},message:"must be string"};
 if(vErrors === null){
 vErrors = [err44];
 }
@@ -2046,12 +2358,36 @@ errors++;
 }
 }
 else {
-const err45 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+const err45 = {instancePath:instancePath+"/unknownNames/personProperties",schemaPath:"#/$defs/prefixes/type",keyword:"type",params:{type: "array"},message:"must be array"};
 if(vErrors === null){
 vErrors = [err45];
 }
 else {
 vErrors.push(err45);
+}
+errors++;
+}
+}
+}
+else {
+const err46 = {instancePath:instancePath+"/unknownNames",schemaPath:"#/properties/unknownNames/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err46];
+}
+else {
+vErrors.push(err46);
+}
+errors++;
+}
+}
+}
+else {
+const err47 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err47];
+}
+else {
+vErrors.push(err47);
 }
 errors++;
 }

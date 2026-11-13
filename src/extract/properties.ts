@@ -456,6 +456,23 @@ function compareSites(a: OpenWorldSite, b: OpenWorldSite): number {
   return a.file < b.file ? -1 : a.file > b.file ? 1 : a.line - b.line;
 }
 
+/** The properties of one object value read as an event's properties are, with its open reason. */
+export interface ObjectRead {
+  properties: Record<string, PropertyFact>;
+  open?: string;
+}
+
+/** Reads the object at `node` and then `keys` (a `register` or `$set` argument, T3.7). */
+export function readObjectAt(
+  checker: ts.TypeChecker,
+  node: ts.Expression,
+  keys: readonly string[],
+): ObjectRead {
+  const read = new PropertyReader(checker).ofValue(node, keys);
+  const properties = facts(read.bag);
+  return read.open === undefined ? { properties } : { properties, open: read.open };
+}
+
 /**
  * The properties of every named event site of a source, and one `properties` open-world entry per
  * site whose properties are open, with the reason.

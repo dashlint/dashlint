@@ -23,6 +23,7 @@ import {
   type Descriptor,
   type DescriptorFile,
   isHook,
+  isInitComponent,
   type MemberCall,
   type StubSurface,
 } from './model.js';
@@ -224,6 +225,29 @@ function stubRules(d: DescriptorFile, surface: StubSurface): ValidationError[] {
         errors.push({
           path: `/calls/${i}/member`,
           message: msg.memberNotInStub(call.member, container, d.stub),
+        });
+    });
+  });
+  (d.init ?? []).forEach((entry, i) => {
+    if (isInitComponent(entry)) {
+      if (!surface.functions.has(entry.component))
+        errors.push({
+          path: `/init/${i}/component`,
+          message: msg.componentNotInStub(entry.component, d.stub),
+        });
+      return;
+    }
+    entry.on.forEach((container, j) => {
+      const members = surface.containers.get(container);
+      if (!members)
+        errors.push({
+          path: `/init/${i}/on/${j}`,
+          message: msg.containerNotInStub(container, d.stub),
+        });
+      else if (!members.has(entry.member))
+        errors.push({
+          path: `/init/${i}/member`,
+          message: msg.memberNotInStub(entry.member, container, d.stub),
         });
     });
   });

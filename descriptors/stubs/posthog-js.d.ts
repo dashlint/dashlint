@@ -102,6 +102,10 @@ declare module 'posthog-js' {
 }
 
 declare module 'posthog-js/react' {
-  import type { PostHog } from 'posthog-js';
+  import type { PostHog, PostHogConfig } from 'posthog-js';
   export const usePostHog: () => PostHog;
+  export type PostHogProviderProps =
+    | { client: PostHog; apiKey?: never; options?: never; children?: unknown }
+    | { apiKey: string; options?: Partial<PostHogConfig>; client?: never; children?: unknown };
+  export function PostHogProvider(props: PostHogProviderProps): any;
 }

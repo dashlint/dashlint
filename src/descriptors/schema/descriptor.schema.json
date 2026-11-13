@@ -45,6 +45,12 @@
       "description": "Default platforms of a source using this SDK."
     },
     "calls": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/call" } },
+    "init": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/init" },
+      "description": "Where the app creates the client and passes the init options that builtin conditions read (spec 6.4 item 8)."
+    },
     "builtins": {
       "$ref": "#/$defs/relativeFile",
       "description": "The builtins file, relative to this descriptor."
@@ -89,6 +95,38 @@
       "type": "array",
       "minItems": 1,
       "items": { "type": "string", "pattern": "\\S" }
+    },
+    "init": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["member", "on", "options"],
+          "properties": {
+            "member": {
+              "$ref": "#/$defs/identifier",
+              "description": "The method, or `constructor` for `new`, matched by its resolved declaration."
+            },
+            "on": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/container" } },
+            "options": { "$ref": "#/$defs/argPath" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["component", "options"],
+          "properties": {
+            "component": {
+              "$ref": "#/$defs/identifier",
+              "description": "A component that creates the client; one given a `client` prop is not an init."
+            },
+            "options": {
+              "$ref": "#/$defs/identifier",
+              "description": "The prop that holds the init options."
+            }
+          }
+        }
+      ]
     },
     "call": {
       "type": "object",

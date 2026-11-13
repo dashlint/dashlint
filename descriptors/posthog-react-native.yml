@@ -39,6 +39,14 @@ calls:
     on: [PostHog, PostHogCore]
     identity: reset
   - hook: usePostHog
+# Init options for builtin conditions: new PostHog(projectToken, options), or the provider's options
+# prop (dist/PostHogProvider.d.ts, PostHogProviderProps).
+init:
+  - member: constructor
+    on: [PostHog]
+    options: args[1]
+  - component: PostHogProvider
+    options: options
 builtins: builtins/posthog-react-native.yml
 stub: stubs/posthog-react-native.d.ts
 unknownNames:

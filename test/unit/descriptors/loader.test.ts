@@ -213,6 +213,55 @@ describe('loadDescriptor', () => {
     });
   });
 
+  describe('init entries (ADR-027)', () => {
+    const INIT_STUB = STUB.replace(
+      '    reset(): void;\n',
+      '    reset(): void;\n    constructor(token: string, options?: Record<string, unknown>);\n',
+    ).replace(
+      '  export const useShelf: () => Shelf;\n',
+      '  export const useShelf: () => Shelf;\n  export function ShelfProvider(props: { options?: object }): unknown;\n',
+    );
+    const withInit = (init: string) =>
+      DESCRIPTOR.replace('builtins: builtins/', `init:\n${init}builtins: builtins/`);
+
+    it('loads a constructor and a provider component declared in the stub', () => {
+      const dir = writeSet({
+        descriptor: withInit(
+          '  - member: constructor\n    on: [Shelf]\n    options: args[1]\n  - component: ShelfProvider\n    options: options\n',
+        ),
+        stub: INIT_STUB,
+      });
+      const r = loadDescriptor(join(dir, 'shelf-sdk.yml'));
+      if (!r.ok) throw new Error(formatDescriptorErrors(r.errors).join('\n'));
+      expect(r.value.init).toEqual([
+        { member: 'constructor', on: ['Shelf'], options: 'args[1]' },
+        { component: 'ShelfProvider', options: 'options' },
+      ]);
+    });
+
+    it('refuses a constructor or component the stub does not declare (negative control)', () => {
+      const errors = errorsOf(
+        writeSet({
+          descriptor: withInit(
+            '  - member: constructor\n    on: [ShelfCore]\n    options: args[1]\n  - component: BookcaseProvider\n    options: options\n',
+          ),
+          stub: INIT_STUB,
+        }),
+      );
+      expect(errors.map((e) => e.message)).toEqual([
+        'member constructor is not declared on ShelfCore in stubs/shelf-sdk.d.ts',
+        'component BookcaseProvider is not declared in stubs/shelf-sdk.d.ts',
+      ]);
+    });
+
+    it('refuses an init entry that mixes the two forms or misses its options', () => {
+      const errors = descriptorErrors(
+        withInit('  - member: init\n    on: [Shelf]\n    component: ShelfProvider\n'),
+      );
+      expect(errors.map((e) => e.path)).toContain('/init/0');
+    });
+  });
+
   it('refuses a stub without the package module, or with a module of another package', () => {
     const errors = errorsOf(
       writeSet({

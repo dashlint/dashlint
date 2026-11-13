@@ -38,6 +38,14 @@ calls:
     on: [PostHog]
     identity: reset
   - hook: usePostHog
+# Init options for builtin conditions: posthog.init(token, config), or the React provider given
+# apiKey and options (react/dist/types/index.d.ts, PostHogProviderProps).
+init:
+  - member: init
+    on: [PostHog]
+    options: args[1]
+  - component: PostHogProvider
+    options: options
 builtins: builtins/posthog-js.yml
 stub: stubs/posthog-js.d.ts
 unknownNames:

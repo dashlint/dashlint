@@ -40,6 +40,30 @@ export interface HookCall {
 
 export type CallEntry = MemberCall | HookCall;
 
+/**
+ * Where the app creates the client and passes its init options (spec 6.4 item 8, ADR-027): a
+ * member call or a constructor (`member: constructor`), with the options at an argument path, or a
+ * component whose `options` prop holds them. A component with a `client` prop is handed a client
+ * made elsewhere and is not an init.
+ */
+export type InitEntry = InitCall | InitComponent;
+
+export interface InitCall {
+  member: string;
+  on: string[];
+  options: ArgPath;
+}
+
+export interface InitComponent {
+  component: string;
+  /** The prop that holds the init options. */
+  options: string;
+}
+
+export function isInitComponent(entry: InitEntry): entry is InitComponent {
+  return 'component' in entry;
+}
+
 /** Name prefixes that cannot be cited as builtins: requirements on them are not checked (ADR-003). */
 export interface UnknownNames {
   events?: string[];
@@ -58,6 +82,8 @@ export interface DescriptorFile {
   declaredIn: string[];
   platforms: Platform[];
   calls: CallEntry[];
+  /** Where init options are read for builtin conditions; none leaves every option unknown. */
+  init?: InitEntry[];
   /** Relative to the descriptor file. */
   builtins: string;
   /** Relative to the descriptor file. */

@@ -19,8 +19,9 @@ function addContainer(
   const names = surface.containers.get(container) ?? new Set<string>();
   surface.containers.set(container, names);
   for (const m of members) {
-    const name = memberName(m);
-    if (name === undefined || ts.isConstructorDeclaration(m)) continue;
+    // A constructor is listed as `constructor`, which an init entry may name.
+    const name = ts.isConstructorDeclaration(m) ? 'constructor' : memberName(m);
+    if (name === undefined) continue;
     const modifiers = ts.canHaveModifiers(m) ? ts.getModifiers(m) : undefined;
     if (modifiers?.some((k) => k.kind === ts.SyntaxKind.PrivateKeyword)) continue;
     names.add(name);

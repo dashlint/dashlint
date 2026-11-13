@@ -1,6 +1,7 @@
 // Type stub for posthog-react-native, used by dashlint only when the package is not installed
 // (spec 6.4 item 2). It keeps the public members dashlint matches, with the signatures of
-// posthog-react-native 4.86.0 (dist/posthog-rn.d.ts, dist/hooks/usePostHog.d.ts) and @posthog/core
+// posthog-react-native 4.86.0 (dist/posthog-rn.d.ts, dist/hooks/usePostHog.d.ts,
+// dist/PostHogProvider.d.ts) and @posthog/core
 // 1.67.2 (dist/posthog-core.d.ts, dist/posthog-core-stateless.d.ts, dist/types.d.ts), and the same
 // class chain: PostHog extends PostHogCore extends PostHogCoreStateless. Modified by dashlint:
 // reduced to that surface; option types are left open.
@@ -97,5 +98,16 @@ declare module 'posthog-react-native' {
   }
 
   export const usePostHog: () => PostHog;
+  export interface PostHogProviderProps {
+    children?: unknown;
+    options?: PostHogOptions;
+    projectToken?: string;
+    apiKey?: string;
+    client?: PostHog;
+    autocapture?: boolean | { [option: string]: unknown };
+    debug?: boolean;
+    style?: unknown;
+  }
+  export const PostHogProvider: (props: PostHogProviderProps) => any;
   export default PostHog;
 }

@@ -63,4 +63,6 @@ export const descriptorErrors = {
   memberNotInStub: (member: string, container: string, stub: string) =>
     `member ${member} is not declared on ${container} in ${stub}`,
   hookNotInStub: (hook: string, stub: string) => `hook ${hook} is not declared in ${stub}`,
+  componentNotInStub: (component: string, stub: string) =>
+    `component ${component} is not declared in ${stub}`,
 };

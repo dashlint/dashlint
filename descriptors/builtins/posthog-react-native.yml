@@ -3,7 +3,15 @@
 # published package source at the descriptor's verified version (V2).
 sdk: posthog-react-native
 events:
-  - { name: '$screen', when: { option: 'captureScreens', not: false } }
+  # captureScreens and captureTouches are keys of PostHogProvider's autocapture prop, not init options
+  # (dist/PostHogProvider.js:1), so code cannot decide them from the init call (ADR-027).
+  - {
+      name: '$screen',
+      when:
+        {
+          unknown: 'sent automatically only by PostHogProvider with autocapture.captureScreens (default true when the provider is used), not an init option',
+        },
+    }
   - { name: 'Application Installed', when: { option: 'captureAppLifecycleEvents', not: false } }
   - { name: 'Application Updated', when: { option: 'captureAppLifecycleEvents', not: false } }
   - { name: 'Application Opened', when: { option: 'captureAppLifecycleEvents', not: false } }
@@ -20,7 +28,13 @@ events:
           unknown: 'needs errorTracking.autocapture in init options and the remote config flag autocaptureExceptions (default false)',
         },
     }
-  - { name: '$autocapture', when: { option: 'captureTouches', is: true } }
+  - {
+      name: '$autocapture',
+      when:
+        {
+          unknown: 'sent only by PostHogProvider with autocapture true or autocapture.captureTouches true, not an init option',
+        },
+    }
 properties:
   - { name: '$screen_name', events: ['$screen'], presence: always, when: always }
   - { name: '$os_name', events: '*', presence: always, when: always }
