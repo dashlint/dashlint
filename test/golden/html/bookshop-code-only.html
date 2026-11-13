@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'">
+<meta name="referrer" content="no-referrer">
+<title>dashlint report</title>
+<style>:root{color-scheme:light dark;--bg:#fff;--fg:#1a1a1a;--muted:#555;--line:#d0d0d0;--head:#f3f3f3;--link:#0645ad;
+--dead-bg:#fde2e2;--dead-fg:#8a1010;--part-bg:#fdebd8;--part-fg:#7a3a00;--deg-bg:#fff4c2;--deg-fg:#5c4400;
+--one-bg:#e3ecfd;--one-fg:#1d3f8a;--nc-bg:#ececec;--nc-fg:#333;--live-bg:#dff3e2;--live-fg:#14562a}
+@media (prefers-color-scheme:dark){:root{--bg:#141414;--fg:#ececec;--muted:#b0b0b0;--line:#3a3a3a;
+--head:#1f1f1f;--link:#8ab4f8;--dead-bg:#4a1212;--dead-fg:#ffd2d2;--part-bg:#4a2a0a;--part-fg:#ffdcb8;
+--deg-bg:#3d3300;--deg-fg:#fff0a8;--one-bg:#16264a;--one-fg:#cfe0ff;--nc-bg:#2c2c2c;--nc-fg:#e0e0e0;
+--live-bg:#123a1c;--live-fg:#c8f0d0}}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1200px;margin:0 auto;padding:16px}
+h1{font-size:1.5rem;margin:.5rem 0}h2{font-size:1.2rem;margin:1.5rem 0 .5rem}
+.meta,.small{color:var(--muted)}
+.score{font-size:1.3rem;font-weight:600}
+a{color:var(--link)}
+code{font:13px/1.4 ui-monospace,Menlo,Consolas,monospace;overflow-wrap:anywhere}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+thead th{background:var(--head)}
+thead button{all:inherit;cursor:pointer;padding:0}
+thead button:focus-visible{outline:2px solid var(--link)}
+td ul,section ul{margin:0;padding-left:1.2rem}
+ul.sites{list-style:none;padding:0}
+.v{display:inline-block;padding:1px 6px;border-radius:4px;font-size:12px;font-weight:700;white-space:nowrap}
+.v-dead{background:var(--dead-bg);color:var(--dead-fg)}
+.v-partly-dead{background:var(--part-bg);color:var(--part-fg)}
+.v-degraded{background:var(--deg-bg);color:var(--deg-fg)}
+.v-one-platform{background:var(--one-bg);color:var(--one-fg)}
+.v-not-checked,.v-ignored{background:var(--nc-bg);color:var(--nc-fg)}
+.v-live{background:var(--live-bg);color:var(--live-fg)}
+footer{margin:2rem 0 1rem;font-weight:600}</style>
+</head>
+<body>
+<main>
+<h1>dashlint report</h1>
+<p class="meta">dashlint 0.1.0 · PostHog project 12345 · snapshot pulled 2026-12-18 09:12 UTC</p>
+<p>PostHog data: not read, so every finding rests on code alone</p>
+<p class="small">Sources: web (web) · mobile (android, ios)</p>
+<p class="small">Catalog: 61 call sites, 58 with literal event names (95%), 3 open</p>
+<section aria-labelledby="summary">
+<h2 id="summary">Summary</h2>
+<p class="score">2 of 10 tiles are live</p>
+<p>2 live · 1 dead · 1 partly dead · 2 degraded · 1 one platform · 2 not checked · 1 ignored</p>
+<p>Alerts: 2 checked · 0 can never fire · 1 invalid target</p>
+<p>Unknown: 2 parts could not be decided and are counted as not checked.</p>
+</section>
+<p id="filter" hidden><label>
+Show tiles <select><option value="">every verdict</option><option value="dead">DEAD</option><option value="partly-dead">PARTLY DEAD</option><option value="degraded">DEGRADED</option><option value="one-platform">ONE PLATFORM</option><option value="not-checked">NOT CHECKED</option><option value="live">LIVE</option><option value="ignored">IGNORED</option></select>
+</label></p>
+<section aria-labelledby="d0">
+<h2 id="d0">Bookshop growth</h2>
+<p>Bookshop growth (9 tiles): 2 live · 1 dead · 1 partly dead · 1 degraded · 1 one platform · 2 not checked · 1 ignored</p>
+<div class="scroll"><table>
+<thead><tr><th scope="col" aria-sort="none"><button type="button" data-col="0">Verdict</button></th><th scope="col" aria-sort="none"><button type="button" data-col="1">Tile</button></th><th scope="col" aria-sort="none"><button type="button" data-col="2">Platforms</button></th><th scope="col" aria-sort="none"><button type="button" data-col="3">Reasons</button></th><th scope="col" aria-sort="none"><button type="button" data-col="4">Code</button></th></tr></thead>
+<tbody>
+<tr data-verdict="dead"><td data-rank="0"><span class="v v-dead">DEAD</span></td><th scope="row"><a href="https://us.posthog.com/project/12345/insights/Ws02">Wishlist shares, fiction</a></th><td>none</td><td><ul><li>filters on <code>genre</code> = &quot;Fiction&quot;, but no call site sends <code>genre</code> with <code>wishlist_shared</code> (they send <code>genre_id</code>)</li></ul></td><td><ul class="sites"><li><code>web/src/wishlist/share.ts:41</code></li><li><code>mobile/src/wishlist/share.ts:27</code></li></ul></td></tr>
+<tr data-verdict="partly-dead"><td data-rank="1"><span class="v v-partly-dead">PARTLY DEAD</span></td><th scope="row"><a href="https://us.posthog.com/project/12345/insights/Cf04">Checkout funnel</a></th><td>android, ios, web</td><td><ul><li>steps 3 to 4 are always zero</li><li>step 3 filters <code>payment_method</code> = &quot;Voucher&quot;, but the code can only send &quot;card&quot; or &quot;wallet&quot;</li></ul></td><td><ul class="sites"><li><code>web/src/checkout/pay.ts:63</code></li><li><code>mobile/src/checkout/pay.ts:40</code></li></ul></td></tr>
+<tr data-verdict="degraded"><td data-rank="2"><span class="v v-degraded">DEGRADED</span></td><th scope="row"><a href="https://us.posthog.com/project/12345/insights/Of05">Orders by format</a></th><td>android, ios, web</td><td><ul><li>breaks down by <code>format</code>, which no call site of <code>order_completed</code> sends: every row lands in one &quot;(none)&quot; bucket</li></ul></td><td><ul class="sites"><li><code>web/src/checkout/complete.ts:30</code></li><li><code>mobile/src/orders/complete.ts:30</code></li></ul></td></tr>
+<tr data-verdict="one-platform"><td data-rank="3"><span class="v v-one-platform">ONE PLATFORM</span></td><th scope="row"><a href="https://us.posthog.com/project/12345/insights/Rs06">Reviews submitted</a></th><td>web</td><td><ul><li>alert &quot;Reviews spike&quot; watches a part the insight does not have</li><li>every event it counts is sent from web only; android and ios have no call site</li></ul></td><td></td></tr>
+<tr data-verdict="not-checked"><td data-rank="4"><span class="v v-not-checked">NOT CHECKED</span></td><th scope="row"><a href="https://us.posthog.com/project/12345/insights/Gc03">Gift cards redeemed</a></th><td>none</td><td><ul><li>series[0] not checked: some event names in code are not literal, so any name may be sent</li></ul></td><td></td></tr>
+<tr data-verdict="not-checked"><td data-rank="4"><span class="v v-not-checked">NOT CHECKED</span></td><th scope="row">Revenue by cohort</th><td>none</td><td><ul><li>SQL insight</li><li>not checked: a SQL query; an insight kind dashlint does not check</li></ul></td><td></td></tr>
+<tr data-verdict="live"><td data-rank="5"><span class="v v-live">LIVE</span></td><th scope="row"><a href="https://us.posthog.com/project/12345/insights/Bv01">Books viewed</a></th><td>android, ios, web</td><td></td><td></td></tr>
+<tr data-verdict="live"><td data-rank="5"><span class="v v-live">LIVE</span></td><th scope="row"><a href="https://us.posthog.com/project/12345/insights/Bp08">Books previewed</a></th><td>android, ios</td><td></td><td></td></tr>
+<tr data-verdict="ignored"><td data-rank="6"><span class="v v-ignored">IGNORED</span></td><th scope="row"><a href="https://us.posthog.com/project/12345/insights/Sa09">Shelves archived</a></th><td>none</td><td></td><td></td></tr>
+</tbody></table></div>
+</section>
+<section aria-labelledby="d1">
+<h2 id="d1">Not on a dashboard</h2>
+<p>Not on a dashboard (1 tile): 0 live · 1 degraded · 0 not checked</p>
+<div class="scroll"><table>
+<thead><tr><th scope="col" aria-sort="none"><button type="button" data-col="0">Verdict</button></th><th scope="col" aria-sort="none"><button type="button" data-col="1">Tile</button></th><th scope="col" aria-sort="none"><button type="button" data-col="2">Platforms</button></th><th scope="col" aria-sort="none"><button type="button" data-col="3">Reasons</button></th><th scope="col" aria-sort="none"><button type="button" data-col="4">Code</button></th></tr></thead>
+<tbody>
+<tr data-verdict="degraded"><td data-rank="2"><span class="v v-degraded">DEGRADED</span></td><th scope="row"><a href="https://us.posthog.com/project/12345/insights/Ca10">Checkouts by method</a></th><td>android, ios, web</td><td><ul><li>filters out <code>coupon</code> is not &quot;none&quot;, but no call site sends <code>coupon</code> with <code>checkout_started</code>, so the filter has no effect</li></ul></td><td><ul class="sites"><li><code>web/src/checkout/start.ts:12</code></li><li><code>mobile/src/checkout/start.ts:9</code></li></ul></td></tr>
+</tbody></table></div>
+</section>
+<section aria-labelledby="alerts">
+<h2 id="alerts">Alerts</h2>
+<p>Alerts: 2 checked · 0 can never fire · 1 invalid target</p>
+<ul><li>alert &quot;Reviews spike&quot; watches series 3, but the insight has 1 series (PostHog shows: Errored)</li></ul>
+</section>
+<section aria-labelledby="not-arriving">
+<h2 id="not-arriving">Not arriving</h2>
+<p>PostHog data was not read, so arrival was not checked.</p>
+</section>
+<section aria-labelledby="unknowns">
+<h2 id="unknowns">Unknowns</h2>
+<p>Unknown: 2 parts could not be decided and are counted as not checked.</p>
+<ul><li>Gift cards redeemed<ul><li>series[0] not checked: some event names in code are not literal, so any name may be sent</li></ul></li><li>Revenue by cohort<ul><li>not checked: a SQL query; an insight kind dashlint does not check</li></ul></li></ul>
+</section>
+<section aria-labelledby="warnings">
+<h2 id="warnings">Warnings</h2>
+<ul><li>Warning: the ignore entry for insight:Of05 expired on 2026-12-01; the tile is checked again.</li></ul>
+</section>
+<footer><p>A clean result means nothing dashlint can see is broken, not that every number is right.</p></footer>
+</main>
+<script>(function(){
+var f=document.getElementById('filter');
+if(f){f.hidden=false;f.querySelector('select').addEventListener('change',function(e){
+var v=e.target.value;document.querySelectorAll('tbody tr').forEach(function(r){
+r.hidden=v!==''&&r.getAttribute('data-verdict')!==v;});});}
+document.querySelectorAll('thead button').forEach(function(b){b.addEventListener('click',function(){
+var th=b.parentNode,table=th.closest('table'),body=table.tBodies[0],col=Number(b.getAttribute('data-col'));
+var asc=th.getAttribute('aria-sort')!=='ascending';
+table.querySelectorAll('thead th').forEach(function(h){h.setAttribute('aria-sort','none');});
+th.setAttribute('aria-sort',asc?'ascending':'descending');
+var key=function(r){var c=r.cells[col];var k=c.getAttribute('data-rank');return k===null?c.textContent.trim().toLowerCase():Number(k);};
+Array.prototype.slice.call(body.rows).sort(function(a,c){var x=key(a),y=key(c);var d=x<y?-1:x>y?1:0;return asc?d:-d;})
+.forEach(function(r){body.appendChild(r);});});});
+})();</script>
+</body>
+</html>

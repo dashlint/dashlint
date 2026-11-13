@@ -347,6 +347,32 @@ export const reportText = {
     `the report does not match dashlint.report/1: ${errors.join('; ')}`,
 };
 
+// The HTML report (src/report/html.ts, spec 6.9.5). Backticks become <code> there.
+export const htmlText = {
+  title: 'dashlint report',
+  score: (live: number, tiles: number) =>
+    `${live} of ${plural(tiles, 'tile')} ${tiles === 1 ? 'is' : 'are'} live`,
+  summary: 'Summary',
+  columns: {
+    verdict: 'Verdict',
+    tile: 'Tile',
+    platforms: 'Platforms',
+    reasons: 'Reasons',
+    code: 'Code',
+  },
+  noPlatforms: 'none',
+  filterLabel: 'Show tiles',
+  filterAll: 'every verdict',
+  alerts: 'Alerts',
+  notArriving: 'Not arriving',
+  notArrivingLine: (event: string, windowDays: number, enforcement?: 'allow' | 'reject') =>
+    `${code(event)} is sent in code but PostHog has not seen it in ${windowDays} days${enforcement === 'reject' ? ' (its schema enforcement is set to reject)' : ''}.`,
+  notArrivingNone: 'dashlint found no event that is sent in code but missing from PostHog.',
+  notArrivingNotRead: 'PostHog data was not read, so arrival was not checked.',
+  unknowns: 'Unknowns',
+  warnings: 'Warnings',
+};
+
 const VERDICT_WORD: Record<Verdict, string> = {
   live: 'live',
   dead: 'dead',
