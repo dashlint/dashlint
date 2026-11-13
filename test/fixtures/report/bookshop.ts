@@ -293,10 +293,16 @@ export const IGNORE: IgnoreEntry[] = [
 
 /** The bookshop checked end to end: tiles, alerts, ignore list, report model. */
 export function bookshop(
-  options: { observed?: boolean; ignore?: IgnoreEntry[]; catalogs?: Catalog[] } = {},
+  options: {
+    observed?: boolean;
+    ignore?: IgnoreEntry[];
+    catalogs?: Catalog[];
+    requirements?: Requirements;
+    mode?: ReportModel['report']['mode'];
+  } = {},
 ): ReportModel {
   const cats = options.catalogs ?? catalogs();
-  const req = requirements(options.observed ?? true);
+  const req = options.requirements ?? requirements(options.observed ?? true);
   const ctx = context(cats, req);
   const outcome = applyIgnore(
     req,
@@ -307,7 +313,7 @@ export function bookshop(
   );
   return buildReport({
     tool: '0.1.0',
-    mode: 'check',
+    mode: options.mode ?? 'check',
     requirements: req,
     catalogs: cats,
     ctx,

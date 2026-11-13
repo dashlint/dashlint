@@ -1,0 +1,401 @@
+{
+  "schema": "dashlint.report/1",
+  "tool": "0.1.0",
+  "mode": "check",
+  "requirements": {
+    "platform": "posthog",
+    "project": 12345,
+    "pulledAt": "2026-12-18T09:12:00Z",
+    "observed": true
+  },
+  "catalogs": [
+    {
+      "source": "web",
+      "commit": "5f0c2e1",
+      "nameResolutionRate": 0.939
+    },
+    {
+      "source": "mobile",
+      "commit": "5f0c2e1",
+      "nameResolutionRate": 0.964
+    }
+  ],
+  "summary": {
+    "tiles": 10,
+    "live": 2,
+    "dead": 2,
+    "partlyDead": 1,
+    "degraded": 2,
+    "onePlatform": 1,
+    "notChecked": 2,
+    "ignored": 0,
+    "unknownParts": 2,
+    "alerts": {
+      "checked": 4,
+      "canNeverFire": 1,
+      "firesEveryCheck": 1,
+      "invalidTarget": 1
+    }
+  },
+  "tiles": [
+    {
+      "id": "insight:Bv01",
+      "title": "Books viewed",
+      "url": "https://us.posthog.com/project/12345/insights/Bv01",
+      "dashboards": [
+        "dashboard:41"
+      ],
+      "kind": "trends",
+      "verdict": "live",
+      "platforms": [
+        "android",
+        "ios",
+        "web"
+      ],
+      "findings": [],
+      "unknownParts": []
+    },
+    {
+      "id": "insight:Ws02",
+      "title": "Wishlist shares, fiction",
+      "url": "https://us.posthog.com/project/12345/insights/Ws02",
+      "dashboards": [
+        "dashboard:41"
+      ],
+      "kind": "trends",
+      "verdict": "dead",
+      "platforms": [],
+      "findings": [
+        {
+          "check": "property-is-sent",
+          "path": "series[0].filters[0]",
+          "effect": "dead",
+          "event": "wishlist_shared",
+          "property": "genre",
+          "values": [
+            "Fiction"
+          ],
+          "code": "no",
+          "observed": "notSeen",
+          "sites": [
+            {
+              "file": "web/src/wishlist/share.ts",
+              "line": 41
+            },
+            {
+              "file": "mobile/src/wishlist/share.ts",
+              "line": 27
+            }
+          ],
+          "hint": {
+            "closestProperty": "genre_id"
+          },
+          "message": "filters on `genre` = \"Fiction\", but no call site sends `genre` with `wishlist_shared` (they send `genre_id`), and PostHog has never seen `genre` on that event"
+        }
+      ],
+      "unknownParts": []
+    },
+    {
+      "id": "insight:Gc03",
+      "title": "Gift cards redeemed",
+      "url": "https://us.posthog.com/project/12345/insights/Gc03",
+      "dashboards": [
+        "dashboard:41"
+      ],
+      "kind": "trends",
+      "verdict": "dead",
+      "platforms": [],
+      "findings": [
+        {
+          "check": "event-has-call-site",
+          "path": "series[0]",
+          "effect": "dead",
+          "event": "gift_card_redeemed",
+          "code": "unknown",
+          "observed": "notSeen",
+          "sites": [
+            {
+              "file": "web/src/checkout/gift.ts",
+              "line": 88
+            }
+          ],
+          "hint": {
+            "closestEvent": "giftcard_redeemed"
+          },
+          "message": "queries `gift_card_redeemed`: PostHog has no definition of it, so it has never arrived; closest event in code: `giftcard_redeemed`"
+        }
+      ],
+      "unknownParts": []
+    },
+    {
+      "id": "insight:Cf04",
+      "title": "Checkout funnel",
+      "url": "https://us.posthog.com/project/12345/insights/Cf04",
+      "dashboards": [
+        "dashboard:41"
+      ],
+      "kind": "funnels",
+      "verdict": "partly-dead",
+      "platforms": [
+        "android",
+        "ios",
+        "web"
+      ],
+      "findings": [
+        {
+          "check": "value-is-reachable",
+          "path": "series[2].filters[0]",
+          "effect": "dead",
+          "event": "payment_submitted",
+          "property": "payment_method",
+          "values": [
+            "Voucher"
+          ],
+          "code": "yes",
+          "observed": "unknown",
+          "sites": [
+            {
+              "file": "web/src/checkout/pay.ts",
+              "line": 63
+            },
+            {
+              "file": "mobile/src/checkout/pay.ts",
+              "line": 40
+            }
+          ],
+          "hint": {
+            "reachableValues": [
+              "card",
+              "wallet"
+            ]
+          },
+          "message": "step 3 filters `payment_method` = \"Voucher\", but the code can only send \"card\" or \"wallet\""
+        }
+      ],
+      "unknownParts": []
+    },
+    {
+      "id": "insight:Of05",
+      "title": "Orders by format",
+      "url": "https://us.posthog.com/project/12345/insights/Of05",
+      "dashboards": [
+        "dashboard:41"
+      ],
+      "kind": "trends",
+      "verdict": "degraded",
+      "platforms": [
+        "android",
+        "ios",
+        "web"
+      ],
+      "findings": [
+        {
+          "check": "property-is-sent",
+          "path": "breakdown[0]",
+          "effect": "degraded",
+          "event": "order_completed",
+          "property": "format",
+          "code": "no",
+          "observed": "unknown",
+          "sites": [
+            {
+              "file": "web/src/checkout/complete.ts",
+              "line": 30
+            },
+            {
+              "file": "mobile/src/orders/complete.ts",
+              "line": 30
+            }
+          ],
+          "message": "breaks down by `format`, which no call site of `order_completed` sends: every row lands in one \"(none)\" bucket"
+        }
+      ],
+      "unknownParts": []
+    },
+    {
+      "id": "insight:Rs06",
+      "title": "Reviews submitted",
+      "url": "https://us.posthog.com/project/12345/insights/Rs06",
+      "dashboards": [
+        "dashboard:41"
+      ],
+      "kind": "trends",
+      "verdict": "one-platform",
+      "platforms": [
+        "web"
+      ],
+      "findings": [],
+      "unknownParts": []
+    },
+    {
+      "id": "insight:Rc07",
+      "title": "Revenue by cohort",
+      "dashboards": [
+        "dashboard:41"
+      ],
+      "kind": "sql",
+      "verdict": "not-checked",
+      "platforms": [],
+      "findings": [],
+      "unknownParts": [
+        {
+          "path": "",
+          "reason": "a SQL query; an insight kind dashlint does not check"
+        }
+      ]
+    },
+    {
+      "id": "insight:Bp08",
+      "title": "Books previewed",
+      "url": "https://us.posthog.com/project/12345/insights/Bp08",
+      "dashboards": [
+        "dashboard:41"
+      ],
+      "kind": "trends",
+      "verdict": "live",
+      "platforms": [
+        "android",
+        "ios"
+      ],
+      "findings": [],
+      "unknownParts": []
+    },
+    {
+      "id": "insight:Sa09",
+      "title": "Shelves archived",
+      "url": "https://us.posthog.com/project/12345/insights/Sa09",
+      "dashboards": [
+        "dashboard:41"
+      ],
+      "kind": "trends",
+      "verdict": "not-checked",
+      "platforms": [],
+      "findings": [],
+      "unknownParts": [
+        {
+          "path": "series[0]",
+          "reason": "some event names in code are not literal, so any name may be sent"
+        }
+      ]
+    },
+    {
+      "id": "insight:Ca10",
+      "title": "Checkouts by method",
+      "url": "https://us.posthog.com/project/12345/insights/Ca10",
+      "dashboards": [],
+      "kind": "trends",
+      "verdict": "degraded",
+      "platforms": [
+        "android",
+        "ios",
+        "web"
+      ],
+      "findings": [
+        {
+          "check": "property-is-sent",
+          "path": "series[0].filters[0]",
+          "effect": "degraded",
+          "event": "checkout_started",
+          "property": "coupon",
+          "values": [
+            "none"
+          ],
+          "code": "no",
+          "observed": "notSeen",
+          "sites": [
+            {
+              "file": "web/src/checkout/start.ts",
+              "line": 12
+            },
+            {
+              "file": "mobile/src/checkout/start.ts",
+              "line": 9
+            }
+          ],
+          "message": "filters out `coupon` is not \"none\", but no call site sends `coupon` with `checkout_started`, and PostHog has never seen `coupon` on that event, so the filter has no effect"
+        }
+      ],
+      "unknownParts": []
+    }
+  ],
+  "alerts": [
+    {
+      "id": "alert:0b7e",
+      "name": "Gift cards dropped",
+      "tile": "insight:Gc03",
+      "result": "can-never-fire",
+      "state": "Not firing",
+      "findings": [
+        {
+          "check": "alert-can-never-fire",
+          "path": "series[0]",
+          "code": "no",
+          "sites": [
+            {
+              "file": "web/src/checkout/gift.ts",
+              "line": 88
+            }
+          ],
+          "message": "can never fire: it watches series 1, which is always zero, under a `relative_increase` condition"
+        }
+      ]
+    },
+    {
+      "id": "alert:0c8f",
+      "name": "Gift cards below ten",
+      "tile": "insight:Gc03",
+      "result": "fires-every-check",
+      "state": null,
+      "enabled": false,
+      "findings": [
+        {
+          "check": "alert-can-never-fire",
+          "path": "series[0]",
+          "code": "no",
+          "sites": [
+            {
+              "file": "web/src/checkout/gift.ts",
+              "line": 88
+            }
+          ],
+          "message": "fires on every check: it watches series 1, which is always zero, under a lower bound"
+        }
+      ]
+    },
+    {
+      "id": "alert:1c2d",
+      "name": "Views fell",
+      "tile": "insight:Bv01",
+      "result": "ok",
+      "state": "Not firing"
+    },
+    {
+      "id": "alert:2e3f",
+      "name": "Reviews spike",
+      "tile": "insight:Rs06",
+      "result": "invalid-target",
+      "state": "Errored",
+      "findings": [
+        {
+          "check": "alert-target-valid",
+          "path": "series[2]",
+          "code": "no",
+          "sites": [],
+          "message": "watches series 3, but the insight has 1 series"
+        }
+      ]
+    }
+  ],
+  "notArriving": [
+    {
+      "event": "book_previewed",
+      "sites": [
+        {
+          "file": "mobile/src/reader/preview.tsx",
+          "line": 19
+        }
+      ],
+      "lastSeenAt": "2026-10-02T11:00:00Z"
+    }
+  ]
+}

@@ -2,7 +2,7 @@
 import type { AlertFinding } from '../check/alerts.js';
 import type { CheckFinding } from '../check/checks/types.js';
 import type { JsonScalar } from '../formats/catalog.js';
-import type { Location, TileKind, Verdict } from '../formats/report.js';
+import type { AlertResult, Location, TileKind, Verdict } from '../formats/report.js';
 
 // G11: every report ends with this sentence.
 export const CLOSING_SENTENCE =
@@ -343,6 +343,98 @@ export const reportText = {
   ignoreUnmatched: (id: string) =>
     `Warning: the ignore entry for ${id} matches nothing in the snapshot.`,
   written: (file: string) => `Report written to ${file}`,
+  invalidReport: (errors: readonly string[]) =>
+    `the report does not match dashlint.report/1: ${errors.join('; ')}`,
+};
+
+const VERDICT_WORD: Record<Verdict, string> = {
+  live: 'live',
+  dead: 'dead',
+  'partly-dead': 'partly dead',
+  degraded: 'degraded',
+  'one-platform': 'one platform',
+  'not-checked': 'not checked',
+  ignored: 'ignored',
+};
+
+const ALERT_WORD: Record<AlertResult, string> = {
+  ok: 'ok',
+  'can-never-fire': 'can never fire',
+  'fires-every-check': 'fires on every check',
+  'invalid-target': 'invalid target',
+  'not-checked': 'not checked',
+};
+
+const TILE_NOUN: Partial<Record<TileKind, string>> = {
+  trends: 'Trend',
+  funnels: 'Funnel',
+  retention: 'Retention',
+  lifecycle: 'Lifecycle',
+  stickiness: 'Stickiness',
+  paths: 'Paths',
+  sql: 'SQL insight',
+};
+
+const ALREADY: Record<string, string> = {
+  dead: 'dead',
+  'partly-dead': 'dead or partly dead',
+  degraded: 'broken',
+};
+
+const at = (sites: string) => (sites === '' ? '' : ` (${sites})`);
+
+// The PR comment (src/report/markdown.ts, spec 6.9.6). Cells are escaped by the renderer.
+export const commentText = {
+  marker: '<!-- dashlint:v1 -->',
+  title: (tiles: number, alerts: number) =>
+    tiles + alerts === 0
+      ? '**dashlint: this PR breaks no tiles or alerts**'
+      : `**dashlint: this PR would break ${andList([
+          ...(tiles > 0 ? [plural(tiles, 'tile')] : []),
+          ...(alerts > 0 ? [plural(alerts, 'alert')] : []),
+        ])}**`,
+  tableHead: ['| Change | Breaks |', '|---|---|'],
+  renamed: (from: string, to: string, sites: string) =>
+    `${code(from)} renamed to ${code(to)}${at(sites)}`,
+  removed: (event: string, sites: string) => `${code(event)} removed${at(sites)}`,
+  propertyRemoved: (event: string | null, property: string, sites: string) =>
+    event === null
+      ? `super property ${code(property)} removed${at(sites)}`
+      : `${code(property)} removed from ${code(event)}${at(sites)}`,
+  valuesNarrowed: (
+    event: string | null,
+    property: string,
+    removed: readonly JsonScalar[],
+    sites: string,
+  ) =>
+    `${code(property)}${event === null ? '' : ` on ${code(event)}`} no longer sends ${orList(removed.map(formatValue))}${at(sites)}`,
+  otherChanges: 'Other changes in this PR',
+  moreSites: (sites: string, more: number) => (more === 0 ? sites : `${sites} and ${more} more`),
+  tile: (kind: TileKind, title: string, detail: string) =>
+    `${TILE_NOUN[kind] === undefined ? '' : `${TILE_NOUN[kind]} `}"${title}" (${detail})`,
+  verdict: (head: Verdict, base: Verdict, part?: string) =>
+    `${part === undefined ? '' : `${part}: `}${VERDICT_WORD[head]}${base === 'live' ? '' : `, was ${VERDICT_WORD[base]}`}`,
+  noneBucket: (base: Verdict) =>
+    `degraded: one "(none)" bucket${base === 'live' ? '' : `, was ${VERDICT_WORD[base]}`}`,
+  alert: (name: string, result: AlertResult) => `Alert "${name}" (${ALERT_WORD[result]})`,
+  fixedTile: (kind: TileKind, title: string, base: Verdict, head: Verdict) =>
+    `${TILE_NOUN[kind] === undefined ? '' : `${TILE_NOUN[kind]} `}"${title}" (${VERDICT_WORD[head]}, was ${VERDICT_WORD[base]})`,
+  fixedAlert: (name: string, base: AlertResult) => `Alert "${name}" (was ${ALERT_WORD[base]})`,
+  fixed: (items: readonly string[]) => `Fixed by this PR: ${items.join(', ')}.`,
+  checkedAgainst: (file: string, pulledAt?: string) =>
+    `Checked against ${code(file)}${pulledAt === undefined ? '' : ` (pulled ${pulledAt.slice(0, 10)})`}.`,
+  alreadyBroken: (n: number, failOn: string) =>
+    `${plural(n, 'tile')} ${n === 1 ? 'was' : 'were'} already ${ALREADY[failOn] ?? 'broken'} before this PR.`,
+  // Unknown counts are always printed (G11).
+  openSites: (n: number) =>
+    `${plural(n, 'call site')} ${n === 1 ? 'has' : 'have'} non-literal event names.`,
+  unknownParts: (n: number) => `${plural(n, 'part')} could not be decided.`,
+  notCheckedMoves: (n: number) => `${plural(n, 'tile')} moved to or from not checked.`,
+  requirementsChanged: (n: number) =>
+    `This PR also changes the requirements file; ${plural(n, 'tile')} changed because of that (information, never a failure).`,
+  requirementsNew: 'This PR adds the requirements file, so every tile is new.',
+  footer: (tool: string) =>
+    `<sub>dashlint ${tool} · ${CLOSING_SENTENCE.charAt(0).toLowerCase()}${CLOSING_SENTENCE.slice(1, -1)}</sub>`,
 };
 
 // Format validation (src/formats/validate.ts). `path` is a JSON pointer into the file.
