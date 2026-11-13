@@ -91,7 +91,7 @@ function mathPropertyScope(type: unknown): Scope {
 const NAME = /^[a-z][a-z0-9_-]*$/;
 
 /** A platform name (operator, math) in the requirements' lower-case form, or undefined. */
-function nameOf(v: unknown): string | undefined {
+export function nameOf(v: unknown): string | undefined {
   if (typeof v !== 'string') return undefined;
   const lower = v.toLowerCase();
   return NAME.test(lower) ? lower : undefined;

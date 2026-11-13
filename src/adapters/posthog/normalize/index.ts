@@ -15,6 +15,7 @@ import {
   type ActionLookup,
   type Raw,
 } from './common.js';
+import { normalizeAlerts } from './alerts.js';
 import { applyDashboards } from './dashboards.js';
 import { funnelsParts } from './funnels.js';
 import { lifecycleParts } from './lifecycle.js';
@@ -23,6 +24,16 @@ import { stickinessParts } from './stickiness.js';
 import { trendsParts } from './trends.js';
 
 export { LATEST_QUERY_VERSIONS, type ActionLookup } from './common.js';
+export { actionIdsOf, actionLookup, normalizeAction } from './actions.js';
+export { normalizeAlerts } from './alerts.js';
+export {
+  observedEvent,
+  observedOf,
+  referencesOf,
+  withObserved,
+  type ObservedInput,
+  type References,
+} from './observed.js';
 
 export interface NormalizeContext {
   /** The configured host, as the client resolved it (no trailing slash). */
@@ -35,6 +46,8 @@ export interface NormalizeContext {
    * keeps the dashboards its insight lists.
    */
   dashboards?: readonly unknown[];
+  /** The `alerts/` results (T5.4); without them `alerts` is empty. */
+  alerts?: readonly unknown[];
 }
 
 type Parts = Partial<
@@ -173,9 +186,9 @@ function insightKeys(ref: unknown): string[] {
 }
 
 /**
- * The requirements of a project's saved insights and dashboards, before alerts and observed data are
- * added (T5.4) and `pulledAt` and `tool` are stamped (T5.5). Deleted insights are left out; tiles
- * and dashboards are sorted by id (code point).
+ * The requirements of a project's saved insights, dashboards and alerts, before observed data is
+ * added (`withObserved`) and `pulledAt` and `tool` are stamped (T5.5). Deleted insights are left
+ * out; tiles, dashboards and alerts are sorted by id (code point).
  */
 export function normalizeInsights(
   insights: readonly unknown[],
@@ -190,16 +203,16 @@ export function normalizeInsights(
       return tile;
     })
     .sort((a, b) => byCodePoint(a.id, b.id));
-  const dashboards = applyDashboards(ctx.dashboards ?? [], tiles, (ref) =>
+  const tileOfInsight = (ref: unknown): string | undefined =>
     insightKeys(ref)
       .map((k) => tileOf.get(k))
-      .find((t) => t !== undefined),
-  );
+      .find((t) => t !== undefined);
+  const dashboards = applyDashboards(ctx.dashboards ?? [], tiles, tileOfInsight);
   return {
     schema: REQUIREMENTS_SCHEMA,
     source: { platform: 'posthog', host: ctx.host, project: ctx.project, profile: 'posthog' },
     dashboards,
     tiles,
-    alerts: [],
+    alerts: normalizeAlerts(ctx.alerts ?? [], tiles, tileOfInsight),
   };
 }

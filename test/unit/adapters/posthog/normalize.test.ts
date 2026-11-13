@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { dropOnArrival } from '../../../../src/adapters/posthog/client.js';
 import {
   LATEST_QUERY_VERSIONS,
+  actionLookup,
   normalizeInsight,
   normalizeInsights,
   type NormalizeContext,
@@ -33,16 +34,21 @@ function insightsOf(shape: string): Raw[] {
   return dropOnArrival(page?.results ?? []) as Raw[];
 }
 
-/** The twin's context: its dashboard bodies (`dashboards/<id>/`), as `pull` reads them. */
+/**
+ * The twin's context as `pull` reads it: its dashboard bodies (`dashboards/<id>/`), its action
+ * bodies (`actions/<id>/`) and its alerts (`alerts/`), each dropped on arrival like the client does.
+ */
 function ctxOf(shape: string): NormalizeContext {
-  const dashboards = Object.entries(responsesOf(shape))
-    .filter(([path]) => /^dashboards\/[^/]+\/$/.test(path))
-    .map(([, body]) => body);
-  return { ...ctx, dashboards };
-}
-
-function expectedOf(shape: string): Requirements {
-  return JSON.parse(readFileSync(new URL(`expected/${shape}.json`, dir), 'utf8')) as Requirements;
+  const responses = Object.entries(responsesOf(shape));
+  const bodies = (re: RegExp): unknown[] =>
+    responses.filter(([path]) => re.test(path)).map(([, body]) => dropOnArrival(body));
+  const alerts = (responsesOf(shape)['alerts/'] as { results: unknown[] } | undefined)?.results;
+  return {
+    ...ctx,
+    dashboards: bodies(/^dashboards\/[^/]+\/$/),
+    actions: actionLookup(bodies(/^actions\/[^/]+\/$/)),
+    alerts: dropOnArrival(alerts ?? []) as unknown[],
+  };
 }
 
 function expectValid(r: Requirements): void {
@@ -65,6 +71,8 @@ const TWINS = [
   'retention',
   'not-checked-kinds',
   'dashboards',
+  'alerts',
+  'funnel-action-steps',
 ];
 
 describe('twins (T2.4) normalise byte for byte', () => {
@@ -74,31 +82,11 @@ describe('twins (T2.4) normalise byte for byte', () => {
     expect(toCanonicalJson(out)).toBe(readFileSync(new URL(`expected/${shape}.json`, dir), 'utf8'));
   });
 
-  // Twins that also need actions or alerts (T5.4): their tiles are exact up to the expansion of
-  // action nodes (only the action id is compared, and "was not read" entries are dropped).
-  const others = readdirSync(dir)
-    .filter((f) => f.endsWith('.json'))
-    .map((f) => f.slice(0, -5))
-    .filter((s) => !TWINS.includes(s));
-  const withoutActions = (t: Tile): string =>
-    JSON.stringify(
-      {
-        ...t,
-        notChecked: (t.notChecked ?? []).filter((n) => !/^action .* was not read$/.test(n.reason)),
-      },
-      (key, v: unknown) =>
-        key === 'action' && typeof v === 'object' && v !== null ? { id: (v as Raw).id } : v,
-    );
-  it.each(others)('%s: tiles up to action expansion', (shape) => {
-    const expected = expectedOf(shape).tiles;
-    const got = normalizeInsights(insightsOf(shape), ctxOf(shape)).tiles;
-    expect(toCanonicalJson(got.map((t) => JSON.parse(withoutActions(t)) as unknown))).toBe(
-      toCanonicalJson(expected.map((t) => JSON.parse(withoutActions(t)) as unknown)),
-    );
-  });
-
-  it('cover every twin but the two T5.4 completes', () => {
-    expect(others).toEqual(['alerts', 'funnel-action-steps']);
+  it('cover every twin', () => {
+    const all = readdirSync(dir)
+      .filter((f) => f.endsWith('.json'))
+      .map((f) => f.slice(0, -5));
+    expect([...TWINS].sort()).toEqual(all.sort());
   });
 });
 
