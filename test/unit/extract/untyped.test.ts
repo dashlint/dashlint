@@ -56,6 +56,13 @@ describe('posthog-js client in an untyped binding', () => {
     ]);
   });
 
+  it('follows an unresolved SDK import assigned after the declaration and an arrow function returning any', () => {
+    expect(open.filter((o) => o.startsWith('src/imported.ts'))).toEqual([
+      'src/imported.ts:13 unresolved-import',
+      'src/imported.ts:19 unresolved-import',
+    ]);
+  });
+
   it('reads a JavaScript let with no type filled by require in another function', () => {
     expect(open.filter((o) => o.startsWith('src/legacy.js'))).toEqual([
       'src/legacy.js:10 unresolved-import',
@@ -81,7 +88,7 @@ describe('posthog-js client in an untyped binding', () => {
   it('counts the untyped calls as open sites, so the rate falls below 1', () => {
     const names = resolveEventNames(sp, followWrappers(sp, descriptors));
     expect(names.sites.map((s) => s.names)).toEqual([['book_returned']]);
-    expect(names.coverage.openSites).toBe(9);
+    expect(names.coverage.openSites).toBe(11);
     expect(names.coverage.nameResolutionRate).toBeLessThan(1);
   });
 });

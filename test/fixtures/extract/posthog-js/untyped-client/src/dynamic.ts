@@ -1,9 +1,9 @@
-// A module `let` typed `any` that receives the client from a dynamic import(): its calls cannot be
-// matched, so they are open world, never sites.
+// A module `let` typed `any` that receives the client from a dynamic import() of an SDK subpath the
+// stub does not declare: its calls cannot be matched, so they are open world, never sites.
 let shop: any = null;
 
 export function loadAnalytics(): void {
-  void import('posthog-js').then((m) => {
+  void import('posthog-js/dist/module.no-external').then((m) => {
     shop = m.default;
   });
 }
