@@ -1,6 +1,7 @@
 export * from './builtins.js';
 export * from './catalog.js';
 export * from './identity.js';
+export * from './merge.js';
 export * from './names.js';
 export * from './platforms.js';
 export * from './program.js';
