@@ -1,0 +1,250 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/dashlint/dashlint/schema/catalog.schema.json",
+  "title": "dashlint.catalog/1",
+  "description": "What one source's code sends: events, properties and their values, written by `dashlint extract` (spec 6.3.1). No source text is ever stored.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "tool",
+    "source",
+    "coverage",
+    "openWorld",
+    "events",
+    "superProperties",
+    "personProperties",
+    "builtins",
+    "identity"
+  ],
+  "properties": {
+    "schema": { "const": "dashlint.catalog/1" },
+    "tool": { "$ref": "#/$defs/nonEmpty" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "root", "commit", "platforms", "sdks"],
+      "properties": {
+        "name": { "$ref": "#/$defs/nonEmpty" },
+        "root": { "$ref": "#/$defs/rootPath" },
+        "commit": { "type": ["string", "null"], "pattern": "^[0-9a-f]{7,64}$" },
+        "platforms": { "$ref": "#/$defs/platforms" },
+        "sdks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "version", "types"],
+            "properties": {
+              "id": { "$ref": "#/$defs/nonEmpty" },
+              "version": { "type": ["string", "null"], "pattern": "^[\\s\\S]+$" },
+              "types": { "enum": ["installed", "stub"] }
+            }
+          }
+        }
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "files",
+        "excludedFiles",
+        "callSites",
+        "literalNameSites",
+        "openSites",
+        "nameResolutionRate"
+      ],
+      "properties": {
+        "files": { "$ref": "#/$defs/count" },
+        "excludedFiles": { "$ref": "#/$defs/count" },
+        "oversizeFiles": { "$ref": "#/$defs/count" },
+        "crashedFiles": { "$ref": "#/$defs/count" },
+        "callSites": { "$ref": "#/$defs/count" },
+        "literalNameSites": { "$ref": "#/$defs/count" },
+        "openSites": { "$ref": "#/$defs/count" },
+        "nameResolutionRate": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "openWorld": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["file", "line", "kind", "reason"],
+        "properties": {
+          "file": { "$ref": "#/$defs/filePath" },
+          "line": { "$ref": "#/$defs/line" },
+          "kind": { "enum": ["event-name", "properties", "unresolved-import", "file-error"] },
+          "reason": { "$ref": "#/$defs/nonEmpty" }
+        }
+      }
+    },
+    "events": {
+      "type": "object",
+      "propertyNames": { "pattern": "^[\\s\\S]+$" },
+      "additionalProperties": { "$ref": "#/$defs/event" }
+    },
+    "superProperties": {
+      "type": "object",
+      "propertyNames": { "pattern": "^[\\s\\S]+$" },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["presence", "values", "sites"],
+        "properties": {
+          "presence": { "$ref": "#/$defs/presence" },
+          "values": { "$ref": "#/$defs/values" },
+          "sites": { "$ref": "#/$defs/callSites" }
+        }
+      }
+    },
+    "personProperties": {
+      "type": "object",
+      "propertyNames": { "pattern": "^[\\s\\S]+$" },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["sites"],
+        "properties": {
+          "sites": { "$ref": "#/$defs/callSites" }
+        }
+      }
+    },
+    "builtins": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["events", "properties", "conditional"],
+      "properties": {
+        "events": { "$ref": "#/$defs/nameList" },
+        "properties": { "type": ["string", "null"], "pattern": "^[\\s\\S]+$" },
+        "conditional": { "$ref": "#/$defs/nameList" }
+      }
+    },
+    "identity": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["call", "file", "line", "context"],
+        "properties": {
+          "call": { "$ref": "#/$defs/nonEmpty" },
+          "file": { "$ref": "#/$defs/filePath" },
+          "line": { "$ref": "#/$defs/line" },
+          "context": { "enum": ["module-init", "mount-effect", "handler", "other"] }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "nonEmpty": { "type": "string", "pattern": "^[\\s\\S]+$" },
+    "count": { "type": "integer", "minimum": 0 },
+    "line": { "type": "integer", "minimum": 1 },
+    "filePath": {
+      "description": "Relative to the repository root with / separators: no leading /, no drive letter, no backslash, no . or .. segment.",
+      "type": "string",
+      "pattern": "^(?![A-Za-z]:)(?!/)(?!.*\\\\)(?!(?:.*/)?\\.{1,2}(?:/|$))(?!.*//).+$"
+    },
+    "rootPath": {
+      "description": "A source root: \".\" for the repository root, otherwise a relative path as filePath.",
+      "anyOf": [{ "const": "." }, { "$ref": "#/$defs/filePath" }]
+    },
+    "platforms": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" }
+    },
+    "nameList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[\\s\\S]+$" }
+    },
+    "presence": {
+      "description": "A property is yes (always or sometimes) only when listed; \"no\" and \"unknown\" are never written (spec 6.3.1).",
+      "enum": ["always", "sometimes"]
+    },
+    "values": {
+      "type": "object",
+      "required": ["kind"],
+      "properties": { "kind": { "enum": ["finite", "open"] } },
+      "discriminator": { "propertyName": "kind" },
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "set"],
+          "properties": {
+            "kind": { "const": "finite" },
+            "set": {
+              "description": "A closed set of JSON values; true and \"true\" are different values.",
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 50,
+              "uniqueItems": true,
+              "items": { "type": ["string", "number", "boolean", "null"] }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "type"],
+          "properties": {
+            "kind": { "const": "open" },
+            "type": { "enum": ["string", "number", "boolean", "object", "array", "unknown"] }
+          }
+        }
+      ]
+    },
+    "site": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["file", "line", "sdk", "via", "platforms", "openProperties"],
+      "properties": {
+        "file": { "$ref": "#/$defs/filePath" },
+        "line": { "$ref": "#/$defs/line" },
+        "sdk": { "$ref": "#/$defs/nonEmpty" },
+        "via": { "type": "array", "items": { "$ref": "#/$defs/nonEmpty" } },
+        "platforms": { "$ref": "#/$defs/platforms" },
+        "openProperties": { "type": "boolean" }
+      }
+    },
+    "callSites": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["file", "line", "call"],
+        "properties": {
+          "file": { "$ref": "#/$defs/filePath" },
+          "line": { "$ref": "#/$defs/line" },
+          "call": { "$ref": "#/$defs/nonEmpty" }
+        }
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sites", "openSites", "properties"],
+      "properties": {
+        "sites": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/site" } },
+        "openSites": { "$ref": "#/$defs/count" },
+        "properties": {
+          "type": "object",
+          "propertyNames": { "pattern": "^[\\s\\S]+$" },
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["presence", "values"],
+            "properties": {
+              "presence": { "$ref": "#/$defs/presence" },
+              "values": { "$ref": "#/$defs/values" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

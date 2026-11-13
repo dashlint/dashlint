@@ -1,0 +1,162 @@
+{
+  "schema": "dashlint.report/1",
+  "tool": "0.1.0",
+  "mode": "check",
+  "requirements": {
+    "platform": "posthog",
+    "project": 12345,
+    "pulledAt": "2026-12-18T09:12:00Z",
+    "observed": true
+  },
+  "catalogs": [
+    {
+      "source": "web",
+      "commit": "5f0c2e1",
+      "nameResolutionRate": 0.951
+    }
+  ],
+  "summary": {
+    "tiles": 18,
+    "live": 12,
+    "dead": 2,
+    "partlyDead": 1,
+    "degraded": 1,
+    "onePlatform": 1,
+    "notChecked": 1,
+    "ignored": 0,
+    "unknownParts": 4,
+    "alerts": {
+      "checked": 5,
+      "canNeverFire": 1,
+      "firesEveryCheck": 0,
+      "invalidTarget": 0
+    }
+  },
+  "tiles": [
+    {
+      "id": "insight:Ab12Cd34",
+      "title": "Wishlist shares, fiction",
+      "url": "https://us.posthog.com/project/12345/insights/Ab12Cd34",
+      "dashboards": ["dashboard:41"],
+      "kind": "trends",
+      "verdict": "dead",
+      "platforms": ["web", "ios", "android"],
+      "findings": [
+        {
+          "check": "event-has-call-site",
+          "path": "series[0]",
+          "effect": "dead",
+          "event": "gift_card_redeemed",
+          "code": "no",
+          "observed": "notSeen",
+          "sites": [],
+          "hint": {
+            "closestEvent": "giftcard_redeemed"
+          },
+          "message": "no code sends `gift_card_redeemed`"
+        },
+        {
+          "check": "property-is-sent",
+          "path": "breakdown[0]",
+          "effect": "degraded",
+          "event": "order_completed",
+          "property": "format",
+          "code": "unknown",
+          "observed": "unknown",
+          "sites": [],
+          "message": "breaks down by `format`"
+        },
+        {
+          "check": "value-is-reachable",
+          "path": "series[2].filters[0]",
+          "effect": "dead",
+          "event": "payment_made",
+          "property": "payment_method",
+          "values": ["Card", true, "true", 3, null],
+          "code": "no",
+          "sites": [
+            {
+              "file": "web/src/checkout/pay.ts",
+              "line": 63
+            }
+          ],
+          "hint": {
+            "reachableValues": ["card", "wallet"]
+          },
+          "message": "the code can only send \"card\" or \"wallet\""
+        },
+        {
+          "check": "alert-target-valid",
+          "path": "alerts[0]",
+          "effect": "info",
+          "code": "yes",
+          "sites": [],
+          "message": "the alert target exists"
+        },
+        {
+          "check": "alert-can-never-fire",
+          "path": "alerts[0]",
+          "code": "yes",
+          "sites": [],
+          "message": "the alert can never fire"
+        }
+      ],
+      "unknownParts": []
+    }
+  ],
+  "alerts": [
+    {
+      "id": "alert:0a",
+      "name": "Bookshop alert 0",
+      "tile": "insight:Ab12Cd34",
+      "result": "ok",
+      "state": null,
+      "enabled": true
+    },
+    {
+      "id": "alert:1a",
+      "name": "Bookshop alert 1",
+      "tile": "insight:Ab12Cd34",
+      "result": "can-never-fire",
+      "state": null,
+      "enabled": true
+    },
+    {
+      "id": "alert:2a",
+      "name": "Bookshop alert 2",
+      "tile": "insight:Ab12Cd34",
+      "result": "fires-every-check",
+      "state": "Errored",
+      "enabled": true
+    },
+    {
+      "id": "alert:3a",
+      "name": "Bookshop alert 3",
+      "tile": "insight:Ab12Cd34",
+      "result": "invalid-target",
+      "state": null,
+      "enabled": true
+    },
+    {
+      "id": "alert:4a",
+      "name": "Bookshop alert 4",
+      "tile": "insight:Ab12Cd34",
+      "result": "not-checked",
+      "state": null,
+      "enabled": false
+    }
+  ],
+  "notArriving": [
+    {
+      "event": "book_previewed",
+      "sites": [
+        {
+          "file": "mobile/src/reader/preview.tsx",
+          "line": 19
+        }
+      ],
+      "lastSeenAt": "2026-10-01T08:00:00.123Z",
+      "enforcement": "reject"
+    }
+  ]
+}

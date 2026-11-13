@@ -1,0 +1,74 @@
+{
+  "alert-result-unknown.json": {
+    "path": "/alerts/0/result",
+    "rule": "alert results are listed"
+  },
+  "check-unknown.json": {
+    "path": "/tiles/0/findings/0/check",
+    "rule": "check ids are listed"
+  },
+  "code-fact-maybe.json": {
+    "path": "/tiles/0/findings/0/code",
+    "rule": "code facts are yes, no or unknown"
+  },
+  "finding-values-object.json": {
+    "path": "/tiles/0/findings/0/values/0",
+    "rule": "finding values are JSON scalars"
+  },
+  "finding-without-message.json": {
+    "path": "/tiles/0/findings/0/message",
+    "rule": "a finding has a message"
+  },
+  "kind-unknown.json": {
+    "path": "/tiles/0/kind",
+    "rule": "tile kinds are listed"
+  },
+  "mode-unknown.json": {
+    "path": "/mode",
+    "rule": "modes are check, audit, diff"
+  },
+  "not-arriving-no-sites.json": {
+    "path": "/notArriving/0/sites",
+    "rule": "a not-arriving event has a site"
+  },
+  "observed-missing.json": {
+    "path": "/requirements/observed",
+    "rule": "the report says whether observed data was used"
+  },
+  "observed-never.json": {
+    "path": "/tiles/0/findings/0/observed",
+    "rule": "observed facts are seen, notSeen or unknown"
+  },
+  "pulled-at-not-utc.json": {
+    "path": "/requirements/pulledAt",
+    "rule": "timestamps are UTC ISO 8601"
+  },
+  "schema-version.json": {
+    "path": "/schema",
+    "rule": "schema is dashlint.report/1"
+  },
+  "site-absolute-path.json": {
+    "path": "/tiles/0/findings/0/sites/0/file",
+    "rule": "file paths are relative"
+  },
+  "summary-alerts-missing.json": {
+    "path": "/summary/alerts/firesEveryCheck",
+    "rule": "alert counts are required"
+  },
+  "summary-missing-unknown-parts.json": {
+    "path": "/summary/unknownParts",
+    "rule": "unknown counts are always present (G11)"
+  },
+  "summary-negative-count.json": {
+    "path": "/summary/dead",
+    "rule": "summary counts are non-negative integers"
+  },
+  "tile-extra-field.json": {
+    "path": "/tiles/0/score",
+    "rule": "no unknown fields"
+  },
+  "verdict-unknown.json": {
+    "path": "/tiles/0/verdict",
+    "rule": "verdicts are listed"
+  }
+}

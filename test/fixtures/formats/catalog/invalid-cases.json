@@ -1,0 +1,110 @@
+{
+  "coverage-fractional-call-sites.json": {
+    "path": "/coverage/callSites",
+    "rule": "coverage counts are integers"
+  },
+  "coverage-literal-above-call-sites.json": {
+    "path": "/coverage/literalNameSites",
+    "rule": "literalNameSites is at most callSites"
+  },
+  "coverage-missing-open-sites.json": {
+    "path": "/coverage/openSites",
+    "rule": "coverage fields are required"
+  },
+  "coverage-negative-files.json": {
+    "path": "/coverage/files",
+    "rule": "coverage counts are non-negative integers"
+  },
+  "coverage-rate-above-one.json": {
+    "path": "/coverage/nameResolutionRate",
+    "rule": "the rate is between 0 and 1"
+  },
+  "coverage-rate-mismatch.json": {
+    "path": "/coverage/nameResolutionRate",
+    "rule": "the rate equals literalNameSites / callSites"
+  },
+  "event-no-sites.json": {
+    "path": "/events/wishlist_shared/sites",
+    "rule": "an event in the catalog has at least one site"
+  },
+  "event-open-sites-above-sites.json": {
+    "path": "/events/wishlist_shared/openSites",
+    "rule": "an event has no more open sites than sites"
+  },
+  "file-absolute.json": {
+    "path": "/events/wishlist_shared/sites/0/file",
+    "rule": "file paths are relative"
+  },
+  "file-backslash.json": {
+    "path": "/openWorld/0/file",
+    "rule": "file paths use / separators"
+  },
+  "file-parent-segment.json": {
+    "path": "/identity/0/file",
+    "rule": "file paths have no .. segment"
+  },
+  "finite-51-values.json": {
+    "path": "/events/wishlist_shared/properties/channel/values/set",
+    "rule": "finite sets hold at most 50 values"
+  },
+  "finite-duplicate-true.json": {
+    "path": "/events/wishlist_shared/properties/channel/values/set",
+    "rule": "true and \"true\" are distinct, true twice is a duplicate"
+  },
+  "finite-empty.json": {
+    "path": "/events/wishlist_shared/properties/channel/values/set",
+    "rule": "finite sets hold at least one value"
+  },
+  "finite-object-value.json": {
+    "path": "/events/wishlist_shared/properties/channel/values/set/1",
+    "rule": "finite sets hold JSON scalars only"
+  },
+  "identity-context-unknown.json": {
+    "path": "/identity/0/context",
+    "rule": "identity contexts are module-init, mount-effect, handler, other"
+  },
+  "line-zero.json": {
+    "path": "/events/wishlist_shared/sites/0/line",
+    "rule": "lines start at 1"
+  },
+  "open-type-date.json": {
+    "path": "/events/wishlist_shared/properties/genre_id/values/type",
+    "rule": "open values have a primitive type"
+  },
+  "open-world-kind-unknown.json": {
+    "path": "/openWorld/0/kind",
+    "rule": "open-world kinds are listed"
+  },
+  "platforms-empty.json": {
+    "path": "/source/platforms",
+    "rule": "a source has at least one platform"
+  },
+  "presence-missing.json": {
+    "path": "/events/wishlist_shared/properties/channel/presence",
+    "rule": "three-valued presence: required"
+  },
+  "presence-no.json": {
+    "path": "/events/wishlist_shared/properties/genre_id/presence",
+    "rule": "three-valued presence: \"no\" is never written"
+  },
+  "presence-unknown.json": {
+    "path": "/events/wishlist_shared/properties/genre_id/presence",
+    "rule": "three-valued presence: \"unknown\" is never written"
+  },
+  "schema-version.json": {
+    "path": "/schema",
+    "rule": "schema is dashlint.catalog/1"
+  },
+  "sdk-types-unknown.json": {
+    "path": "/source/sdks/0/types",
+    "rule": "SDK types are installed or stub"
+  },
+  "source-text-field.json": {
+    "path": "/sourceText",
+    "rule": "no unknown fields; no source text is ever stored"
+  },
+  "values-unknown-kind.json": {
+    "path": "/events/wishlist_shared/properties/genre_id/values/kind",
+    "rule": "values.kind is finite or open"
+  }
+}

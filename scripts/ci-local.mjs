@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // ci:local (spec T1.4, G17): the full gate a commit must pass before it is pushed. Steps run in
 // order and all run even after a failure, so one `npm run ci:local` shows every problem at once.
-// Schema checks are a no-op until P2 (no schema to check yet).
+// The schema step checks that the generated validators match the schemas (T2.1).
 //
 // Usage: node scripts/ci-local.mjs
 // Exit: 0 all steps passed, 1 at least one step failed.
@@ -21,18 +21,13 @@ function runNode(script, args, label) {
   return { label, code: r.status ?? 1 };
 }
 
-function noop(label, reason) {
-  process.stdout.write(`${label}: SKIPPED (${reason})\n`);
-  return { label, code: 0 };
-}
-
 export function run() {
   const steps = [
     runNpm(['build'], 'build'),
     runNpm(['test'], 'test'),
     runNpm(['test:coverage'], 'test:coverage'),
     runNpm(['lint'], 'lint'),
-    noop('schema checks', 'no schema to check until P2'),
+    runNode('scripts/build-validators.mjs', ['--check'], 'schema checks'),
     runNode('scripts/denylist-scan.mjs', [], 'denylist scan'),
     runNode('scripts/copy-check.mjs', [], 'copy check'),
     runNode('scripts/size-check.mjs', [], 'size check'),

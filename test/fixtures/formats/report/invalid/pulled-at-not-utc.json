@@ -1,0 +1,87 @@
+{
+  "schema": "dashlint.report/1",
+  "tool": "0.1.0",
+  "mode": "check",
+  "requirements": {
+    "platform": "posthog",
+    "project": 12345,
+    "pulledAt": "2026-12-18 09:12",
+    "observed": true
+  },
+  "catalogs": [
+    {
+      "source": "web",
+      "commit": "5f0c2e1",
+      "nameResolutionRate": 0.951
+    }
+  ],
+  "summary": {
+    "tiles": 18,
+    "live": 12,
+    "dead": 2,
+    "partlyDead": 1,
+    "degraded": 1,
+    "onePlatform": 1,
+    "notChecked": 1,
+    "ignored": 0,
+    "unknownParts": 4,
+    "alerts": {
+      "checked": 5,
+      "canNeverFire": 1,
+      "firesEveryCheck": 0,
+      "invalidTarget": 0
+    }
+  },
+  "tiles": [
+    {
+      "id": "insight:Ab12Cd34",
+      "title": "Wishlist shares, fiction",
+      "url": "https://us.posthog.com/project/12345/insights/Ab12Cd34",
+      "dashboards": ["dashboard:41"],
+      "kind": "trends",
+      "verdict": "dead",
+      "platforms": ["web", "ios", "android"],
+      "findings": [
+        {
+          "check": "property-is-sent",
+          "path": "series[0].filters[0]",
+          "event": "wishlist_shared",
+          "property": "genre",
+          "code": "no",
+          "observed": "notSeen",
+          "sites": [
+            {
+              "file": "web/src/wishlist/share.ts",
+              "line": 41
+            }
+          ],
+          "hint": {
+            "closestProperty": "genre_id"
+          },
+          "message": "filters on `genre` = \"Fiction\", but no call site sends `genre` with `wishlist_shared`"
+        }
+      ],
+      "unknownParts": []
+    }
+  ],
+  "alerts": [
+    {
+      "id": "alert:0b7e",
+      "tile": "insight:Gh90Ij12",
+      "result": "can-never-fire",
+      "state": "Not firing"
+    }
+  ],
+  "notArriving": [
+    {
+      "event": "book_previewed",
+      "sites": [
+        {
+          "file": "mobile/src/reader/preview.tsx",
+          "line": 19
+        }
+      ],
+      "lastSeenAt": null
+    }
+  ]
+}

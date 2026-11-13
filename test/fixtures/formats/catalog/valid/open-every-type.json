@@ -1,0 +1,132 @@
+{
+  "schema": "dashlint.catalog/1",
+  "tool": "0.1.0",
+  "source": {
+    "name": "web",
+    "root": "web",
+    "commit": "5f0c2e1",
+    "platforms": ["web"],
+    "sdks": [
+      {
+        "id": "posthog-js",
+        "version": "1.447.15",
+        "types": "installed"
+      }
+    ]
+  },
+  "coverage": {
+    "files": 212,
+    "excludedFiles": 31,
+    "callSites": 61,
+    "literalNameSites": 58,
+    "openSites": 3,
+    "nameResolutionRate": 0.951
+  },
+  "openWorld": [
+    {
+      "file": "web/src/lib/analytics.ts",
+      "line": 12,
+      "kind": "event-name",
+      "reason": "event name has type `string`"
+    }
+  ],
+  "events": {
+    "wishlist_shared": {
+      "sites": [
+        {
+          "file": "web/src/wishlist/share.ts",
+          "line": 41,
+          "sdk": "posthog-js",
+          "via": ["shareTracked (web/src/lib/analytics.ts:8)", "PostHog.capture"],
+          "platforms": ["web"],
+          "openProperties": false
+        }
+      ],
+      "openSites": 0,
+      "properties": {
+        "shelf_string": {
+          "presence": "always",
+          "values": {
+            "kind": "open",
+            "type": "string"
+          }
+        },
+        "shelf_number": {
+          "presence": "always",
+          "values": {
+            "kind": "open",
+            "type": "number"
+          }
+        },
+        "shelf_boolean": {
+          "presence": "always",
+          "values": {
+            "kind": "open",
+            "type": "boolean"
+          }
+        },
+        "shelf_object": {
+          "presence": "always",
+          "values": {
+            "kind": "open",
+            "type": "object"
+          }
+        },
+        "shelf_array": {
+          "presence": "always",
+          "values": {
+            "kind": "open",
+            "type": "array"
+          }
+        },
+        "shelf_unknown": {
+          "presence": "always",
+          "values": {
+            "kind": "open",
+            "type": "unknown"
+          }
+        }
+      }
+    }
+  },
+  "superProperties": {
+    "app_version": {
+      "presence": "sometimes",
+      "values": {
+        "kind": "open",
+        "type": "string"
+      },
+      "sites": [
+        {
+          "file": "web/src/main.tsx",
+          "line": 31,
+          "call": "register"
+        }
+      ]
+    }
+  },
+  "personProperties": {
+    "plan": {
+      "sites": [
+        {
+          "file": "web/src/auth/login.ts",
+          "line": 22,
+          "call": "identify.$set"
+        }
+      ]
+    }
+  },
+  "builtins": {
+    "events": ["$pageview", "$pageleave", "$autocapture", "$identify"],
+    "properties": "posthog-js@1",
+    "conditional": []
+  },
+  "identity": [
+    {
+      "call": "reset",
+      "file": "web/src/auth/logout.ts",
+      "line": 9,
+      "context": "handler"
+    }
+  ]
+}

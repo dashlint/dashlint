@@ -1,0 +1,156 @@
+{
+  "schema": "dashlint.catalog/1",
+  "tool": "0.1.0",
+  "source": {
+    "name": "web",
+    "root": "web",
+    "commit": "5f0c2e1",
+    "platforms": ["web"],
+    "sdks": [
+      {
+        "id": "posthog-js",
+        "version": "1.447.15",
+        "types": "installed"
+      }
+    ]
+  },
+  "coverage": {
+    "files": 212,
+    "excludedFiles": 31,
+    "callSites": 61,
+    "literalNameSites": 58,
+    "openSites": 3,
+    "nameResolutionRate": 0.951
+  },
+  "openWorld": [
+    {
+      "file": "web/src/lib/analytics.ts",
+      "line": 12,
+      "kind": "event-name",
+      "reason": "event name has type `string`"
+    }
+  ],
+  "events": {
+    "wishlist_shared": {
+      "sites": [
+        {
+          "file": "web/src/wishlist/share.ts",
+          "line": 41,
+          "sdk": "posthog-js",
+          "via": ["shareTracked (web/src/lib/analytics.ts:8)", "PostHog.capture"],
+          "platforms": ["web"],
+          "openProperties": false
+        }
+      ],
+      "openSites": 0,
+      "properties": {
+        "genre_id": {
+          "presence": "always",
+          "values": {
+            "kind": "open",
+            "type": "string"
+          }
+        },
+        "channel": {
+          "presence": "always",
+          "values": {
+            "kind": "finite",
+            "set": [
+              "shelf_0",
+              "shelf_1",
+              "shelf_2",
+              "shelf_3",
+              "shelf_4",
+              "shelf_5",
+              "shelf_6",
+              "shelf_7",
+              "shelf_8",
+              "shelf_9",
+              "shelf_10",
+              "shelf_11",
+              "shelf_12",
+              "shelf_13",
+              "shelf_14",
+              "shelf_15",
+              "shelf_16",
+              "shelf_17",
+              "shelf_18",
+              "shelf_19",
+              "shelf_20",
+              "shelf_21",
+              "shelf_22",
+              "shelf_23",
+              "shelf_24",
+              "shelf_25",
+              "shelf_26",
+              "shelf_27",
+              "shelf_28",
+              "shelf_29",
+              "shelf_30",
+              "shelf_31",
+              "shelf_32",
+              "shelf_33",
+              "shelf_34",
+              "shelf_35",
+              "shelf_36",
+              "shelf_37",
+              "shelf_38",
+              "shelf_39",
+              "shelf_40",
+              "shelf_41",
+              "shelf_42",
+              "shelf_43",
+              "shelf_44",
+              "shelf_45",
+              "shelf_46",
+              "shelf_47",
+              "shelf_48",
+              "shelf_49",
+              "shelf_50"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "superProperties": {
+    "app_version": {
+      "presence": "sometimes",
+      "values": {
+        "kind": "open",
+        "type": "string"
+      },
+      "sites": [
+        {
+          "file": "web/src/main.tsx",
+          "line": 31,
+          "call": "register"
+        }
+      ]
+    }
+  },
+  "personProperties": {
+    "plan": {
+      "sites": [
+        {
+          "file": "web/src/auth/login.ts",
+          "line": 22,
+          "call": "identify.$set"
+        }
+      ]
+    }
+  },
+  "builtins": {
+    "events": ["$pageview", "$pageleave", "$autocapture", "$identify"],
+    "properties": "posthog-js@1",
+    "conditional": []
+  },
+  "identity": [
+    {
+      "call": "reset",
+      "file": "web/src/auth/logout.ts",
+      "line": 9,
+      "context": "handler"
+    }
+  ]
+}

@@ -1,0 +1,122 @@
+{
+  "schema": "dashlint.catalog/1",
+  "tool": "0.1.0",
+  "source": {
+    "name": "web",
+    "root": "web",
+    "commit": "5f0c2e1",
+    "platforms": ["web"],
+    "sdks": [
+      {
+        "id": "posthog-js",
+        "version": "1.447.15",
+        "types": "installed"
+      }
+    ]
+  },
+  "coverage": {
+    "files": 212,
+    "excludedFiles": 31,
+    "callSites": 61,
+    "literalNameSites": 58,
+    "openSites": 3,
+    "nameResolutionRate": 0.951
+  },
+  "openWorld": [
+    {
+      "file": "web/src/lib/analytics.ts",
+      "line": 12,
+      "kind": "event-name",
+      "reason": "event name has type `string`"
+    }
+  ],
+  "events": {
+    "wishlist_shared": {
+      "sites": [
+        {
+          "file": "web/src/wishlist/share.ts",
+          "line": 41,
+          "sdk": "posthog-js",
+          "via": ["shareTracked (web/src/lib/analytics.ts:8)", "PostHog.capture"],
+          "platforms": ["web"],
+          "openProperties": false
+        }
+      ],
+      "openSites": 0,
+      "properties": {
+        "genre_id": {
+          "presence": "always",
+          "values": {
+            "kind": "open",
+            "type": "string"
+          }
+        },
+        "channel": {
+          "presence": "always",
+          "values": {
+            "kind": "finite",
+            "set": ["link", "email"]
+          }
+        }
+      }
+    }
+  },
+  "superProperties": {
+    "app_version": {
+      "presence": "sometimes",
+      "values": {
+        "kind": "open",
+        "type": "string"
+      },
+      "sites": [
+        {
+          "file": "web/src/main.tsx",
+          "line": 31,
+          "call": "register"
+        }
+      ]
+    }
+  },
+  "personProperties": {
+    "plan": {
+      "sites": [
+        {
+          "file": "web/src/auth/login.ts",
+          "line": 22,
+          "call": "identify.$set"
+        }
+      ]
+    }
+  },
+  "builtins": {
+    "events": ["$pageview", "$pageleave", "$autocapture", "$identify"],
+    "properties": "posthog-js@1",
+    "conditional": []
+  },
+  "identity": [
+    {
+      "call": "identify",
+      "file": "web/src/auth/session.ts",
+      "line": 10,
+      "context": "module-init"
+    },
+    {
+      "call": "reset",
+      "file": "web/src/auth/session.ts",
+      "line": 11,
+      "context": "mount-effect"
+    },
+    {
+      "call": "reset",
+      "file": "web/src/auth/session.ts",
+      "line": 12,
+      "context": "handler"
+    },
+    {
+      "call": "reset",
+      "file": "web/src/auth/session.ts",
+      "line": 13,
+      "context": "other"
+    }
+  ]
+}

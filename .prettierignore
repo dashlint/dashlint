@@ -2,4 +2,5 @@ dist
 coverage
 node_modules
 test/golden
+src/formats/generated
 .changeset/*.md

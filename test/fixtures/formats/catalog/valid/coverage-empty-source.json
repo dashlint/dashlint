@@ -1,0 +1,50 @@
+{
+  "schema": "dashlint.catalog/1",
+  "tool": "0.1.0",
+  "source": {
+    "name": "shop",
+    "root": ".",
+    "commit": null,
+    "platforms": ["ios", "android"],
+    "sdks": [
+      {
+        "id": "posthog-react-native",
+        "version": null,
+        "types": "stub"
+      }
+    ]
+  },
+  "coverage": {
+    "files": 4,
+    "excludedFiles": 0,
+    "oversizeFiles": 1,
+    "crashedFiles": 1,
+    "callSites": 0,
+    "literalNameSites": 0,
+    "openSites": 0,
+    "nameResolutionRate": 0
+  },
+  "openWorld": [
+    {
+      "file": "src/vendor/huge.ts",
+      "line": 1,
+      "kind": "file-error",
+      "reason": "the type checker failed on this file"
+    },
+    {
+      "file": "src/lib/track.ts",
+      "line": 3,
+      "kind": "unresolved-import",
+      "reason": "the SDK import does not resolve"
+    }
+  ],
+  "events": {},
+  "superProperties": {},
+  "personProperties": {},
+  "builtins": {
+    "events": [],
+    "properties": null,
+    "conditional": ["$screen"]
+  },
+  "identity": []
+}
