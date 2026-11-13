@@ -1,0 +1,342 @@
+{
+  "schema": "dashlint.requirements/1",
+  "source": {
+    "platform": "posthog",
+    "project": 12345,
+    "pulledAt": "2026-12-18T09:12:00Z",
+    "tool": "0.1.0"
+  },
+  "dashboards": [
+    {
+      "id": "dashboard:41",
+      "name": "Bookshop growth"
+    }
+  ],
+  "tiles": [
+    {
+      "id": "insight:Bv01",
+      "title": "Books viewed",
+      "url": "https://us.posthog.com/project/12345/insights/Bv01",
+      "dashboards": [
+        "dashboard:41"
+      ],
+      "kind": "trends",
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "book_viewed"
+        }
+      ]
+    },
+    {
+      "id": "insight:Ws02",
+      "title": "Wishlist shares, fiction",
+      "url": "https://us.posthog.com/project/12345/insights/Ws02",
+      "dashboards": [
+        "dashboard:41"
+      ],
+      "kind": "trends",
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "wishlist_shared",
+          "filters": [
+            {
+              "key": "genre",
+              "scope": "event",
+              "op": "exact",
+              "values": [
+                "Fiction"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "insight:Gc03",
+      "title": "Gift cards redeemed",
+      "url": "https://us.posthog.com/project/12345/insights/Gc03",
+      "dashboards": [
+        "dashboard:41"
+      ],
+      "kind": "trends",
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "gift_card_redeemed"
+        }
+      ]
+    },
+    {
+      "id": "insight:Cf04",
+      "title": "Checkout funnel",
+      "url": "https://us.posthog.com/project/12345/insights/Cf04",
+      "dashboards": [
+        "dashboard:41"
+      ],
+      "kind": "funnels",
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "book_viewed"
+        },
+        {
+          "ref": "B",
+          "node": "event",
+          "event": "checkout_started"
+        },
+        {
+          "ref": "C",
+          "node": "event",
+          "event": "payment_submitted",
+          "filters": [
+            {
+              "key": "payment_method",
+              "scope": "event",
+              "op": "exact",
+              "values": [
+                "Voucher"
+              ]
+            }
+          ]
+        },
+        {
+          "ref": "D",
+          "node": "event",
+          "event": "order_completed"
+        }
+      ]
+    },
+    {
+      "id": "insight:Of05",
+      "title": "Orders by format",
+      "url": "https://us.posthog.com/project/12345/insights/Of05",
+      "dashboards": [
+        "dashboard:41"
+      ],
+      "kind": "trends",
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "order_completed"
+        }
+      ],
+      "breakdown": [
+        {
+          "key": "format",
+          "scope": "event"
+        }
+      ]
+    },
+    {
+      "id": "insight:Rs06",
+      "title": "Reviews submitted",
+      "url": "https://us.posthog.com/project/12345/insights/Rs06",
+      "dashboards": [
+        "dashboard:41"
+      ],
+      "kind": "trends",
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "review_submitted"
+        }
+      ]
+    },
+    {
+      "id": "insight:Rc07",
+      "title": "Revenue by cohort",
+      "dashboards": [
+        "dashboard:41"
+      ],
+      "kind": "sql",
+      "notChecked": [
+        {
+          "reason": "a SQL query"
+        }
+      ]
+    },
+    {
+      "id": "insight:Bp08",
+      "title": "Books previewed",
+      "url": "https://us.posthog.com/project/12345/insights/Bp08",
+      "dashboards": [
+        "dashboard:41"
+      ],
+      "kind": "trends",
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "book_previewed"
+        }
+      ]
+    },
+    {
+      "id": "insight:Sa09",
+      "title": "Shelves archived",
+      "url": "https://us.posthog.com/project/12345/insights/Sa09",
+      "dashboards": [
+        "dashboard:41"
+      ],
+      "kind": "trends",
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "shelf_archived"
+        }
+      ]
+    },
+    {
+      "id": "insight:Ca10",
+      "title": "Checkouts by method",
+      "url": "https://us.posthog.com/project/12345/insights/Ca10",
+      "dashboards": [],
+      "kind": "trends",
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "checkout_started",
+          "filters": [
+            {
+              "key": "coupon",
+              "scope": "event",
+              "op": "is_not",
+              "values": [
+                "none"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "alerts": [
+    {
+      "id": "alert:0b7e",
+      "name": "Gift cards dropped",
+      "target": {
+        "kind": "series",
+        "index": 0
+      },
+      "tile": "insight:Gc03",
+      "condition": "relative_increase",
+      "bounds": {
+        "lower": false,
+        "upper": true
+      },
+      "state": "Not firing"
+    },
+    {
+      "id": "alert:0c8f",
+      "name": "Gift cards below ten",
+      "target": {
+        "kind": "series",
+        "index": 0
+      },
+      "tile": "insight:Gc03",
+      "condition": "absolute_value",
+      "bounds": {
+        "lower": true,
+        "upper": false
+      },
+      "enabled": false,
+      "state": null
+    },
+    {
+      "id": "alert:1c2d",
+      "name": "Views fell",
+      "target": {
+        "kind": "series",
+        "index": 0
+      },
+      "tile": "insight:Bv01",
+      "condition": "absolute_value",
+      "bounds": {
+        "lower": true,
+        "upper": false
+      },
+      "state": "Not firing"
+    },
+    {
+      "id": "alert:2e3f",
+      "name": "Reviews spike",
+      "target": {
+        "kind": "series",
+        "index": 2
+      },
+      "tile": "insight:Rs06",
+      "condition": "absolute_value",
+      "bounds": {
+        "lower": false,
+        "upper": true
+      },
+      "state": "Errored"
+    }
+  ],
+  "observed": {
+    "windowDays": 30,
+    "events": {
+      "book_previewed": {
+        "defined": true,
+        "lastSeenAt": "2026-10-02T11:00:00Z"
+      },
+      "book_viewed": {
+        "defined": true,
+        "lastSeenAt": "2026-12-17T08:00:00Z"
+      },
+      "checkout_started": {
+        "defined": true,
+        "lastSeenAt": "2026-12-17T08:00:00Z"
+      },
+      "gift_card_redeemed": {
+        "defined": false
+      },
+      "giftcard_redeemed": {
+        "defined": true,
+        "lastSeenAt": "2026-12-17T08:00:00Z"
+      },
+      "order_completed": {
+        "defined": true,
+        "lastSeenAt": "2026-12-17T08:00:00Z"
+      },
+      "payment_submitted": {
+        "defined": true,
+        "lastSeenAt": "2026-12-17T08:00:00Z"
+      },
+      "review_submitted": {
+        "defined": true,
+        "lastSeenAt": "2026-12-17T08:00:00Z"
+      },
+      "wishlist_shared": {
+        "defined": true,
+        "lastSeenAt": "2026-12-17T08:00:00Z"
+      }
+    },
+    "eventProperties": {
+      "checkout_started": {
+        "seen": [],
+        "notSeen": [
+          "coupon"
+        ]
+      },
+      "wishlist_shared": {
+        "seen": [
+          "genre_id"
+        ],
+        "notSeen": [
+          "genre"
+        ]
+      }
+    }
+  }
+}

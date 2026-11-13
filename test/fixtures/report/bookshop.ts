@@ -3,19 +3,11 @@
 import {
   applyIgnore,
   checkAlerts,
+  checkContext,
   checkTiles,
-  posthogProfile,
   type CheckContext,
-  type CodeFacts,
-  type CodeIndex,
   type IgnoreEntry,
 } from '../../../src/check/index.js';
-import {
-  eventFact,
-  mergeCatalogs,
-  personPropertyFact,
-  propertyFact,
-} from '../../../src/extract/index.js';
 import type { Catalog, CatalogEvent, PropertyFact } from '../../../src/formats/catalog.js';
 import type { Requirements, SeriesNode, Tile } from '../../../src/formats/requirements.js';
 import { validateCatalog, validateRequirements } from '../../../src/formats/validate.js';
@@ -255,35 +247,7 @@ export function requirements(observed = true): Requirements {
 }
 
 export function context(cats: Catalog[], req: Requirements): CheckContext {
-  const m = mergeCatalogs(cats, new Map());
-  const code: CodeFacts = {
-    event: (n) => eventFact(m, n),
-    property: (e, k) => propertyFact(m, e, k),
-    personProperty: (k) => personPropertyFact(m, k),
-    nameResolutionRates: m.sources.map((s) => s.catalog.coverage.nameResolutionRate),
-  };
-  const merged = (e: string) => (Object.hasOwn(m.events, e) ? m.events[e] : undefined);
-  const index: CodeIndex = {
-    events: Object.keys(m.events),
-    propertyKeys: (e) => Object.keys(merged(e)?.properties ?? {}),
-    personPropertyKeys: Object.keys(m.personProperties),
-    sites: (e) =>
-      (merged(e)?.sites ?? []).map((s) => {
-        const root = m.sources[s.source]?.catalog.source.root ?? '.';
-        return { file: root === '.' ? s.file : `${root}/${s.file}`, line: s.line };
-      }),
-    platforms: m.platforms,
-    eventPlatforms: (e) => merged(e)?.platforms ?? [],
-  };
-  return {
-    facts: {
-      code,
-      ...(req.observed === undefined ? {} : { observed: req.observed }),
-      ...(req.source.pulledAt === undefined ? {} : { pulledAt: req.source.pulledAt }),
-    },
-    index,
-    profile: posthogProfile,
-  };
+  return checkContext(cats, req, new Map());
 }
 
 export const IGNORE: IgnoreEntry[] = [

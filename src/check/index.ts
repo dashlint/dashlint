@@ -1,6 +1,7 @@
 export * from './alerts.js';
 export * from './checks/index.js';
 export * from './closest.js';
+export * from './context.js';
 export * from './diff.js';
 export * from './facts.js';
 export * from './formula.js';

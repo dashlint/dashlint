@@ -1,0 +1,164 @@
+{
+  "schema": "dashlint.catalog/1",
+  "tool": "0.1.0",
+  "source": {
+    "name": "mobile",
+    "root": "mobile",
+    "commit": "5f0c2e1",
+    "platforms": [
+      "android",
+      "ios"
+    ],
+    "sdks": [
+      {
+        "id": "posthog-js",
+        "version": "1.200.0",
+        "types": "stub"
+      }
+    ]
+  },
+  "coverage": {
+    "files": 12,
+    "excludedFiles": 0,
+    "callSites": 28,
+    "literalNameSites": 27,
+    "openSites": 1,
+    "nameResolutionRate": 0.964
+  },
+  "openWorld": [],
+  "events": {
+    "book_previewed": {
+      "sites": [
+        {
+          "file": "src/reader/preview.tsx",
+          "line": 19,
+          "sdk": "posthog-js",
+          "via": [],
+          "platforms": [
+            "android",
+            "ios"
+          ],
+          "openProperties": false
+        }
+      ],
+      "openSites": 0,
+      "properties": {}
+    },
+    "book_viewed": {
+      "sites": [
+        {
+          "file": "src/catalog/book.tsx",
+          "line": 22,
+          "sdk": "posthog-js",
+          "via": [],
+          "platforms": [
+            "android",
+            "ios"
+          ],
+          "openProperties": false
+        }
+      ],
+      "openSites": 0,
+      "properties": {}
+    },
+    "checkout_started": {
+      "sites": [
+        {
+          "file": "src/checkout/start.ts",
+          "line": 9,
+          "sdk": "posthog-js",
+          "via": [],
+          "platforms": [
+            "android",
+            "ios"
+          ],
+          "openProperties": false
+        }
+      ],
+      "openSites": 0,
+      "properties": {}
+    },
+    "order_completed": {
+      "sites": [
+        {
+          "file": "src/orders/complete.ts",
+          "line": 30,
+          "sdk": "posthog-js",
+          "via": [],
+          "platforms": [
+            "android",
+            "ios"
+          ],
+          "openProperties": false
+        }
+      ],
+      "openSites": 0,
+      "properties": {}
+    },
+    "payment_submitted": {
+      "sites": [
+        {
+          "file": "src/checkout/pay.ts",
+          "line": 40,
+          "sdk": "posthog-js",
+          "via": [],
+          "platforms": [
+            "android",
+            "ios"
+          ],
+          "openProperties": false
+        }
+      ],
+      "openSites": 0,
+      "properties": {
+        "payment_method": {
+          "presence": "always",
+          "values": {
+            "kind": "finite",
+            "set": [
+              "card",
+              "wallet"
+            ]
+          }
+        }
+      }
+    },
+    "wishlist_shared": {
+      "sites": [
+        {
+          "file": "src/wishlist/share.ts",
+          "line": 27,
+          "sdk": "posthog-js",
+          "via": [],
+          "platforms": [
+            "android",
+            "ios"
+          ],
+          "openProperties": false
+        }
+      ],
+      "openSites": 0,
+      "properties": {
+        "genre_id": {
+          "presence": "always",
+          "values": {
+            "kind": "finite",
+            "set": [
+              "fiction",
+              "poetry"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "superProperties": {},
+  "personProperties": {},
+  "builtins": {
+    "events": [],
+    "properties": null,
+    "conditional": [],
+    "off": []
+  },
+  "identity": []
+}

@@ -6,14 +6,37 @@ import { spawnSync } from 'node:child_process';
 import { describe, expect, it } from 'vitest';
 import { helpText, readVersion, run } from '../../../src/cli/main.js';
 
+async function runIt(argv: string[]) {
+  const out: string[] = [];
+  const err: string[] = [];
+  const code = await run(argv, {
+    cwd: process.cwd(),
+    env: {},
+    stdout: (l) => out.push(l),
+    stderr: (l) => err.push(l),
+  });
+  return { code, out: out.join('\n'), err: err.join('\n') };
+}
+
 describe('cli main', () => {
-  it('prints the package version for --version', () => {
-    expect(run(['--version'])).toBe(readVersion());
+  it('prints the package version for --version', async () => {
+    const r = await runIt(['--version']);
+    expect(r).toEqual({ code: 0, out: readVersion(), err: '' });
   });
 
-  it('prints help text by default', () => {
-    expect(run([])).toBe(helpText);
-    expect(run(['--help'])).toBe(helpText);
+  it('prints help for --help, also after a command', async () => {
+    expect((await runIt(['--help'])).out).toBe(helpText());
+    expect((await runIt(['check', '--help'])).out).toBe(helpText());
+    expect(helpText()).toMatch(/^ {2}extract /m);
+    expect(helpText()).toMatch(/^ {2}--no-color /m);
+  });
+
+  it('with no command it is exit 2 naming the commands', async () => {
+    const r = await runIt([]);
+    expect(r.code).toBe(2);
+    expect(r.err).toBe(
+      'dashlint: name a command: extract, pull or check (dashlint --help lists them)',
+    );
   });
 
   it('prints the version when run through a symlink, as a package manager bin does', () => {

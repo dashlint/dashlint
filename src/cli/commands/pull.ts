@@ -1,8 +1,7 @@
-// `dashlint pull [--config <file>]` (spec 6.5, 6.8, 6.13): reads `platforms.posthog` and
-// `requirements` from the config, pulls, and writes the requirements file next to the config. The
-// full config loader (unknown keys, did-you-mean, every section) is T7.4's; this reads only what
-// `pull` needs and refuses anything it cannot honour (ADR-035).
-import { readFileSync, writeFileSync } from 'node:fs';
+// `dashlint pull [--out <file>]` (spec 6.5, 6.8, 6.13): reads `platforms.posthog` and
+// `requirements` from the config (checked whole by config.ts first), pulls, and writes the
+// requirements file next to the config, or to --out. Refuses anything it cannot honour (ADR-035).
+import { writeFileSync } from 'node:fs';
 import { dirname, extname, resolve } from 'node:path';
 import { PullError, resolveKey } from '../../adapters/posthog/client.js';
 import {
@@ -10,12 +9,9 @@ import {
   requirementsJson,
   type PullOptions,
 } from '../../adapters/posthog/pull.js';
-import { formatValidationErrors } from '../../formats/validate.js';
-import { readYaml } from '../../formats/yaml.js';
 import { pullMessages } from '../../report/messages.js';
-
-export const DEFAULT_CONFIG = 'dashlint.config.yml';
-export const DEFAULT_REQUIREMENTS = 'dashlint.requirements.json';
+import { CliError, parseArgs } from '../args.js';
+import { DEFAULT_CONFIG, DEFAULT_REQUIREMENTS, loadConfig } from '../config.js';
 
 export interface PullCommandContext {
   cwd: string;
@@ -42,22 +38,20 @@ function usage(message: string): PullError {
   return new PullError(message, 2);
 }
 
-/** `--config <file>` and nothing else. */
-export function parsePullArgs(args: readonly string[]): { config: string } {
-  let config = DEFAULT_CONFIG;
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i] as string;
-    if (arg === '--config') {
-      const value = args[i + 1];
-      if (value === undefined || value.startsWith('--'))
-        throw usage(`${pullMessages.flagNeedsValue(arg)}\n${pullMessages.usage}`);
-      config = value;
-      i++;
-    } else if (arg.startsWith('--config=') && arg.length > '--config='.length) {
-      config = arg.slice('--config='.length);
-    } else throw usage(`${pullMessages.unknownFlag(arg)}\n${pullMessages.usage}`);
+/** `pull`'s flags: `--out <file>` and `--config <file>`. */
+export function parsePullArgs(args: readonly string[]): { config: string; out?: string } {
+  let parsed;
+  try {
+    parsed = parseArgs(['pull', ...args]);
+  } catch (e) {
+    if (e instanceof CliError) throw usage(`${e.message}\n${pullMessages.usage}`);
+    throw e;
   }
-  return { config };
+  const out = parsed.flags.out;
+  return {
+    config: parsed.globals.config ?? DEFAULT_CONFIG,
+    ...(typeof out === 'string' ? { out } : {}),
+  };
 }
 
 /** The parts of a parsed config `pull` uses, checked; the key is read from the environment. */
@@ -117,32 +111,22 @@ export function pullConfigOf(
   };
 }
 
-function readConfig(file: string): unknown {
-  let text: string;
-  try {
-    text = readFileSync(file, 'utf8');
-  } catch (e) {
-    throw usage(pullMessages.configUnreadable(file, e instanceof Error ? e.message : String(e)));
-  }
-  const parsed = readYaml(text);
-  if (!parsed.ok)
-    throw usage(
-      formatValidationErrors(parsed.errors)
-        .map((err) => pullMessages.configInvalid(file, err))
-        .join('\n'),
-    );
-  return parsed.text.value;
-}
-
 /** Runs `pull`; returns the exit code (0 written, 2 usage or config, 3 a bug, 4 pull failed). */
 export async function pullCommand(
   args: readonly string[],
   ctx: PullCommandContext,
 ): Promise<number> {
   try {
-    const { config } = parsePullArgs(args);
-    const configFile = resolve(ctx.cwd, config);
-    const { settings, out } = pullConfigOf(readConfig(configFile), configFile, ctx.env);
+    const parsed = parsePullArgs(args);
+    const configFile = resolve(ctx.cwd, parsed.config);
+    const pulled = pullConfigOf(loadConfig(configFile).raw, configFile, ctx.env);
+    const { settings } = pulled;
+    let out = pulled.out;
+    if (parsed.out !== undefined) {
+      if (extname(parsed.out).toLowerCase() !== '.json')
+        throw usage(pullMessages.requirementsNotJson(parsed.out));
+      out = resolve(ctx.cwd, parsed.out);
+    }
     const requirements = await pullRequirements({
       ...settings,
       tool: ctx.tool,
@@ -171,7 +155,7 @@ export async function pullCommand(
     ctx.stderr(settings.redact === true ? pullMessages.redacted : pullMessages.publicNames);
     return 0;
   } catch (e) {
-    if (e instanceof PullError) {
+    if (e instanceof PullError || e instanceof CliError) {
       ctx.stderr(pullMessages.failed(e.message));
       return e.exitCode;
     }

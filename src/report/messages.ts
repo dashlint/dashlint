@@ -507,8 +507,8 @@ export const pullMessages = {
     'pull: redact is on: titles are replaced by ids and dashboard, alert and action names are left out. ' +
     'Filter values stay, because the checks need them; on a public repository they become public.',
   failed: (message: string) => `dashlint pull: ${message}`,
-  bug: (message: string) => `dashlint pull: unexpected error, please report it: ${message}`,
-  usage: 'Usage: dashlint pull [--config <file>]',
+  bug: (message: string) => `dashlint pull: unexpected error: ${message}\n${BUG_REPORT}`,
+  usage: 'Usage: dashlint pull [--out <file>] [--config <file>]',
   unknownFlag: (flag: string) => `unknown option ${flag}`,
   flagNeedsValue: (flag: string) => `${flag} needs a value`,
   configUnreadable: (file: string, detail: string) => `cannot read the config ${file}: ${detail}`,
@@ -525,6 +525,86 @@ export const pullMessages = {
   cannotWrite: (file: string, detail: string) => `cannot write ${file}: ${detail}`,
   actionNotRead: (id: string) => `pull: action ${id} was not found; its tiles are not checked`,
   invalidOutput: (error: string) => `the pulled requirements do not validate: ${error}`,
+};
+
+// Spec 6.9.2: printed with every exit 3.
+export const BUG_REPORT =
+  'This is a bug in dashlint. Please report it at https://github.com/dashlint/dashlint/issues with the output above.';
+
+// The command line and the config (src/cli/; spec 6.8, 6.9.1, 6.9.2).
+export const cliMessages = {
+  help: (version: string) => `dashlint ${version}
+
+Usage: dashlint <command> [options]
+
+Commands:
+  extract [--source <name>] [--out <file>]
+      write the catalog JSON of each source (no network)
+  pull [--out <file>]
+      write the requirements snapshot from PostHog (network: GET only)
+  check [--catalog <file>]... [--requirements <file>]
+        [--format text|json|html|markdown] [--out <file>] [--fail-on <level>]
+      extract (unless catalogs are given) and check (no network)
+
+Options for every command:
+  --config <file>   the config, default dashlint.config.yml
+  --cwd <dir>       run as if started in <dir>
+  --quiet           print only the result and errors
+  --no-color        print no colors (dashlint prints none today)
+  --version         print the version number
+  --help            print this message
+
+Exit codes: 0 nothing at or above failOn, 1 findings at or above failOn, 2 usage or config error,
+3 a bug in dashlint, 4 pull failed.`,
+  prefix: (command: string | undefined, message: string) =>
+    `dashlint${command === undefined ? '' : ` ${command}`}: ${message}`,
+  bug: (command: string | undefined, message: string) =>
+    `dashlint${command === undefined ? '' : ` ${command}`}: unexpected error: ${message}\n${BUG_REPORT}`,
+  noCommand: 'name a command: extract, pull or check (dashlint --help lists them)',
+  unknownCommand: (name: string, suggestion: string | undefined) =>
+    `unknown command ${name}${suggestion === undefined ? '' : `; did you mean ${suggestion}?`}`,
+  unknownFlag: (flag: string, suggestion: string | undefined) =>
+    `unknown option ${flag}${suggestion === undefined ? '' : `; did you mean ${suggestion}?`}`,
+  flagNeedsValue: (flag: string) => `${flag} needs a value`,
+  flagTakesNoValue: (flag: string) => `${flag} takes no value`,
+  flagTwice: (flag: string) => `${flag} is given twice`,
+  flagChoice: (flag: string, value: string, choices: readonly string[]) =>
+    `${flag} ${value} is not one of ${choices.join(', ')}`,
+  positional: (arg: string) => `unexpected argument ${arg}`,
+  configUnreadable: (file: string, detail: string) => `cannot read the config ${file}: ${detail}`,
+  configAt: (file: string, line: number | undefined, message: string) =>
+    `${file}: ${line === undefined ? '' : `line ${line}: `}${message}`,
+  configField: (path: string, expected: string) => `${path} must be ${expected}`,
+  configMissing: (path: string) => `${path} is missing`,
+  configUnknownKey: (path: string, suggestion: string | undefined) =>
+    `${path} is not a known key${suggestion === undefined ? '' : `; did you mean \`${suggestion}\`?`}`,
+  configDuplicateSource: (name: string) => `two sources are named ${name}`,
+  noConfig: (file: string, command: string) =>
+    `no config at ${file}; write one (spec: dashlint.config.yml) or pass --config${command === 'check' ? ', or give both --catalog and --requirements' : ''}`,
+  noSources: 'the config lists no sources; add one under sources',
+  unknownSource: (name: string, suggestion: string | undefined) =>
+    `no source is named ${name}${suggestion === undefined ? '' : `; did you mean ${suggestion}?`}`,
+  sourcePathMissing: (name: string, path: string, dir: string) =>
+    `source ${name}: path ${path} is not a folder inside ${dir}`,
+  sourceTsconfigMissing: (name: string, tsconfig: string) =>
+    `source ${name}: tsconfig ${tsconfig} not found`,
+  outNeedsOneCatalog:
+    '--out writes one catalog, and the config lists several sources; add --source <name>',
+  fileUnreadable: (what: string, file: string, detail: string) =>
+    `cannot read the ${what} ${file}: ${detail}`,
+  fileInvalid: (file: string, error: string) => `${file}: ${error}`,
+  noRequirements: (file: string) =>
+    `no requirements file at ${file}; run dashlint pull, or write one by hand`,
+  cannotWrite: (file: string, detail: string) => `cannot write ${file}: ${detail}`,
+  extractFailed: (message: string) => `the extraction failed: ${message}`,
+  descriptorsInvalid: (errors: string) =>
+    `the SDK descriptors shipped with dashlint are invalid: ${errors}`,
+  wroteCatalog: (file: string, source: string, events: number, rate: number) =>
+    `extract: wrote ${file} (source ${source}, ${events} event${events === 1 ? '' : 's'}, name resolution ${Math.round(rate * 1000) / 10}%)`,
+  wroteReport: (file: string) => `check: wrote ${file}`,
+  markdownNeedsDiff:
+    '--format markdown writes the pull request comment, which compares two commits; check prints text, json or html',
+  warning: (command: string, message: string) => `${command}: ${message}`,
 };
 
 // SDK descriptors, their builtins and stubs (src/descriptors/loader.ts).

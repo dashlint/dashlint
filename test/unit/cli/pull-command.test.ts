@@ -203,13 +203,40 @@ describe('dashlint pull', () => {
 });
 
 describe('pull arguments', () => {
-  it('takes --config <file> or --config=<file>, and nothing else', () => {
+  it('takes --config and --out (spec 6.9.1), as <file> or =<file>, and nothing else', () => {
     expect(parsePullArgs([])).toEqual({ config: 'dashlint.config.yml' });
     expect(parsePullArgs(['--config', 'a.yml'])).toEqual({ config: 'a.yml' });
     expect(parsePullArgs(['--config=b.yml'])).toEqual({ config: 'b.yml' });
+    expect(parsePullArgs(['--out', 'x.json'])).toEqual({
+      config: 'dashlint.config.yml',
+      out: 'x.json',
+    });
     expect(() => parsePullArgs(['--config'])).toThrow(/--config needs a value/);
     expect(() => parsePullArgs(['--config', '--x'])).toThrow(/--config needs a value/);
-    expect(() => parsePullArgs(['--out', 'x'])).toThrow(/unknown option --out/);
-    expect(() => parsePullArgs(['--config='])).toThrow(/unknown option --config=/);
+    expect(() => parsePullArgs(['--config='])).toThrow(/--config needs a value/);
+    expect(() => parsePullArgs(['--format', 'json'])).toThrow(/unknown option --format/);
+    expect(() => parsePullArgs(['--catalog', 'x'])).toThrow(/unknown option --catalog/);
+  });
+
+  it('--out writes the requirements there, relative to the working directory, JSON only', async () => {
+    const r = await run(CONFIG, { args: ['--out', 'snap.json'] });
+    expect(r.code).toBe(0);
+    expect(JSON.parse(readFileSync(join(dir, 'snap.json'), 'utf8'))).toHaveProperty('tiles');
+    const yml = await run(CONFIG, { args: ['--out', 'snap.yml'] });
+    expect(yml.code).toBe(2);
+    expect(yml.err).toContain('pull writes JSON only');
+  });
+
+  it('negative control: an unknown config key is exit 2 naming it, before any request', async () => {
+    let asked = 0;
+    const r = await run(CONFIG.replace('    key:', '    keey:'), {
+      fetch: async () => {
+        asked++;
+        return new Response('{}');
+      },
+    });
+    expect(r.code).toBe(2);
+    expect(r.err).toContain('platforms.posthog.keey is not a known key; did you mean `key`?');
+    expect(asked).toBe(0);
   });
 });
