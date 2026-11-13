@@ -38,14 +38,10 @@ const emptyDiff = (): DiffResult => ({
   fails: false,
 });
 
-const input = (
-  diff: Partial<DiffResult>,
-  roots = { web: 'web', mobile: 'mobile' },
-): CommentInput => ({
+const input = (diff: Partial<DiffResult>): CommentInput => ({
   diff: { ...emptyDiff(), ...diff },
   head: bookshop({ mode: 'diff' }),
   requirementsFile: 'dashlint.requirements.json',
-  roots,
 });
 
 describe('renderComment', () => {
@@ -188,11 +184,11 @@ describe('renderComment', () => {
     );
   });
 
-  it('prints catalog sites under the source root, at the repo root for "."', () => {
+  it('prints catalog sites as the catalog gives them: repository-relative, never prefixed again', () => {
     const change: CatalogChange = {
       kind: 'event-removed',
       event: 'book_viewed',
-      sites: [{ source: 'web', file: 'src/catalog/book.ts', line: 20 }],
+      sites: [{ source: 'web', file: 'web/src/catalog/book.ts', line: 20 }],
     };
     const worse = [
       {
@@ -226,13 +222,11 @@ describe('renderComment', () => {
     expect(renderComment(c)).toContain(
       '| `book_viewed` removed (web/src/catalog/book.ts:20) | Trend "Books viewed" (dead) |',
     );
-    expect(renderComment({ ...c, roots: { web: '.' } })).toContain(
-      'removed (src/catalog/book.ts:20)',
-    );
+    expect(renderComment(c)).not.toContain('web/web/');
   });
 
   it('shows three sites and counts the rest', () => {
-    const sites = [1, 2, 3, 4, 5].map((line) => ({ source: 'web', file: 'a.ts', line }));
+    const sites = [1, 2, 3, 4, 5].map((line) => ({ source: 'web', file: 'web/a.ts', line }));
     const change: CatalogChange = { kind: 'event-removed', event: 'book_viewed', sites };
     const c = input({
       worse: [

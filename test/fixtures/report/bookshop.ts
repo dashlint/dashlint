@@ -52,7 +52,13 @@ function catalog(
       sdks: [{ id: 'posthog-js', version: '1.200.0', types: 'stub' }],
     },
     openWorld: [],
-    events,
+    // Sites are repository-relative (spec 6.3.1): the source's folder is part of each path.
+    events: Object.fromEntries(
+      Object.entries(events).map(([k, e]) => [
+        k,
+        { ...e, sites: e.sites.map((s) => ({ ...s, file: `${name}/${s.file}` })) },
+      ]),
+    ),
     superProperties: {},
     personProperties: {},
     builtins: { events: [], properties: null, conditional: [], off: [] },

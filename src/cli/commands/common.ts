@@ -59,27 +59,36 @@ export function descriptors(): Descriptor[] {
   return r.value;
 }
 
+/** Where `diff` extracts a side: the config's folder in a checkout, and that checkout's commit. */
+export interface ExtractAt {
+  dir: string;
+  commit: string | null;
+}
+
 /** Extracts one source of the config; a failure outside any one file is exit 3. */
 export function extractSource(
   ctx: CommandContext,
   config: Config,
   source: SourceEntry,
   all: Descriptor[],
+  at?: ExtractAt,
 ): Catalog {
+  const root = at?.dir ?? config.dir;
   // A source the config names wrong is the config's mistake (exit 2), not a failed extraction.
-  const dir = resolve(config.dir, source.path);
-  const inside = relative(config.dir, dir);
+  const dir = resolve(root, source.path);
+  const inside = relative(root, dir);
   if (
     inside.startsWith('..') ||
     isAbsolute(inside) ||
     !existsSync(dir) ||
     !statSync(dir).isDirectory()
   )
-    throw usageError(cliMessages.sourcePathMissing(source.name, source.path, config.dir));
-  if (source.tsconfig !== undefined && !existsSync(resolve(config.dir, source.tsconfig)))
+    throw usageError(cliMessages.sourcePathMissing(source.name, source.path, root));
+  if (source.tsconfig !== undefined && !existsSync(resolve(root, source.tsconfig)))
     throw usageError(cliMessages.sourceTsconfigMissing(source.name, source.tsconfig));
   const r = extractCatalog({
-    repoRoot: config.dir,
+    repoRoot: root,
+    ...(at === undefined ? {} : { commit: at.commit }),
     source: {
       name: source.name,
       path: source.path,

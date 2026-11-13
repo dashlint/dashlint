@@ -30,7 +30,7 @@
     "book_previewed": {
       "sites": [
         {
-          "file": "src/reader/preview.tsx",
+          "file": "mobile/src/reader/preview.tsx",
           "line": 19,
           "sdk": "posthog-js",
           "via": [],
@@ -47,7 +47,7 @@
     "book_viewed": {
       "sites": [
         {
-          "file": "src/catalog/book.tsx",
+          "file": "mobile/src/catalog/book.tsx",
           "line": 22,
           "sdk": "posthog-js",
           "via": [],
@@ -64,7 +64,7 @@
     "checkout_started": {
       "sites": [
         {
-          "file": "src/checkout/start.ts",
+          "file": "mobile/src/checkout/start.ts",
           "line": 9,
           "sdk": "posthog-js",
           "via": [],
@@ -81,7 +81,7 @@
     "order_completed": {
       "sites": [
         {
-          "file": "src/orders/complete.ts",
+          "file": "mobile/src/orders/complete.ts",
           "line": 30,
           "sdk": "posthog-js",
           "via": [],
@@ -98,7 +98,7 @@
     "payment_submitted": {
       "sites": [
         {
-          "file": "src/checkout/pay.ts",
+          "file": "mobile/src/checkout/pay.ts",
           "line": 40,
           "sdk": "posthog-js",
           "via": [],
@@ -126,7 +126,7 @@
     "wishlist_shared": {
       "sites": [
         {
-          "file": "src/wishlist/share.ts",
+          "file": "mobile/src/wishlist/share.ts",
           "line": 27,
           "sdk": "posthog-js",
           "via": [],

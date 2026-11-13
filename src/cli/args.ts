@@ -69,6 +69,8 @@ export const GLOBAL_FLAGS: Readonly<Record<string, FlagSpec>> = {
 
 export const FORMATS = ['text', 'json', 'html', 'markdown'] as const;
 export type Format = (typeof FORMATS)[number];
+export const AUDIT_FORMATS = ['html', 'json', 'text'] as const;
+export const DIFF_FORMATS = ['text', 'json', 'markdown'] as const;
 export const FAIL_ON = ['dead', 'partly-dead', 'degraded', 'never'] as const;
 export type FailOn = (typeof FAIL_ON)[number];
 
@@ -82,6 +84,16 @@ export const COMMANDS: Readonly<Record<string, Readonly<Record<string, FlagSpec>
     format: { kind: 'string', choices: FORMATS },
     out: { kind: 'string' },
     'fail-on': { kind: 'string', choices: FAIL_ON },
+  },
+  audit: {
+    offline: { kind: 'boolean' },
+    out: { kind: 'string' },
+    format: { kind: 'string', choices: AUDIT_FORMATS },
+  },
+  diff: {
+    base: { kind: 'string' },
+    head: { kind: 'string' },
+    format: { kind: 'string', choices: DIFF_FORMATS },
   },
 };
 

@@ -463,6 +463,26 @@ export const commentText = {
     `<sub>dashlint ${tool} · ${CLOSING_SENTENCE.charAt(0).toLowerCase()}${CLOSING_SENTENCE.slice(1, -1)}</sub>`,
 };
 
+// `dashlint diff --format text` (src/report/diff-text.ts): the comment's rows and sentences as text.
+export const diffText = {
+  header: (tool: string, base: string | null, head: string | null) =>
+    `dashlint ${tool} · diff ${base === null ? 'the base catalog' : base.slice(0, 7)} to ${head === null ? 'the working tree' : head.slice(0, 7)}`,
+  title: (tiles: number, alerts: number) =>
+    tiles + alerts === 0
+      ? 'This change breaks no tiles or alerts.'
+      : `This change would break ${andList([
+          ...(tiles > 0 ? [plural(tiles, 'tile')] : []),
+          ...(alerts > 0 ? [plural(alerts, 'alert')] : []),
+        ])}.`,
+  breaks: (what: string) => `breaks ${what}`,
+  result: (fails: number, failOn: string) =>
+    failOn === 'never'
+      ? 'Result: failOn is never, so this change does not fail the run.'
+      : fails === 0
+        ? `Result: nothing newly ${ALREADY[failOn] ?? 'broken'}, so this change does not fail the run.`
+        : `Result: ${plural(fails, 'tile')} newly ${ALREADY[failOn] ?? 'broken'}, so this change fails the run.`,
+};
+
 // Format validation (src/formats/validate.ts). `path` is a JSON pointer into the file.
 export const validation = {
   error: (path: string, message: string) => `${path === '' ? '(top level)' : path}: ${message}`,
@@ -547,6 +567,11 @@ Commands:
   check [--catalog <file>]... [--requirements <file>]
         [--format text|json|html|markdown] [--out <file>] [--fail-on <level>]
       extract (unless catalogs are given) and check (no network)
+  audit [--offline] [--out <file>] [--format html|json|text]
+      pull (unless --offline), extract, check; the HTML report goes to dashlint-report.html
+      and the text report to the terminal
+  diff --base <git-ref|catalog.json> [--head <git-ref>] [--format text|json|markdown]
+      what a change breaks: tiles newly broken at or above failOn fail (no network)
 
 Options for every command:
   --config <file>   the config, default dashlint.config.yml
@@ -562,7 +587,8 @@ Exit codes: 0 nothing at or above failOn, 1 findings at or above failOn, 2 usage
     `dashlint${command === undefined ? '' : ` ${command}`}: ${message}`,
   bug: (command: string | undefined, message: string) =>
     `dashlint${command === undefined ? '' : ` ${command}`}: unexpected error: ${message}\n${BUG_REPORT}`,
-  noCommand: 'name a command: init, extract, pull or check (dashlint --help lists them)',
+  noCommand:
+    'name a command: init, extract, pull, check, audit or diff (dashlint --help lists them)',
   unknownCommand: (name: string, suggestion: string | undefined) =>
     `unknown command ${name}${suggestion === undefined ? '' : `; did you mean ${suggestion}?`}`,
   unknownFlag: (flag: string, suggestion: string | undefined) =>
@@ -603,7 +629,14 @@ Exit codes: 0 nothing at or above failOn, 1 findings at or above failOn, 2 usage
     `the SDK descriptors shipped with dashlint are invalid: ${errors}`,
   wroteCatalog: (file: string, source: string, events: number, rate: number) =>
     `extract: wrote ${file} (source ${source}, ${events} event${events === 1 ? '' : 's'}, name resolution ${Math.round(rate * 1000) / 10}%)`,
-  wroteReport: (file: string) => `check: wrote ${file}`,
+  wroteReport: (command: string, file: string) => `${command}: wrote ${file}`,
+  // `dashlint diff` (src/cli/commands/diff.ts, spec 6.7.5).
+  diffNeedsBase: '--base is missing; name the commit or the catalog file to compare with',
+  diffNotGit: (dir: string) =>
+    `${dir} is not in a git repository; diff --base <ref> compares two commits (or pass a catalog file as --base)`,
+  diffHeadNeedsGit: '--head names a commit, so --base must name one too, not a catalog file',
+  noRequirementsAt: (file: string, commit: string) =>
+    `the head commit ${commit.slice(0, 7)} has no requirements file ${file}`,
   configExists: (file: string) =>
     `${file} already exists and was left as it is; pass --yes to replace it`,
   packageJsonUnreadable: (file: string) => `${file} is not readable JSON; it was skipped`,

@@ -6,8 +6,10 @@ import { resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { cliMessages } from '../report/messages.js';
 import { COMMANDS, CliError, parseArgs, usageError, type ParsedArgs } from './args.js';
+import { auditCommand } from './commands/audit.js';
 import { checkCommand } from './commands/check.js';
 import type { CommandContext } from './commands/common.js';
+import { diffCommand } from './commands/diff.js';
 import { extractCommand } from './commands/extract.js';
 import { initCommand } from './commands/init.js';
 import { pullCommand, type PullCommandContext } from './commands/pull.js';
@@ -74,6 +76,12 @@ export async function run(argv: readonly string[], ctx: MainContext): Promise<nu
       ...(ctx.now === undefined ? {} : { now: ctx.now }),
     };
     if (command === 'init') return initCommand(parsed.flags, commandCtx);
+    if (command === 'audit')
+      return await auditCommand(parsed.flags, commandCtx, {
+        ...(ctx.fetch === undefined ? {} : { fetch: ctx.fetch }),
+        ...(ctx.sleep === undefined ? {} : { sleep: ctx.sleep }),
+      });
+    if (command === 'diff') return diffCommand(parsed.flags, commandCtx);
     return command === 'extract'
       ? extractCommand(parsed.flags, commandCtx)
       : checkCommand(parsed.flags, commandCtx);

@@ -35,7 +35,7 @@ describe('cli main', () => {
     const r = await runIt([]);
     expect(r.code).toBe(2);
     expect(r.err).toBe(
-      'dashlint: name a command: init, extract, pull or check (dashlint --help lists them)',
+      'dashlint: name a command: init, extract, pull, check, audit or diff (dashlint --help lists them)',
     );
   });
 

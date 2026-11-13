@@ -2,16 +2,25 @@
 // [--fail-on <level>]` (spec 6.9.1): extract (unless catalogs are given) and check, no network.
 // Exit 1 when a tile is at or above failOn (6.9.2); alerts are reported, never failed on (ADR-051).
 import { resolve } from 'node:path';
-import { applyIgnore, checkAlerts, checkContext, checkTiles } from '../../check/index.js';
+import {
+  applyIgnore,
+  checkAlerts,
+  checkContext,
+  checkTiles,
+  type IgnoreEntry,
+} from '../../check/index.js';
+import type { Descriptor } from '../../descriptors/index.js';
 import { builtinTables } from '../../extract/merge.js';
 import type { Catalog } from '../../formats/catalog.js';
-import type { ReportSummary } from '../../formats/report.js';
-import { buildReport } from '../../report/build.js';
-import { renderHtml } from '../../report/html.js';
+import type { ReportMode, ReportSummary } from '../../formats/report.js';
+import type { Requirements } from '../../formats/requirements.js';
+import { buildReport, type ReportModel } from '../../report/build.js';
+import { renderHtml, type HtmlOptions } from '../../report/html.js';
 import { renderJson } from '../../report/json.js';
 import { cliMessages } from '../../report/messages.js';
 import { renderText } from '../../report/text.js';
 import { usageError, type FailOn, type Format, type ParsedArgs } from '../args.js';
+import type { Config } from '../config.js';
 import {
   descriptors,
   extractSource,
@@ -39,6 +48,70 @@ export function failsAt(summary: ReportSummary, failOn: FailOn): boolean {
   }
 }
 
+/** Every configured source extracted, then the config's catalog files; none at all is exit 2. */
+export function configCatalogs(ctx: CommandContext, config: Config, all: Descriptor[]): Catalog[] {
+  if (config.sources.length === 0 && config.catalogs.length === 0)
+    throw usageError(cliMessages.noSources);
+  return [
+    ...config.sources.map((source) => extractSource(ctx, config, source, all)),
+    ...config.catalogs.map(readCatalog),
+  ];
+}
+
+/** The catalogs checked against the requirements, the ignore list applied: the report model. */
+export function checkModel(
+  ctx: CommandContext,
+  input: {
+    mode: ReportMode;
+    catalogs: readonly Catalog[];
+    requirements: Requirements;
+    ignore: readonly IgnoreEntry[];
+    all: Descriptor[];
+  },
+): ReportModel {
+  const { catalogs, requirements } = input;
+  const checks = checkContext(catalogs, requirements, builtinTables(input.all));
+  const now = new Date(ctx.now?.() ?? Date.now());
+  const outcome = applyIgnore(
+    requirements,
+    checkTiles(checks, requirements),
+    checkAlerts(checks, requirements),
+    input.ignore,
+    now,
+  );
+  return buildReport({
+    tool: ctx.tool,
+    mode: input.mode,
+    requirements,
+    catalogs,
+    ctx: checks,
+    outcome,
+  });
+}
+
+/** The report in `format`, printed or written to `out` (relative to the working directory). */
+export function emitReport(
+  ctx: CommandContext,
+  command: string,
+  model: ReportModel,
+  format: Exclude<Format, 'markdown'>,
+  out: string | undefined,
+  html: HtmlOptions = {},
+): void {
+  const text =
+    format === 'json'
+      ? renderJson(model)
+      : format === 'html'
+        ? renderHtml(model, html)
+        : renderText(model);
+  if (out === undefined) print(ctx, text);
+  else {
+    const file = resolve(ctx.cwd, out);
+    writeText(file, text);
+    info(ctx, cliMessages.wroteReport(command, file));
+  }
+}
+
 export function checkCommand(flags: ParsedArgs['flags'], ctx: CommandContext): number {
   const format = (flags.format as Format | undefined) ?? 'text';
   if (format === 'markdown') throw usageError(cliMessages.markdownNeedsDiff);
@@ -51,13 +124,10 @@ export function checkCommand(flags: ParsedArgs['flags'], ctx: CommandContext): n
       : readConfig(ctx, 'check');
 
   const all = descriptors();
-  const catalogs: Catalog[] = given.map(readCatalog);
-  if (given.length === 0 && config !== undefined) {
-    if (config.sources.length === 0 && config.catalogs.length === 0)
-      throw usageError(cliMessages.noSources);
-    for (const source of config.sources) catalogs.push(extractSource(ctx, config, source, all));
-  }
-  for (const file of config?.catalogs ?? []) catalogs.push(readCatalog(file));
+  const catalogs: Catalog[] =
+    given.length === 0 && config !== undefined
+      ? configCatalogs(ctx, config, all)
+      : [...given.map(readCatalog), ...(config?.catalogs ?? []).map(readCatalog)];
 
   const requirements = readRequirements(
     requirementsFlag === undefined
@@ -65,37 +135,14 @@ export function checkCommand(flags: ParsedArgs['flags'], ctx: CommandContext): n
       : resolve(ctx.cwd, requirementsFlag),
   );
 
-  const checks = checkContext(catalogs, requirements, builtinTables(all));
-  const now = new Date(ctx.now?.() ?? Date.now());
-  const outcome = applyIgnore(
-    requirements,
-    checkTiles(checks, requirements),
-    checkAlerts(checks, requirements),
-    config?.ignore ?? [],
-    now,
-  );
-  const model = buildReport({
-    tool: ctx.tool,
+  const model = checkModel(ctx, {
     mode: 'check',
-    requirements,
     catalogs,
-    ctx: checks,
-    outcome,
+    requirements,
+    ignore: config?.ignore ?? [],
+    all,
   });
-
-  const out = flags.out as string | undefined;
-  const text =
-    format === 'json'
-      ? renderJson(model)
-      : format === 'html'
-        ? renderHtml(model)
-        : renderText(model);
-  if (out === undefined) print(ctx, text);
-  else {
-    const file = resolve(ctx.cwd, out);
-    writeText(file, text);
-    info(ctx, cliMessages.wroteReport(file));
-  }
+  emitReport(ctx, 'check', model, format, flags.out as string | undefined);
 
   const failOn = (flags['fail-on'] as FailOn | undefined) ?? config?.failOn ?? 'dead';
   return failsAt(model.report.summary, failOn) ? 1 : 0;

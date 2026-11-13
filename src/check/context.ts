@@ -30,11 +30,8 @@ export function checkContext(
     events: Object.keys(m.events),
     propertyKeys: (e) => Object.keys(merged(e)?.properties ?? {}),
     personPropertyKeys: Object.keys(m.personProperties),
-    sites: (e) =>
-      (merged(e)?.sites ?? []).map((s) => {
-        const root = m.sources[s.source]?.catalog.source.root ?? '.';
-        return { file: root === '.' ? s.file : `${root}/${s.file}`, line: s.line };
-      }),
+    // Catalog sites are repository-relative already (spec 6.3.1), the source's folder included.
+    sites: (e) => (merged(e)?.sites ?? []).map((s) => ({ file: s.file, line: s.line })),
     platforms: m.platforms,
     eventPlatforms: (e) => merged(e)?.platforms ?? [],
   };

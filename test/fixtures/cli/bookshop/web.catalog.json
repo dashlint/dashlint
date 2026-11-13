@@ -29,7 +29,7 @@
     "book_viewed": {
       "sites": [
         {
-          "file": "src/catalog/book.ts",
+          "file": "web/src/catalog/book.ts",
           "line": 20,
           "sdk": "posthog-js",
           "via": [],
@@ -45,7 +45,7 @@
     "checkout_started": {
       "sites": [
         {
-          "file": "src/checkout/start.ts",
+          "file": "web/src/checkout/start.ts",
           "line": 12,
           "sdk": "posthog-js",
           "via": [],
@@ -61,7 +61,7 @@
     "giftcard_redeemed": {
       "sites": [
         {
-          "file": "src/checkout/gift.ts",
+          "file": "web/src/checkout/gift.ts",
           "line": 88,
           "sdk": "posthog-js",
           "via": [],
@@ -77,7 +77,7 @@
     "order_completed": {
       "sites": [
         {
-          "file": "src/checkout/complete.ts",
+          "file": "web/src/checkout/complete.ts",
           "line": 30,
           "sdk": "posthog-js",
           "via": [],
@@ -93,7 +93,7 @@
     "payment_submitted": {
       "sites": [
         {
-          "file": "src/checkout/pay.ts",
+          "file": "web/src/checkout/pay.ts",
           "line": 63,
           "sdk": "posthog-js",
           "via": [],
@@ -120,7 +120,7 @@
     "review_submitted": {
       "sites": [
         {
-          "file": "src/reviews/submit.ts",
+          "file": "web/src/reviews/submit.ts",
           "line": 15,
           "sdk": "posthog-js",
           "via": [],
@@ -136,7 +136,7 @@
     "wishlist_shared": {
       "sites": [
         {
-          "file": "src/wishlist/share.ts",
+          "file": "web/src/wishlist/share.ts",
           "line": 41,
           "sdk": "posthog-js",
           "via": [],

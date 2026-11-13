@@ -238,7 +238,8 @@ function run(
 const changeIds = (cs: { id: string; base: string; head: string; fails: boolean }[]) =>
   cs.map((c) => [c.id, c.base, c.head, c.fails]);
 
-describe('diff over git worktrees (spec 6.7.5)', () => {
+// Two extractions per test, slow under coverage while other files run (T7.6): 30 s, not 5.
+describe('diff over git worktrees (spec 6.7.5)', { timeout: 30_000 }, () => {
   it('rename: the event renamed in the same function newly breaks its tiles and fails', () => {
     const r = repo({ 'src/shelf.ts': shelf({ wishlistEvent: 'wishlist_sent' }) });
     const d = run(r);

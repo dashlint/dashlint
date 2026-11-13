@@ -70,8 +70,6 @@ export function headCatalogs(): Catalog[] {
   });
 }
 
-const ROOTS = { web: 'web', mobile: 'mobile' };
-
 function comment(base: Catalog[], head: Catalog[]): CommentInput {
   const req = diffRequirements();
   const diff: DiffResult = diffResults({
@@ -85,7 +83,7 @@ function comment(base: Catalog[], head: Catalog[]): CommentInput {
     now: NOW,
   });
   const model: ReportModel = bookshop({ catalogs: head, requirements: req, mode: 'diff' });
-  return { diff, head: model, requirementsFile: 'dashlint.requirements.json', roots: ROOTS };
+  return { diff, head: model, requirementsFile: 'dashlint.requirements.json' };
 }
 
 /** The pull request that breaks tiles and an alert. */
