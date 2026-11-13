@@ -218,6 +218,7 @@ describe('recency queries', () => {
     server = await startMock({ [`POST /api/projects/42/query/`]: { body: { results: [] } } });
     const good = recencyQuery('order_completed', ['total'], 30);
     const two = recencyQuery('order_completed', ['total', 'format'], 30);
+    const three = recencyQuery('order_completed', ['total', 'format', 'channel'], 30);
     const bad: [string, unknown][] = [
       ['every column', { ...good, query: 'SELECT * FROM events' }],
       [
@@ -250,6 +251,16 @@ describe('recency queries', () => {
           ...two,
           query: two.query.replace('{p1}', '{p2}'),
           values: { e: 'x', p0: 'total', p2: 'format' },
+        },
+      ],
+      [
+        'swapped placeholders (answers would land on the wrong keys)',
+        {
+          ...three,
+          query: three.query
+            .replace('{p1}', '{pX}')
+            .replace('{p2}', '{p1}')
+            .replace('{pX}', '{p2}'),
         },
       ],
       ['no values', { kind: 'HogQLQuery', query: good.query }],
@@ -327,7 +338,7 @@ describe('applying recency to observed', () => {
     windowDays: 30,
     events: {},
     eventProperties: {
-      a_event: { seen: ['kept', 'old'], notSeen: ['late'] },
+      a_event: { seen: ['kept', 'old'], notSeen: ['gone', 'late'] },
       z_event: { seen: ['x'], notSeen: [] },
     },
   };
@@ -349,7 +360,7 @@ describe('applying recency to observed', () => {
     expect(Object.hasOwn(out.eventProperties ?? {}, '__proto__')).toBe(true);
     expect(out.eventProperties?.a_event).toEqual({
       seen: ['kept', 'late'],
-      notSeen: ['new', 'old'],
+      notSeen: ['gone', 'new', 'old'],
     });
     expect(out.eventProperties?.z_event).toEqual({ seen: ['x'], notSeen: [] });
     expect(Object.getOwnPropertyDescriptor(out.eventProperties, '__proto__')?.value).toEqual({
@@ -357,7 +368,10 @@ describe('applying recency to observed', () => {
       notSeen: [],
     });
     expect(out.windowDays).toBe(30);
-    expect(observed.eventProperties?.a_event).toEqual({ seen: ['kept', 'old'], notSeen: ['late'] });
+    expect(observed.eventProperties?.a_event).toEqual({
+      seen: ['kept', 'old'],
+      notSeen: ['gone', 'late'],
+    });
   });
 
   it('no answers leave observed as it was; observed without eventProperties gains them', () => {
