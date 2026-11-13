@@ -123,6 +123,13 @@ describe('resolveProperties: presence', () => {
     expect(only('review_noted').properties).toEqual({ note: sometimes(open('string')) });
   });
 
+  it('with exactOptionalPropertyTypes the ? alone makes a property sometimes', () => {
+    expect(only('review_saved', scan('posthog-js/properties-exact')).properties).toEqual({
+      rating: sometimes(open('number')),
+      title: always(open('string')),
+    });
+  });
+
   it('conditional spreads are sometimes, and keep their literals', () => {
     expect(only('basket_viewed').properties).toEqual({
       coupon: sometimes(open('string')),
