@@ -7,6 +7,12 @@ export const CLOSING_SENTENCE =
 // Format validation (src/formats/validate.ts). `path` is a JSON pointer into the file.
 export const validation = {
   error: (path: string, message: string) => `${path === '' ? '(top level)' : path}: ${message}`,
+  errorAt: (line: number, path: string, message: string) =>
+    `line ${line}${path === '' ? '' : `, ${path}`}: ${message}`,
+  yamlTag: (tag: string) => `the tag ${tag} is not allowed; dashlint reads plain YAML only`,
+  yamlDuplicateKey: (key: string) => `duplicate key "${key}"`,
+  yamlSyntax: (detail: string) => `cannot be read as YAML: ${detail}`,
+  notFinite: 'is not a finite number',
   schemaMismatch: 'does not match the schema',
   countAboveCallSites: (field: string) => `${field} is greater than callSites`,
   rateMismatch: (rate: number, literal: number, callSites: number) =>

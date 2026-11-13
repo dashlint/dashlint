@@ -1,0 +1,5 @@
+schema: dashlint.requirements/1
+source: { platform: posthog }
+tiles: []
+---
+schema: dashlint.requirements/1

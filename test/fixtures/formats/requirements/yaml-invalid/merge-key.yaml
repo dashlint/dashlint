@@ -1,0 +1,9 @@
+schema: dashlint.requirements/1
+source: { platform: posthog }
+tiles:
+  - &orders
+    id: shop/orders
+    title: Orders
+    kind: trends
+  - <<: *orders
+    id: shop/orders-again

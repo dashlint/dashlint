@@ -15,6 +15,8 @@ export interface ValidationError {
   /** JSON pointer to the offending field, such as `/identity/0/context`. */
   path: string;
   message: string;
+  /** 1-based line in the source file, when it was read from text (src/formats/yaml.ts). */
+  line?: number;
 }
 
 export type ValidationResult<T> = { ok: true; value: T } | { ok: false; errors: ValidationError[] };
@@ -216,5 +218,9 @@ export function validateRequirements(data: unknown): ValidationResult<Requiremen
 }
 
 export function formatValidationErrors(errors: ValidationError[]): string[] {
-  return errors.map((e) => validation.error(e.path, e.message));
+  return errors.map((e) =>
+    e.line === undefined
+      ? validation.error(e.path, e.message)
+      : validation.errorAt(e.line, e.path, e.message),
+  );
 }

@@ -1,0 +1,10 @@
+schema: dashlint.requirements/1
+source: { platform: mixpanel, note: 'Growth board, copied by hand on 2026-12-10' }
+tiles:
+  - id: growth/orders-by-format
+    title: Orders by format
+    kind: trends
+    series:
+      - event: order_completed
+        filters: [{ key: payment_method, values: card }]
+    breakdown: [format]

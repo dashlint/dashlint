@@ -1,0 +1,6 @@
+schema: dashlint.requirements/1
+source: { platform: posthog }
+tiles:
+  - id: shop/orders
+    title: !!binary T3JkZXJz
+    kind: trends

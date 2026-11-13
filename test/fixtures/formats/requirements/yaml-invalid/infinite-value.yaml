@@ -1,0 +1,9 @@
+schema: dashlint.requirements/1
+source: { platform: posthog }
+tiles:
+  - id: shop/orders
+    title: Orders
+    kind: trends
+    series:
+      - event: order_completed
+        filters: [{ key: order_total, op: gt, values: .inf }]

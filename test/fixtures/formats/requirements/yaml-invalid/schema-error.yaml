@@ -1,0 +1,13 @@
+schema: dashlint.requirements/1
+source: { platform: posthog }
+tiles:
+  - id: shop/orders
+    title: Orders
+    kind: trends
+alerts:
+  - id: shop-orders-drop
+    tile: shop/orders
+    target: { kind: series, index: 0 }
+    condition: relative_decrease
+    bounds: { lower: true, upper: false }
+    threshold: 0.25

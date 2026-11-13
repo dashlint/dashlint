@@ -1,0 +1,79 @@
+# Every spec 6.6 shorthand next to its explicit form, which the expansion keeps as written.
+schema: dashlint.requirements/1
+source:
+  platform: posthog
+  note: Shop board, copied by hand
+dashboards:
+  - id: shop
+    name: Shop
+    filters:
+      - key: storefront
+        values: [web, app]
+tiles:
+  - id: shop/browse-to-order
+    title: Browse to order
+    dashboards: [shop]
+    kind: funnels
+    series:
+      - event: book_viewed
+      - event: cart_opened
+        filters:
+          - { key: format, op: icontains, values: paper }
+          - any:
+              - { key: gift_wrap, values: true }
+              - { key: gift_note, op: is_set, values: [] }
+      - ref: Z
+        node: event
+        event: order_completed
+        filters:
+          - { key: plan, scope: person, op: exact, values: ['1', 1, null] }
+    exclusions:
+      - event: wishlist_shared
+        fromStep: 0
+        toStep: 1
+    funnelVizType: steps
+  - id: shop/revenue
+    title: Revenue by format
+    kind: trends
+    series:
+      - event: order_completed
+        math: sum
+        mathProperty: { key: order_total }
+      - node: all-events
+        math: dau
+      - node: group
+        operator: OR
+        events:
+          - event: book_viewed
+            filters: [{ key: format, values: audio }]
+          - event: book_previewed
+      - node: action
+        action:
+          id: 7
+          name: Checkout
+          steps:
+            - event: checkout_started
+              filters: [{ key: coupon, op: is_not, values: none }]
+            - event: null
+              unsupported: [url]
+    formulas:
+      - { index: 4, expression: A / B, refs: [A, B] }
+    filters:
+      - key: currency
+        values: EUR
+    breakdown:
+      - format
+      - { key: storefront }
+      - { key: country, scope: person }
+  - id: shop/readers-return
+    title: Readers who come back
+    kind: retention
+    retention:
+      target: { event: reader_opened, filters: [{ key: format, values: ebook }] }
+      returning: { node: all-events }
+alerts:
+  - id: shop-orders-drop
+    tile: shop/revenue
+    target: { kind: series, index: 0 }
+    condition: relative_decrease
+    bounds: { lower: true, upper: false }

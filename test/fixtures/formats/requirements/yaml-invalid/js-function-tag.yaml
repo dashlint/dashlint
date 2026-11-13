@@ -1,0 +1,6 @@
+schema: dashlint.requirements/1
+source: { platform: posthog }
+tiles:
+  - id: shop/orders
+    title: !!js/function "function () { return 'Orders'; }"
+    kind: trends

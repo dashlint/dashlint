@@ -1,0 +1,10 @@
+{
+  "custom-tag.yaml": { "line": 4, "message": "the tag !shelf is not allowed" },
+  "duplicate-key.yaml": { "line": 12, "message": "duplicate key \"key\"" },
+  "infinite-value.yaml": { "line": 9, "message": "is not a finite number" },
+  "js-function-tag.yaml": { "line": 5, "message": "the tag !!js/function is not allowed" },
+  "merge-key.yaml": { "line": 8, "message": "must NOT have additional properties" },
+  "schema-error.yaml": { "line": 13, "message": "must NOT have additional properties" },
+  "two-documents.yaml": { "line": 4, "message": "cannot be read as YAML" },
+  "yaml11-binary-tag.yaml": { "line": 5, "message": "the tag !!binary is not allowed" }
+}

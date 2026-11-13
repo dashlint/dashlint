@@ -1,0 +1,6 @@
+schema: dashlint.requirements/1
+source: { platform: posthog }
+tiles:
+  - id: !shelf orders
+    title: Orders
+    kind: trends

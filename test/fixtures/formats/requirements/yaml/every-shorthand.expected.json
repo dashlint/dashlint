@@ -1,0 +1,119 @@
+{
+  "schema": "dashlint.requirements/1",
+  "source": { "platform": "posthog", "note": "Shop board, copied by hand" },
+  "dashboards": [
+    {
+      "id": "shop",
+      "name": "Shop",
+      "filters": [
+        { "key": "storefront", "scope": "event", "op": "exact", "values": ["web", "app"] }
+      ]
+    }
+  ],
+  "tiles": [
+    {
+      "id": "shop/browse-to-order",
+      "title": "Browse to order",
+      "dashboards": ["shop"],
+      "kind": "funnels",
+      "series": [
+        { "ref": "A", "node": "event", "event": "book_viewed" },
+        {
+          "ref": "B",
+          "node": "event",
+          "event": "cart_opened",
+          "filters": [
+            { "key": "format", "scope": "event", "op": "icontains", "values": ["paper"] },
+            {
+              "any": [
+                { "key": "gift_wrap", "scope": "event", "op": "exact", "values": [true] },
+                { "key": "gift_note", "scope": "event", "op": "is_set", "values": [] }
+              ]
+            }
+          ]
+        },
+        {
+          "ref": "Z",
+          "node": "event",
+          "event": "order_completed",
+          "filters": [{ "key": "plan", "scope": "person", "op": "exact", "values": ["1", 1, null] }]
+        }
+      ],
+      "exclusions": [{ "node": "event", "event": "wishlist_shared", "fromStep": 0, "toStep": 1 }],
+      "funnelVizType": "steps"
+    },
+    {
+      "id": "shop/revenue",
+      "title": "Revenue by format",
+      "kind": "trends",
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "order_completed",
+          "math": "sum",
+          "mathProperty": { "key": "order_total", "scope": "event" }
+        },
+        { "ref": "B", "node": "all-events", "math": "dau" },
+        {
+          "ref": "C",
+          "node": "group",
+          "operator": "OR",
+          "events": [
+            {
+              "event": "book_viewed",
+              "filters": [{ "key": "format", "scope": "event", "op": "exact", "values": ["audio"] }]
+            },
+            { "event": "book_previewed" }
+          ]
+        },
+        {
+          "ref": "D",
+          "node": "action",
+          "action": {
+            "id": 7,
+            "name": "Checkout",
+            "steps": [
+              {
+                "event": "checkout_started",
+                "filters": [
+                  { "key": "coupon", "scope": "event", "op": "is_not", "values": ["none"] }
+                ]
+              },
+              { "event": null, "unsupported": ["url"] }
+            ]
+          }
+        }
+      ],
+      "formulas": [{ "index": 4, "expression": "A / B", "refs": ["A", "B"] }],
+      "filters": [{ "key": "currency", "scope": "event", "op": "exact", "values": ["EUR"] }],
+      "breakdown": [
+        { "key": "format", "scope": "event" },
+        { "key": "storefront", "scope": "event" },
+        { "key": "country", "scope": "person" }
+      ]
+    },
+    {
+      "id": "shop/readers-return",
+      "title": "Readers who come back",
+      "kind": "retention",
+      "retention": {
+        "target": {
+          "node": "event",
+          "event": "reader_opened",
+          "filters": [{ "key": "format", "scope": "event", "op": "exact", "values": ["ebook"] }]
+        },
+        "returning": { "node": "all-events" }
+      }
+    }
+  ],
+  "alerts": [
+    {
+      "id": "shop-orders-drop",
+      "tile": "shop/revenue",
+      "target": { "kind": "series", "index": 0 },
+      "condition": "relative_decrease",
+      "bounds": { "lower": true, "upper": false }
+    }
+  ]
+}
