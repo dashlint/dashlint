@@ -164,6 +164,7 @@ describe('actions', () => {
     const lookup = actionLookup([
       { id: 30, name: 'Thirty', steps: [{ event: 'book_viewed' }] },
       { id: 4, name: 'Four', steps: [{ event: 'order_completed' }] },
+      { id: 6, name: 'Six', steps: [{ event: 'cart_cleared' }] },
     ]);
     const insights = [
       insight(
@@ -176,7 +177,7 @@ describe('actions', () => {
         kind: 'FunnelsQuery',
         series: [ev('cart_viewed'), ev('order_completed')],
         funnelsFilter: {
-          exclusions: [{ kind: 'ActionsNode', id: 4, funnelFromStep: 0, funnelToStep: 1 }],
+          exclusions: [{ kind: 'ActionsNode', id: 6, funnelFromStep: 0, funnelToStep: 1 }],
         },
       }),
       insight({
@@ -192,13 +193,14 @@ describe('actions', () => {
     const [t, f, ret] = r.tiles as [Tile, Tile, Tile];
     expect(t.series?.[0]).toMatchObject({ node: 'action', action: { id: 30, name: 'Thirty' } });
     expect(t.notChecked).toEqual([{ path: 'series[1]', reason: 'action 99 was not read' }]);
-    expect(f.exclusions?.[0]).toMatchObject({ action: { id: 4, name: 'Four' }, fromStep: 0 });
+    expect(f.exclusions?.[0]).toMatchObject({ action: { id: 6, name: 'Six' }, fromStep: 0 });
     expect(ret.retention?.target).toMatchObject({ action: { id: 4, name: 'Four' } });
     expect(ret.retention?.returning).toMatchObject({ action: { id: 30, name: 'Thirty' } });
     expect(f.notChecked).toEqual([]);
     expect(ret.notChecked).toEqual([]);
-    // Without the lookup, the ids pull must read; once each, sorted as text.
-    expect(actionIdsOf(normalizeInsights(insights, ctx))).toEqual([30, 4, 99]);
+    // Without the lookup, the ids pull must read (series, exclusions, retention); once each, sorted
+    // as text.
+    expect(actionIdsOf(normalizeInsights(insights, ctx))).toEqual([30, 4, 6, 99]);
   });
 });
 
