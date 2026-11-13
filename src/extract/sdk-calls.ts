@@ -39,7 +39,7 @@ export interface SdkCallScan {
 /** How far a callee is followed back to the import it comes from. */
 const MAX_FOLLOW = 8;
 
-function skipOuter(e: ts.Expression): ts.Expression {
+export function skipOuter(e: ts.Expression): ts.Expression {
   while (
     ts.isParenthesizedExpression(e) ||
     ts.isNonNullExpression(e) ||
@@ -59,9 +59,14 @@ function calledNode(callee: ts.Expression): ts.Node {
   return e;
 }
 
-function lineOf(node: ts.Node): number {
+export function lineOf(node: ts.Node): number {
   const sf = node.getSourceFile();
   return sf.getLineAndCharacterOfPosition(node.getStart(sf)).line + 1;
+}
+
+/** The line a site records for a call: the line of the called name. */
+export function callLine(call: ts.CallExpression): number {
+  return lineOf(calledNode(call.expression));
 }
 
 // The member name a call uses, as written or as imported or destructured (`{ capture: track }`).
