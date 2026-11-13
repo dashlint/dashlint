@@ -3,3 +3,6 @@ dist/
 coverage/
 *.log
 .DS_Store
+# Extractor fixtures are mini repos with their own node_modules and build outputs (T3.2).
+!test/fixtures/extract/**/node_modules/
+!test/fixtures/extract/**/dist/
