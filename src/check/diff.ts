@@ -110,6 +110,8 @@ function propertyChanges(
   base: ReadonlyMap<string, ValueDomain>,
   head: ReadonlyMap<string, ValueDomain>,
   headOpen: boolean,
+  /** Keys the head still sends another way (its super properties). */
+  stillSent: ReadonlyMap<string, unknown> = new Map(),
 ): CatalogChange[] {
   const out: CatalogChange[] = [];
   for (const property of [...base.keys()].sort(byText)) {
@@ -117,7 +119,8 @@ function propertyChanges(
     const h = head.get(property);
     // An open head may still send the key: no "removed" claim from it.
     if (h === undefined) {
-      if (!headOpen) out.push({ kind: 'property-removed', event, property });
+      if (!headOpen && !stillSent.has(property))
+        out.push({ kind: 'property-removed', event, property });
       continue;
     }
     if (b.kind !== 'finite' || h.kind !== 'finite') continue;
@@ -210,7 +213,9 @@ export function diffCatalogs(
   for (const [bn, hn] of pairs) {
     const be = b.events.get(bn) as SideEvent;
     const he = h.events.get(hn) as SideEvent;
-    out.push(...propertyChanges(hn, be.properties, he.properties, he.open || h.openSupers));
+    out.push(
+      ...propertyChanges(hn, be.properties, he.properties, he.open || h.openSupers, h.supers),
+    );
   }
   out.push(...propertyChanges(null, b.supers, h.supers, h.openSupers));
   return out;

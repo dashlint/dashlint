@@ -410,6 +410,9 @@ describe('diff over git worktrees (spec 6.7.5)', () => {
     expect(d.base.commit).toBe(r.base);
     expect(d.fails).toBe(true);
     expect(d.catalog.map((c) => c.kind)).toEqual(['event-renamed']);
+    // With a head ref the committed head is read, not the edited working tree.
+    const committed = run(r);
+    expect(committed).toMatchObject({ fails: false, catalog: [], head: { commit: r.head } });
   });
 
   it('removes its worktrees, and refuses a ref that is not a commit', () => {
@@ -736,6 +739,14 @@ describe('diffCatalogs (spec 6.7.5 change list)', () => {
     expect(diffCatalogs([base], [open])).toEqual([
       { kind: 'values-narrowed', event: null, property: 'plan', removed: ['free'] },
     ]);
+    // A key moved from the event call to a super property is still sent on the event.
+    const moved = catalog({ e: event(4) }, { superProperties: { shelf: sup(['x']) } });
+    expect(
+      diffCatalogs(
+        [catalog({ e: event(4, { shelf: always(['x']), gone: always(['y']) }) })],
+        [moved],
+      ),
+    ).toEqual([{ kind: 'property-removed', event: 'e', property: 'gone' }]);
   });
 
   it('values merge across sources: one source still sending a value keeps it', () => {
