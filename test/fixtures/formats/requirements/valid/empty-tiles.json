@@ -1,0 +1,7 @@
+{
+  "schema": "dashlint.requirements/1",
+  "source": {
+    "platform": "amplitude"
+  },
+  "tiles": []
+}

@@ -1,10 +1,15 @@
-// Validators for the catalog and report contracts (spec T2.1). The schema part runs the standalone
-// functions scripts/build-validators.mjs generates (no ajv at runtime, G5); the rules JSON Schema
-// cannot express (counts that must agree) run here.
+// Validators for the catalog, report and requirements contracts (spec T2.1, T2.2). The schema part
+// runs the standalone functions scripts/build-validators.mjs generates (no ajv at runtime, G5); the
+// rules JSON Schema cannot express (counts that must agree, ids that must be unique) run here.
 import { validation } from '../report/messages.js';
 import type { Catalog } from './catalog.js';
-import { catalog as catalogSchema, report as reportSchema } from './generated/validators.js';
+import {
+  catalog as catalogSchema,
+  report as reportSchema,
+  requirements as requirementsSchema,
+} from './generated/validators.js';
 import type { Report } from './report.js';
+import type { Requirements, SeenProperties, Tile } from './requirements.js';
 
 export interface ValidationError {
   /** JSON pointer to the offending field, such as `/identity/0/context`. */
@@ -15,6 +20,7 @@ export interface ValidationError {
 export type ValidationResult<T> = { ok: true; value: T } | { ok: false; errors: ValidationError[] };
 
 interface AjvError {
+  keyword: string;
   instancePath: string;
   params: Record<string, unknown>;
   message?: string;
@@ -29,9 +35,13 @@ function escapePointer(segment: string): string {
   return segment.replace(/~/g, '~0').replace(/\//g, '~1');
 }
 
-// Names the field itself: a missing or unexpected property is appended to its parent's path.
+// Names the field itself: a missing or unexpected property, or the tag of a node kind that is not
+// listed (`node`, alert `target.kind`), is appended to its parent's path.
 function fromAjv(e: AjvError): ValidationError {
-  const child = e.params['missingProperty'] ?? e.params['additionalProperty'];
+  const child =
+    e.params['missingProperty'] ??
+    e.params['additionalProperty'] ??
+    (e.keyword === 'discriminator' ? e.params['tag'] : undefined);
   const path =
     typeof child === 'string' ? `${e.instancePath}/${escapePointer(child)}` : e.instancePath;
   return { path, message: e.message ?? validation.schemaMismatch };
@@ -84,6 +94,125 @@ export function validateCatalog(data: unknown): ValidationResult<Catalog> {
 export function validateReport(data: unknown): ValidationResult<Report> {
   const errors = runSchema(reportSchema as GeneratedValidator, data);
   return errors.length ? { ok: false, errors } : { ok: true, value: data as Report };
+}
+
+// The path of every repeat of an id already seen in `items`.
+function duplicates<T>(
+  items: readonly T[] | undefined,
+  key: (item: T) => string | number,
+  path: (index: number) => string,
+  message: (value: string | number) => string,
+): ValidationError[] {
+  const seen = new Set<string | number>();
+  const errors: ValidationError[] = [];
+  (items ?? []).forEach((item, i) => {
+    const value = key(item);
+    if (seen.has(value)) errors.push({ path: path(i), message: message(value) });
+    seen.add(value);
+  });
+  return errors;
+}
+
+const NOT_CHECKED_KINDS = new Set(['paths', 'sql', 'other']);
+
+function tileRules(t: Tile, at: string): ValidationError[] {
+  const errors = [
+    ...duplicates(
+      t.series,
+      (s) => s.ref ?? '',
+      (i) => `${at}/series/${i}/ref`,
+      (r) => validation.duplicateRef(String(r)),
+    ),
+    ...duplicates(
+      t.formulas,
+      (f) => f.index,
+      (i) => `${at}/formulas/${i}/index`,
+      (n) => validation.duplicateFormulaIndex(Number(n)),
+    ),
+  ];
+  if (t.kind !== 'funnels') {
+    for (const field of ['exclusions', 'funnelVizType'] as const) {
+      if (t[field] !== undefined)
+        errors.push({ path: `${at}/${field}`, message: validation.onlyOnKind(field, 'funnels') });
+    }
+  }
+  if (t.kind === 'retention' && t.retention === undefined)
+    errors.push({ path: `${at}/retention`, message: validation.retentionMissing });
+  if (t.kind !== 'retention' && t.retention !== undefined)
+    errors.push({
+      path: `${at}/retention`,
+      message: validation.onlyOnKind('retention', 'retention'),
+    });
+  if (NOT_CHECKED_KINDS.has(t.kind) && !(t.notChecked ?? []).some((n) => n.path === undefined))
+    errors.push({ path: `${at}/notChecked`, message: validation.notCheckedReasonMissing(t.kind) });
+  (t.exclusions ?? []).forEach((x, i) => {
+    const { fromStep = 0, toStep = 0 } = x;
+    if (toStep <= fromStep)
+      errors.push({
+        path: `${at}/exclusions/${i}/toStep`,
+        message: validation.exclusionSteps(fromStep, toStep),
+      });
+  });
+  return errors;
+}
+
+function seenRules(p: SeenProperties, at: string): ValidationError[] {
+  const seen = new Set(p.seen);
+  return p.notSeen.flatMap((name, i) =>
+    seen.has(name)
+      ? [{ path: `${at}/notSeen/${i}`, message: validation.seenAndNotSeen(name) }]
+      : [],
+  );
+}
+
+function requirementsRules(r: Requirements): ValidationError[] {
+  const errors = [
+    ...duplicates(
+      r.dashboards,
+      (d) => d.id,
+      (i) => `/dashboards/${i}/id`,
+      (id) => validation.duplicateId(String(id)),
+    ),
+    ...duplicates(
+      r.tiles,
+      (t) => t.id,
+      (i) => `/tiles/${i}/id`,
+      (id) => validation.duplicateId(String(id)),
+    ),
+    ...duplicates(
+      r.alerts,
+      (a) => a.id,
+      (i) => `/alerts/${i}/id`,
+      (id) => validation.duplicateId(String(id)),
+    ),
+    ...r.tiles.flatMap((t, i) => tileRules(t, `/tiles/${i}`)),
+  ];
+  const observed = r.observed;
+  if (observed) {
+    for (const [name, event] of Object.entries(observed.events)) {
+      if (event.defined) continue;
+      for (const field of ['lastSeenAt', 'enforcement'] as const) {
+        if (event[field] !== undefined && event[field] !== null)
+          errors.push({
+            path: `/observed/events/${escapePointer(name)}/${field}`,
+            message: validation.undefinedEventField(field),
+          });
+      }
+    }
+    for (const [name, props] of Object.entries(observed.eventProperties ?? {}))
+      errors.push(...seenRules(props, `/observed/eventProperties/${escapePointer(name)}`));
+    if (observed.personProperties)
+      errors.push(...seenRules(observed.personProperties, '/observed/personProperties'));
+  }
+  return errors;
+}
+
+export function validateRequirements(data: unknown): ValidationResult<Requirements> {
+  const schemaErrors = runSchema(requirementsSchema as GeneratedValidator, data);
+  if (schemaErrors.length) return { ok: false, errors: schemaErrors };
+  const value = data as Requirements;
+  const ruleErrors = requirementsRules(value);
+  return ruleErrors.length ? { ok: false, errors: ruleErrors } : { ok: true, value };
 }
 
 export function formatValidationErrors(errors: ValidationError[]): string[] {

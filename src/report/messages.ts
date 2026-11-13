@@ -13,4 +13,15 @@ export const validation = {
     `nameResolutionRate ${rate} does not equal literalNameSites / callSites (${literal} / ${callSites})`,
   openSitesAboveSites: (openSites: number, sites: number) =>
     `openSites ${openSites} is greater than the number of sites (${sites})`,
+  duplicateId: (id: string) => `duplicate id "${id}"`,
+  duplicateRef: (ref: string) => `series ref ${ref} is used twice in this tile`,
+  duplicateFormulaIndex: (index: number) => `formula index ${index} is used twice in this tile`,
+  onlyOnKind: (field: string, kind: string) => `${field} is only allowed on ${kind} tiles`,
+  retentionMissing: 'a retention tile needs retention.target and retention.returning',
+  notCheckedReasonMissing: (kind: string) =>
+    `a ${kind} tile is not checked and needs a notChecked entry for the whole tile with its reason`,
+  exclusionSteps: (fromStep: number, toStep: number) =>
+    `toStep ${toStep} must be greater than fromStep ${fromStep}`,
+  undefinedEventField: (field: string) => `an event that is not defined cannot have ${field}`,
+  seenAndNotSeen: (property: string) => `"${property}" is listed as both seen and not seen`,
 };

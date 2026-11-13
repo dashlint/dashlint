@@ -1,0 +1,440 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/dashlint/dashlint/schema/requirements.schema.json",
+  "title": "dashlint.requirements/1",
+  "description": "What the dashboards of one analytics project need (spec 6.3.2), written by `pull` or by hand. This schema holds the canonical form; YAML shorthands (spec 6.6) are expanded before validation. Alert thresholds are never stored, only which bounds exist.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "source", "tiles"],
+  "properties": {
+    "schema": { "const": "dashlint.requirements/1" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["platform"],
+      "properties": {
+        "platform": { "$ref": "#/$defs/name" },
+        "host": { "type": "string", "pattern": "^https?://" },
+        "project": {
+          "anyOf": [{ "type": "integer", "minimum": 0 }, { "$ref": "#/$defs/nonEmpty" }]
+        },
+        "pulledAt": { "$ref": "#/$defs/timestamp" },
+        "tool": { "$ref": "#/$defs/nonEmpty" },
+        "profile": { "enum": ["posthog", "generic"] },
+        "note": { "type": "string" }
+      }
+    },
+    "dashboards": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id"],
+        "properties": {
+          "id": { "$ref": "#/$defs/nonEmpty" },
+          "name": { "type": "string" },
+          "filters": { "$ref": "#/$defs/filters" }
+        }
+      }
+    },
+    "tiles": { "type": "array", "items": { "$ref": "#/$defs/tile" } },
+    "alerts": { "type": "array", "items": { "$ref": "#/$defs/alert" } },
+    "observed": { "$ref": "#/$defs/observed" }
+  },
+  "$defs": {
+    "nonEmpty": { "type": "string", "pattern": "^[\\s\\S]+$" },
+    "name": { "type": "string", "pattern": "^[a-z][a-z0-9_-]*$" },
+    "count": { "type": "integer", "minimum": 0 },
+    "timestamp": {
+      "description": "UTC, ISO 8601 with a Z suffix.",
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}(?::\\d{2}(?:\\.\\d{1,9})?)?Z$"
+    },
+    "jsonScalar": { "type": ["string", "number", "boolean", "null"] },
+    "ref": {
+      "description": "Series letter in query order (A, B, ...).",
+      "type": "string",
+      "pattern": "^[A-Z]{1,2}$"
+    },
+    "scope": {
+      "enum": [
+        "event",
+        "person",
+        "session",
+        "group",
+        "cohort",
+        "element",
+        "feature",
+        "hogql",
+        "other"
+      ]
+    },
+    "property": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "scope"],
+      "properties": {
+        "key": { "$ref": "#/$defs/nonEmpty" },
+        "scope": { "$ref": "#/$defs/scope" }
+      }
+    },
+    "propertyFilter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "scope", "op", "values"],
+      "properties": {
+        "key": { "$ref": "#/$defs/nonEmpty" },
+        "scope": { "$ref": "#/$defs/scope" },
+        "op": { "$ref": "#/$defs/name" },
+        "values": {
+          "description": "Always a list; JSON types are kept (true and \"true\" differ).",
+          "type": "array",
+          "items": { "$ref": "#/$defs/jsonScalar" }
+        }
+      }
+    },
+    "filter": {
+      "description": "A property filter, or an OR group `{ any: [...] }` of property filters.",
+      "type": "object",
+      "if": { "type": "object", "properties": { "any": true }, "required": ["any"] },
+      "then": {
+        "additionalProperties": false,
+        "properties": {
+          "any": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/propertyFilter" } }
+        }
+      },
+      "else": { "$ref": "#/$defs/propertyFilter" }
+    },
+    "filters": {
+      "description": "AND of every item.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/filter" }
+    },
+    "math": { "$ref": "#/$defs/name" },
+    "eventNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node", "event"],
+      "properties": {
+        "node": { "const": "event" },
+        "ref": { "$ref": "#/$defs/ref" },
+        "fromStep": { "$ref": "#/$defs/count" },
+        "toStep": { "$ref": "#/$defs/count" },
+        "event": { "$ref": "#/$defs/nonEmpty" },
+        "math": { "$ref": "#/$defs/math" },
+        "mathProperty": { "$ref": "#/$defs/property" },
+        "filters": { "$ref": "#/$defs/filters" }
+      }
+    },
+    "groupNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node", "operator", "events"],
+      "properties": {
+        "node": { "const": "group" },
+        "ref": { "$ref": "#/$defs/ref" },
+        "fromStep": { "$ref": "#/$defs/count" },
+        "toStep": { "$ref": "#/$defs/count" },
+        "operator": { "description": "An AND group is not checked.", "enum": ["OR", "AND"] },
+        "events": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["event"],
+            "properties": {
+              "event": { "$ref": "#/$defs/nonEmpty" },
+              "filters": { "$ref": "#/$defs/filters" }
+            }
+          }
+        },
+        "math": { "$ref": "#/$defs/math" },
+        "mathProperty": { "$ref": "#/$defs/property" },
+        "filters": { "$ref": "#/$defs/filters" }
+      }
+    },
+    "allEventsNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node"],
+      "properties": {
+        "node": { "const": "all-events" },
+        "ref": { "$ref": "#/$defs/ref" },
+        "fromStep": { "$ref": "#/$defs/count" },
+        "toStep": { "$ref": "#/$defs/count" },
+        "math": { "$ref": "#/$defs/math" },
+        "mathProperty": { "$ref": "#/$defs/property" },
+        "filters": { "$ref": "#/$defs/filters" }
+      }
+    },
+    "actionNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node", "action"],
+      "properties": {
+        "node": { "const": "action" },
+        "ref": { "$ref": "#/$defs/ref" },
+        "fromStep": { "$ref": "#/$defs/count" },
+        "toStep": { "$ref": "#/$defs/count" },
+        "action": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "steps"],
+          "properties": {
+            "id": { "anyOf": [{ "$ref": "#/$defs/count" }, { "$ref": "#/$defs/nonEmpty" }] },
+            "name": { "type": "string" },
+            "steps": {
+              "description": "Expanded from the action; a step with no event matches every event.",
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["event"],
+                "properties": {
+                  "event": { "anyOf": [{ "$ref": "#/$defs/nonEmpty" }, { "type": "null" }] },
+                  "filters": { "$ref": "#/$defs/filters" },
+                  "unsupported": {
+                    "description": "Matchers dashlint cannot check (url, selector, text, ...); they make the step unknown.",
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "items": { "type": "string", "$ref": "#/$defs/name" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "math": { "$ref": "#/$defs/math" },
+        "mathProperty": { "$ref": "#/$defs/property" },
+        "filters": { "$ref": "#/$defs/filters" }
+      }
+    },
+    "warehouseNode": {
+      "description": "A data warehouse series: never checked.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node"],
+      "properties": {
+        "node": { "const": "warehouse" },
+        "ref": { "$ref": "#/$defs/ref" },
+        "fromStep": { "$ref": "#/$defs/count" },
+        "toStep": { "$ref": "#/$defs/count" },
+        "table": { "$ref": "#/$defs/nonEmpty" },
+        "math": { "$ref": "#/$defs/math" }
+      }
+    },
+    "node": {
+      "type": "object",
+      "properties": { "node": true },
+      "required": ["node"],
+      "discriminator": { "propertyName": "node" },
+      "oneOf": [
+        { "$ref": "#/$defs/eventNode" },
+        { "$ref": "#/$defs/groupNode" },
+        { "$ref": "#/$defs/allEventsNode" },
+        { "$ref": "#/$defs/actionNode" },
+        { "$ref": "#/$defs/warehouseNode" }
+      ]
+    },
+    "seriesNode": {
+      "description": "A series or funnel step: identified by its ref and its index, never by its event.",
+      "type": "object",
+      "$ref": "#/$defs/node",
+      "required": ["ref"],
+      "properties": { "ref": true, "fromStep": false, "toStep": false }
+    },
+    "exclusionNode": {
+      "description": "A funnel exclusion between two step indexes.",
+      "type": "object",
+      "$ref": "#/$defs/node",
+      "required": ["fromStep", "toStep"],
+      "properties": { "ref": false, "fromStep": true, "toStep": true }
+    },
+    "entityNode": {
+      "description": "A retention entity; an entity with no event is all events.",
+      "type": "object",
+      "$ref": "#/$defs/node",
+      "properties": { "ref": false, "fromStep": false, "toStep": false }
+    },
+    "notChecked": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reason"],
+      "properties": {
+        "path": {
+          "description": "The part not checked, such as `series[1]`; absent means the whole tile.",
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "reason": { "$ref": "#/$defs/nonEmpty" }
+      }
+    },
+    "tile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "kind"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmpty" },
+        "title": { "type": "string" },
+        "url": { "type": "string", "pattern": "^https?://" },
+        "dashboards": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "$ref": "#/$defs/nonEmpty" }
+        },
+        "kind": {
+          "enum": [
+            "trends",
+            "funnels",
+            "retention",
+            "lifecycle",
+            "stickiness",
+            "paths",
+            "sql",
+            "other"
+          ]
+        },
+        "dateRange": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "from": { "type": ["string", "null"] },
+            "to": { "type": ["string", "null"] }
+          }
+        },
+        "testAccountFilter": {
+          "description": "Information only: a person-level filter dashlint does not check.",
+          "type": "boolean"
+        },
+        "series": { "type": "array", "items": { "$ref": "#/$defs/seriesNode" } },
+        "formulas": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["index", "expression", "refs"],
+            "properties": {
+              "index": { "$ref": "#/$defs/count" },
+              "expression": { "$ref": "#/$defs/nonEmpty" },
+              "refs": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": { "type": "string", "$ref": "#/$defs/ref" }
+              }
+            }
+          }
+        },
+        "filters": { "$ref": "#/$defs/filters" },
+        "breakdown": { "type": "array", "items": { "$ref": "#/$defs/property" } },
+        "exclusions": { "type": "array", "items": { "$ref": "#/$defs/exclusionNode" } },
+        "funnelVizType": { "$ref": "#/$defs/name" },
+        "retention": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["target", "returning"],
+          "properties": {
+            "target": { "$ref": "#/$defs/entityNode" },
+            "returning": { "$ref": "#/$defs/entityNode" }
+          }
+        },
+        "notChecked": { "type": "array", "items": { "$ref": "#/$defs/notChecked" } }
+      }
+    },
+    "alert": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "tile", "target", "condition", "bounds"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmpty" },
+        "name": { "type": "string" },
+        "tile": { "$ref": "#/$defs/nonEmpty" },
+        "target": {
+          "description": "An index target (series, formula result, funnel step) or a kind dashlint does not check. An index out of range is a finding, not a format error.",
+          "type": "object",
+          "properties": { "kind": true },
+          "required": ["kind"],
+          "discriminator": { "propertyName": "kind" },
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["kind", "index"],
+              "properties": {
+                "kind": { "enum": ["series", "formula", "funnel-step"] },
+                "index": { "$ref": "#/$defs/count" }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["kind"],
+              "properties": { "kind": { "enum": ["hogql", "metrics", "other"] } }
+            }
+          ]
+        },
+        "condition": { "$ref": "#/$defs/name" },
+        "bounds": {
+          "description": "Which bounds exist; threshold values are never stored.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["lower", "upper"],
+          "properties": {
+            "lower": { "type": "boolean" },
+            "upper": { "type": "boolean" }
+          }
+        },
+        "interval": { "$ref": "#/$defs/name" },
+        "enabled": { "type": "boolean" },
+        "state": { "type": ["string", "null"] }
+      }
+    },
+    "propertyNames": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "$ref": "#/$defs/nonEmpty" }
+    },
+    "observed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["windowDays", "events"],
+      "properties": {
+        "windowDays": { "type": "integer", "minimum": 1 },
+        "events": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["defined"],
+            "properties": {
+              "defined": { "type": "boolean" },
+              "lastSeenAt": { "anyOf": [{ "$ref": "#/$defs/timestamp" }, { "type": "null" }] },
+              "enforcement": { "enum": ["allow", "reject"] }
+            }
+          }
+        },
+        "eventProperties": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["seen", "notSeen"],
+            "properties": {
+              "seen": { "$ref": "#/$defs/propertyNames" },
+              "notSeen": { "$ref": "#/$defs/propertyNames" }
+            }
+          }
+        },
+        "personProperties": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["seen", "notSeen"],
+          "properties": {
+            "seen": { "$ref": "#/$defs/propertyNames" },
+            "notSeen": { "$ref": "#/$defs/propertyNames" }
+          }
+        }
+      }
+    }
+  }
+}

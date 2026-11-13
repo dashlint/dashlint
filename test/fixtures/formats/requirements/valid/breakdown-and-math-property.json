@@ -1,0 +1,58 @@
+{
+  "schema": "dashlint.requirements/1",
+  "source": {
+    "platform": "posthog",
+    "profile": "posthog"
+  },
+  "tiles": [
+    {
+      "id": "insight:Bk01",
+      "title": "Bookshop tile",
+      "kind": "trends",
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "reader_opened",
+          "math": "avg",
+          "mathProperty": {
+            "key": "$session_duration",
+            "scope": "session"
+          }
+        },
+        {
+          "ref": "B",
+          "node": "event",
+          "event": "order_completed",
+          "math": "sum",
+          "mathProperty": {
+            "key": "basket_total",
+            "scope": "event"
+          }
+        }
+      ],
+      "formulas": [
+        {
+          "index": 0,
+          "expression": "(A+B)/A",
+          "refs": ["A", "B"]
+        },
+        {
+          "index": 1,
+          "expression": "100",
+          "refs": []
+        }
+      ],
+      "breakdown": [
+        {
+          "key": "genre",
+          "scope": "event"
+        },
+        {
+          "key": "plan",
+          "scope": "person"
+        }
+      ]
+    }
+  ]
+}

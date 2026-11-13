@@ -1,0 +1,73 @@
+{
+  "schema": "dashlint.requirements/1",
+  "source": {
+    "platform": "posthog",
+    "profile": "posthog"
+  },
+  "tiles": [
+    {
+      "id": "insight:Pt01",
+      "title": "Bookshop tile",
+      "kind": "paths",
+      "notChecked": [
+        {
+          "reason": "paths insights are not checked in v0.1"
+        }
+      ]
+    },
+    {
+      "id": "insight:Sq01",
+      "title": "Bookshop tile",
+      "kind": "sql",
+      "notChecked": [
+        {
+          "reason": "HogQLQuery: SQL insights are not checked"
+        }
+      ]
+    },
+    {
+      "id": "insight:Ot01",
+      "title": "Bookshop tile",
+      "kind": "other",
+      "notChecked": [
+        {
+          "reason": "query kind WebStatsTableQuery is not checked"
+        }
+      ]
+    },
+    {
+      "id": "insight:Ls01",
+      "title": "Bookshop tile",
+      "kind": "lifecycle",
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "reader_opened"
+        },
+        {
+          "ref": "B",
+          "node": "warehouse"
+        }
+      ],
+      "notChecked": [
+        {
+          "path": "series[1]",
+          "reason": "data warehouse series are not checked"
+        }
+      ]
+    },
+    {
+      "id": "insight:St01",
+      "title": "Bookshop tile",
+      "kind": "stickiness",
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "review_posted"
+        }
+      ]
+    }
+  ]
+}

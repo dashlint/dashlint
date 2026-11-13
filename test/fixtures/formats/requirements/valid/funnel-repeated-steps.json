@@ -1,0 +1,81 @@
+{
+  "schema": "dashlint.requirements/1",
+  "source": {
+    "platform": "posthog",
+    "profile": "posthog"
+  },
+  "tiles": [
+    {
+      "id": "insight:Fn01",
+      "title": "Bookshop tile",
+      "kind": "funnels",
+      "funnelVizType": "steps",
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "checkout_step",
+          "filters": [
+            {
+              "key": "step",
+              "scope": "event",
+              "op": "exact",
+              "values": ["address"]
+            }
+          ]
+        },
+        {
+          "ref": "B",
+          "node": "event",
+          "event": "checkout_step",
+          "filters": [
+            {
+              "key": "step",
+              "scope": "event",
+              "op": "exact",
+              "values": ["payment"]
+            }
+          ]
+        },
+        {
+          "ref": "C",
+          "node": "event",
+          "event": "checkout_step",
+          "filters": [
+            {
+              "key": "step",
+              "scope": "event",
+              "op": "exact",
+              "values": ["review"]
+            }
+          ]
+        },
+        {
+          "ref": "D",
+          "node": "event",
+          "event": "order_completed"
+        }
+      ],
+      "exclusions": [
+        {
+          "node": "event",
+          "event": "cart_abandoned",
+          "fromStep": 0,
+          "toStep": 1
+        },
+        {
+          "node": "all-events",
+          "fromStep": 2,
+          "toStep": 3,
+          "filters": []
+        }
+      ],
+      "breakdown": [
+        {
+          "key": "store",
+          "scope": "event"
+        }
+      ]
+    }
+  ]
+}

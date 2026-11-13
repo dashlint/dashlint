@@ -1,0 +1,46 @@
+{
+  "schema": "dashlint.requirements/1",
+  "source": {
+    "platform": "posthog",
+    "profile": "posthog"
+  },
+  "tiles": [
+    {
+      "id": "insight:Rt01",
+      "title": "Bookshop tile",
+      "kind": "retention",
+      "retention": {
+        "target": {
+          "node": "event",
+          "event": "reader_opened"
+        },
+        "returning": {
+          "node": "all-events"
+        }
+      }
+    },
+    {
+      "id": "insight:Rt02",
+      "title": "Bookshop tile",
+      "kind": "retention",
+      "retention": {
+        "target": {
+          "node": "action",
+          "action": {
+            "id": 3,
+            "steps": [
+              {
+                "event": "order_completed"
+              }
+            ]
+          }
+        },
+        "returning": {
+          "node": "event",
+          "event": "order_completed",
+          "filters": []
+        }
+      }
+    }
+  ]
+}

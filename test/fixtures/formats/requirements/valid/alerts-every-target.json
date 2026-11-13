@@ -1,0 +1,130 @@
+{
+  "schema": "dashlint.requirements/1",
+  "source": {
+    "platform": "posthog",
+    "profile": "posthog"
+  },
+  "tiles": [
+    {
+      "id": "insight:Bk01",
+      "title": "Bookshop tile",
+      "kind": "trends",
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "gift_card_redeemed"
+        }
+      ]
+    }
+  ],
+  "alerts": [
+    {
+      "id": "alert:1",
+      "tile": "insight:Bk01",
+      "target": {
+        "kind": "series",
+        "index": 0
+      },
+      "condition": "relative_decrease",
+      "bounds": {
+        "lower": true,
+        "upper": false
+      }
+    },
+    {
+      "id": "alert:2",
+      "tile": "insight:Bk01",
+      "target": {
+        "kind": "formula",
+        "index": 0
+      },
+      "condition": "relative_increase",
+      "bounds": {
+        "lower": false,
+        "upper": true
+      },
+      "interval": "weekly"
+    },
+    {
+      "id": "alert:3",
+      "tile": "insight:Fn01",
+      "target": {
+        "kind": "funnel-step",
+        "index": 2
+      },
+      "condition": "absolute_value",
+      "bounds": {
+        "lower": true,
+        "upper": true
+      },
+      "interval": "hourly"
+    },
+    {
+      "id": "alert:4",
+      "tile": "insight:Bk01",
+      "target": {
+        "kind": "hogql"
+      },
+      "condition": "absolute_value",
+      "bounds": {
+        "lower": false,
+        "upper": true
+      }
+    },
+    {
+      "id": "alert:5",
+      "tile": "insight:Bk01",
+      "target": {
+        "kind": "metrics"
+      },
+      "condition": "absolute_value",
+      "bounds": {
+        "lower": true,
+        "upper": false
+      }
+    },
+    {
+      "id": "alert:6",
+      "tile": "insight:Bk01",
+      "target": {
+        "kind": "other"
+      },
+      "condition": "detector",
+      "bounds": {
+        "lower": false,
+        "upper": false
+      }
+    },
+    {
+      "id": "alert:7",
+      "name": "Gift cards below one",
+      "tile": "insight:Bk01",
+      "target": {
+        "kind": "series",
+        "index": 3
+      },
+      "condition": "relative_decrease",
+      "bounds": {
+        "lower": true,
+        "upper": false
+      },
+      "enabled": false,
+      "state": "Errored"
+    },
+    {
+      "id": "alert:8",
+      "tile": "insight:Bk01",
+      "target": {
+        "kind": "series",
+        "index": 0
+      },
+      "condition": "absolute_value",
+      "bounds": {
+        "lower": true,
+        "upper": false
+      },
+      "state": null
+    }
+  ]
+}

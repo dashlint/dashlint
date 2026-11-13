@@ -1,0 +1,250 @@
+{
+  "action-no-steps.json": {
+    "path": "/tiles/1/series/3/action/steps",
+    "rule": "an action is expanded to its steps"
+  },
+  "action-step-unsupported-empty.json": {
+    "path": "/tiles/1/series/3/action/steps/0/unsupported",
+    "rule": "unsupported lists at least one matcher"
+  },
+  "alert-bound-value.json": {
+    "path": "/alerts/0/bounds/lower",
+    "rule": "bounds record presence only, never a value (negative control)"
+  },
+  "alert-bounds-missing.json": {
+    "path": "/alerts/0/bounds",
+    "rule": "an alert records which bounds exist"
+  },
+  "alert-duplicate-id.json": {
+    "path": "/alerts/1/id",
+    "rule": "alert ids are unique"
+  },
+  "alert-hogql-target-index.json": {
+    "path": "/alerts/0/target/index",
+    "rule": "a hogql target has no index"
+  },
+  "alert-last-value.json": {
+    "path": "/alerts/0/lastValue",
+    "rule": "last_value is never stored"
+  },
+  "alert-negative-index.json": {
+    "path": "/alerts/0/target/index",
+    "rule": "target indexes are not negative"
+  },
+  "alert-series-target-no-index.json": {
+    "path": "/alerts/0/target/index",
+    "rule": "a series target has an index"
+  },
+  "alert-target-kind-unknown.json": {
+    "path": "/alerts/0/target/kind",
+    "rule": "alert target kinds are listed"
+  },
+  "alert-threshold.json": {
+    "path": "/alerts/0/threshold",
+    "rule": "alert thresholds are never stored (negative control)"
+  },
+  "all-events-with-event.json": {
+    "path": "/tiles/1/series/2/event",
+    "rule": "an all-events node has no event"
+  },
+  "breakdown-string.json": {
+    "path": "/tiles/1/breakdown/0",
+    "rule": "a canonical breakdown is { key, scope }"
+  },
+  "dashboard-duplicate-id.json": {
+    "path": "/dashboards/1/id",
+    "rule": "dashboard ids are unique"
+  },
+  "event-node-empty-event.json": {
+    "path": "/tiles/0/series/0/event",
+    "rule": "event names are not empty"
+  },
+  "event-node-no-event.json": {
+    "path": "/tiles/0/series/0/event",
+    "rule": "an event node names its event"
+  },
+  "exclusion-no-to-step.json": {
+    "path": "/tiles/0/exclusions/0/toStep",
+    "rule": "an exclusion names its steps"
+  },
+  "exclusion-on-trends.json": {
+    "path": "/tiles/0/exclusions",
+    "rule": "exclusions belong to funnels"
+  },
+  "exclusion-steps-reversed.json": {
+    "path": "/tiles/0/exclusions/0/toStep",
+    "rule": "toStep is after fromStep"
+  },
+  "exclusion-with-ref.json": {
+    "path": "/tiles/0/exclusions/0/ref",
+    "rule": "an exclusion is not a series"
+  },
+  "extra-top-level.json": {
+    "path": "/insights",
+    "rule": "no fields beyond the contract"
+  },
+  "filter-op-missing.json": {
+    "path": "/tiles/0/series/0/filters/0/op",
+    "rule": "a filter has an operator"
+  },
+  "filter-or-empty.json": {
+    "path": "/tiles/0/filters/0/any",
+    "rule": "an OR group has members"
+  },
+  "filter-or-extra.json": {
+    "path": "/tiles/0/filters/0/key",
+    "rule": "an OR group holds only its members"
+  },
+  "filter-scope-unknown.json": {
+    "path": "/tiles/0/series/0/filters/0/scope",
+    "rule": "filter scopes are listed"
+  },
+  "filter-values-object.json": {
+    "path": "/tiles/0/series/0/filters/0/values/0",
+    "rule": "values are JSON scalars"
+  },
+  "filter-values-scalar.json": {
+    "path": "/tiles/0/series/0/filters/0/values",
+    "rule": "values are always a list"
+  },
+  "formula-index-duplicate.json": {
+    "path": "/tiles/1/formulas/1/index",
+    "rule": "formula indexes are unique in a tile"
+  },
+  "formula-refs-lowercase.json": {
+    "path": "/tiles/1/formulas/0/refs/0",
+    "rule": "formula refs are series letters"
+  },
+  "group-no-events.json": {
+    "path": "/tiles/1/series/1/events",
+    "rule": "a group has members"
+  },
+  "group-operator-unknown.json": {
+    "path": "/tiles/1/series/1/operator",
+    "rule": "group operators are OR or AND"
+  },
+  "math-property-no-scope.json": {
+    "path": "/tiles/1/series/4/mathProperty/scope",
+    "rule": "a math property has a scope"
+  },
+  "not-checked-empty-reason.json": {
+    "path": "/tiles/0/notChecked/0/reason",
+    "rule": "a reason is not empty"
+  },
+  "observed-defined-missing.json": {
+    "path": "/observed/events/wishlist_shared/defined",
+    "rule": "an observed event says whether it is defined"
+  },
+  "observed-enforcement-unknown.json": {
+    "path": "/observed/events/wishlist_shared/enforcement",
+    "rule": "enforcement is allow or reject"
+  },
+  "observed-person-seen-and-not-seen.json": {
+    "path": "/observed/personProperties/notSeen/0",
+    "rule": "a person property is seen or not seen, not both"
+  },
+  "observed-seen-and-not-seen.json": {
+    "path": "/observed/eventProperties/wishlist_shared/notSeen/1",
+    "rule": "a property is seen or not seen, not both"
+  },
+  "observed-seen-duplicate.json": {
+    "path": "/observed/personProperties/seen",
+    "rule": "seen names are unique"
+  },
+  "observed-undefined-enforcement.json": {
+    "path": "/observed/events/gift_card_redeemed/enforcement",
+    "rule": "an undefined event has no enforcement"
+  },
+  "observed-undefined-last-seen.json": {
+    "path": "/observed/events/gift_card_redeemed/lastSeenAt",
+    "rule": "an undefined event was never seen"
+  },
+  "observed-window-zero.json": {
+    "path": "/observed/windowDays",
+    "rule": "the window is at least one day"
+  },
+  "paths-without-reason.json": {
+    "path": "/tiles/0/notChecked",
+    "rule": "a paths, sql or other tile says why it is not checked"
+  },
+  "pulled-at-local.json": {
+    "path": "/source/pulledAt",
+    "rule": "pulledAt is UTC"
+  },
+  "retention-missing.json": {
+    "path": "/tiles/0/retention",
+    "rule": "a retention tile has target and returning"
+  },
+  "retention-no-returning.json": {
+    "path": "/tiles/0/retention/returning",
+    "rule": "retention has a returning entity"
+  },
+  "retention-on-trends.json": {
+    "path": "/tiles/0/retention",
+    "rule": "retention belongs to retention tiles"
+  },
+  "retention-with-ref.json": {
+    "path": "/tiles/0/retention/target/ref",
+    "rule": "a retention entity is not a series"
+  },
+  "schema-version.json": {
+    "path": "/schema",
+    "rule": "the schema id is dashlint.requirements/1"
+  },
+  "series-from-step.json": {
+    "path": "/tiles/0/series/0/fromStep",
+    "rule": "only exclusions have step indexes"
+  },
+  "series-node-missing.json": {
+    "path": "/tiles/0/series/0/node",
+    "rule": "a series node names its kind"
+  },
+  "series-node-unknown.json": {
+    "path": "/tiles/1/series/2/node",
+    "rule": "series node kinds are listed (negative control)"
+  },
+  "series-ref-duplicate.json": {
+    "path": "/tiles/1/series/1/ref",
+    "rule": "refs are unique in a tile"
+  },
+  "series-ref-lowercase.json": {
+    "path": "/tiles/0/series/0/ref",
+    "rule": "refs are capital letters"
+  },
+  "series-ref-missing.json": {
+    "path": "/tiles/0/series/0/ref",
+    "rule": "a series has a ref letter"
+  },
+  "source-platform-missing.json": {
+    "path": "/source/platform",
+    "rule": "a source names its platform"
+  },
+  "source-profile-unknown.json": {
+    "path": "/source/profile",
+    "rule": "profiles are posthog or generic"
+  },
+  "sql-part-reason-only.json": {
+    "path": "/tiles/0/notChecked",
+    "rule": "a part-level reason does not cover the whole tile"
+  },
+  "tile-duplicate-id.json": {
+    "path": "/tiles/1/id",
+    "rule": "tile ids are unique"
+  },
+  "tile-kind-unknown.json": {
+    "path": "/tiles/0/kind",
+    "rule": "tile kinds are listed"
+  },
+  "tile-title-missing.json": {
+    "path": "/tiles/0/title",
+    "rule": "a tile has a title"
+  },
+  "viz-type-on-trends.json": {
+    "path": "/tiles/0/funnelVizType",
+    "rule": "funnelVizType belongs to funnels"
+  },
+  "warehouse-with-filters.json": {
+    "path": "/tiles/0/series/0/filters",
+    "rule": "a warehouse node carries no filters"
+  }
+}

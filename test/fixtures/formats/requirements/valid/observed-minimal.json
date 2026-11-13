@@ -1,0 +1,39 @@
+{
+  "schema": "dashlint.requirements/1",
+  "source": {
+    "platform": "posthog",
+    "profile": "posthog"
+  },
+  "tiles": [
+    {
+      "id": "insight:Bk01",
+      "title": "Bookshop tile",
+      "kind": "trends",
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "book_viewed"
+        }
+      ]
+    }
+  ],
+  "observed": {
+    "windowDays": 7,
+    "events": {
+      "book_viewed": {
+        "defined": true,
+        "lastSeenAt": null
+      },
+      "book_returned": {
+        "defined": false,
+        "lastSeenAt": null
+      },
+      "gift_card_redeemed": {
+        "defined": true,
+        "lastSeenAt": "2026-12-01T00:00:00.123Z",
+        "enforcement": "reject"
+      }
+    }
+  }
+}

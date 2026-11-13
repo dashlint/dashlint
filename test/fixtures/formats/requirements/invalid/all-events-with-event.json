@@ -1,0 +1,170 @@
+{
+  "schema": "dashlint.requirements/1",
+  "source": {
+    "platform": "posthog",
+    "host": "https://us.posthog.com",
+    "project": 12345,
+    "pulledAt": "2026-12-18T09:12:00Z",
+    "tool": "0.1.0",
+    "profile": "posthog"
+  },
+  "dashboards": [
+    {
+      "id": "dashboard:41",
+      "name": "Bookshop growth",
+      "filters": []
+    }
+  ],
+  "tiles": [
+    {
+      "id": "insight:Ab12Cd34",
+      "title": "Wishlist shares, fiction",
+      "url": "https://us.posthog.com/project/12345/insights/Ab12Cd34",
+      "dashboards": ["dashboard:41"],
+      "kind": "trends",
+      "dateRange": {
+        "from": "-30d",
+        "to": null
+      },
+      "testAccountFilter": true,
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "wishlist_shared",
+          "math": "total",
+          "filters": [
+            {
+              "key": "genre",
+              "scope": "event",
+              "op": "exact",
+              "values": ["Fiction"]
+            }
+          ]
+        }
+      ],
+      "formulas": [],
+      "filters": [],
+      "breakdown": [],
+      "notChecked": []
+    },
+    {
+      "id": "insight:Qr56St78",
+      "title": "Shares per active reader",
+      "kind": "trends",
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "wishlist_shared",
+          "math": "total",
+          "filters": []
+        },
+        {
+          "ref": "B",
+          "node": "group",
+          "operator": "OR",
+          "math": "dau",
+          "events": [
+            {
+              "event": "book_viewed",
+              "filters": []
+            },
+            {
+              "event": "reader_opened",
+              "filters": []
+            }
+          ]
+        },
+        {
+          "ref": "C",
+          "node": "all-events",
+          "math": "dau",
+          "filters": [],
+          "event": "book_viewed"
+        },
+        {
+          "ref": "D",
+          "node": "action",
+          "math": "total",
+          "action": {
+            "id": 7,
+            "name": "Purchased",
+            "steps": [
+              {
+                "event": "order_completed",
+                "filters": []
+              }
+            ]
+          }
+        },
+        {
+          "ref": "E",
+          "node": "event",
+          "event": "reader_opened",
+          "math": "avg",
+          "mathProperty": {
+            "key": "minutes_read",
+            "scope": "event"
+          },
+          "filters": []
+        }
+      ],
+      "formulas": [
+        {
+          "index": 0,
+          "expression": "A/B",
+          "refs": ["A", "B"]
+        }
+      ],
+      "breakdown": [
+        {
+          "key": "channel",
+          "scope": "event"
+        }
+      ]
+    }
+  ],
+  "alerts": [
+    {
+      "id": "alert:0b7e",
+      "name": "Gift cards dropped",
+      "tile": "insight:Gh90Ij12",
+      "target": {
+        "kind": "series",
+        "index": 0
+      },
+      "condition": "relative_decrease",
+      "bounds": {
+        "lower": true,
+        "upper": false
+      },
+      "interval": "daily",
+      "enabled": true,
+      "state": "Not firing"
+    }
+  ],
+  "observed": {
+    "windowDays": 30,
+    "events": {
+      "wishlist_shared": {
+        "defined": true,
+        "lastSeenAt": "2026-12-17T22:41:00Z",
+        "enforcement": "allow"
+      },
+      "gift_card_redeemed": {
+        "defined": false
+      }
+    },
+    "eventProperties": {
+      "wishlist_shared": {
+        "seen": ["genre_id", "channel"],
+        "notSeen": ["genre"]
+      }
+    },
+    "personProperties": {
+      "seen": ["plan"],
+      "notSeen": []
+    }
+  }
+}

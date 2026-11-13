@@ -1,0 +1,35 @@
+{
+  "schema": "dashlint.requirements/1",
+  "source": {
+    "platform": "mixpanel",
+    "note": "Growth board, copied by hand on 2026-12-10"
+  },
+  "tiles": [
+    {
+      "id": "growth/orders-by-format",
+      "title": "Orders by format",
+      "kind": "trends",
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "order_completed",
+          "filters": [
+            {
+              "key": "payment_method",
+              "scope": "event",
+              "op": "exact",
+              "values": ["card"]
+            }
+          ]
+        }
+      ],
+      "breakdown": [
+        {
+          "key": "format",
+          "scope": "event"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "schema": "dashlint.requirements/1",
+  "source": {
+    "platform": "posthog",
+    "profile": "posthog"
+  },
+  "tiles": [
+    {
+      "id": "insight:Bk01",
+      "title": "Bookshop tile",
+      "kind": "trends",
+      "series": [
+        {
+          "ref": "A",
+          "node": "event",
+          "event": "book_viewed"
+        },
+        {
+          "ref": "B",
+          "node": "group",
+          "operator": "OR",
+          "events": [
+            {
+              "event": "book_viewed"
+            },
+            {
+              "event": "book_sampled"
+            }
+          ]
+        },
+        {
+          "ref": "C",
+          "node": "group",
+          "operator": "AND",
+          "events": [
+            {
+              "event": "cart_opened"
+            }
+          ]
+        },
+        {
+          "ref": "D",
+          "node": "all-events",
+          "math": "monthly_active"
+        },
+        {
+          "ref": "E",
+          "node": "action",
+          "action": {
+            "id": "act-gift",
+            "steps": [
+              {
+                "event": "gift_card_redeemed"
+              },
+              {
+                "event": null,
+                "filters": []
+              },
+              {
+                "event": "$autocapture",
+                "unsupported": ["selector", "text"]
+              },
+              {
+                "event": "$pageview",
+                "unsupported": ["url"]
+              }
+            ]
+          }
+        },
+        {
+          "ref": "F",
+          "node": "action",
+          "action": {
+            "id": 9,
+            "steps": []
+          }
+        },
+        {
+          "ref": "G",
+          "node": "warehouse",
+          "table": "bookshop_orders",
+          "math": "total"
+        }
+      ]
+    }
+  ]
+}
