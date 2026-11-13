@@ -194,7 +194,8 @@ function resolvedCalls(
   return out;
 }
 
-describe('stubs resolve calls when the package is not installed', () => {
+// Each case type-checks a program against the stub (5 to 7 s under coverage on a busy machine).
+describe('stubs resolve calls when the package is not installed', { timeout: 30000 }, () => {
   it('posthog-js', () => {
     const d = descriptorOf('posthog-js');
     const calls = resolvedCalls(d, 'posthog-js-app.ts');
