@@ -95,7 +95,6 @@ export function pullConfigOf(
   for (const flag of ['hogql', 'redact'])
     if (ph[flag] !== undefined && typeof ph[flag] !== 'boolean')
       throw usage(pullMessages.configField(`platforms.posthog.${flag}`, 'true or false'));
-  if (ph.hogql === true) throw usage(pullMessages.hogqlNotAvailable);
 
   const requirements = value.requirements ?? DEFAULT_REQUIREMENTS;
   if (typeof requirements !== 'string' || requirements === '')
@@ -112,6 +111,7 @@ export function pullConfigOf(
       key,
       ...(typeof ph.observedDays === 'number' ? { observedDays: ph.observedDays } : {}),
       redact: ph.redact === true,
+      hogql: ph.hogql === true,
     },
     out: resolve(dirname(configFile), requirements),
   };

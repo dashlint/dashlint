@@ -58,8 +58,11 @@ export const pullMessages = {
   configMissing: (path: string) => `${path} is missing; pull needs it`,
   requirementsNotJson: (file: string) =>
     `requirements names ${file}; pull writes JSON only (a .yml or .yaml file is written by hand), so point requirements at a .json file`,
-  hogqlNotAvailable:
-    'platforms.posthog.hogql: true is not available in this version; remove it or set it to false',
+  hogqlRefused: (why: string) => `refused a HogQL query before sending it: ${why}`,
+  hogqlUnexpected: (why: string) =>
+    `the HogQL recency query (POST query/) gave an unexpected answer: ${why}`,
+  hogqlAsking: (events: number) =>
+    `pull: asking HogQL when the properties of ${events} event${events === 1 ? '' : 's'} last arrived (POST query/, aggregates only)`,
   cannotWrite: (file: string, detail: string) => `cannot write ${file}: ${detail}`,
   actionNotRead: (id: string) => `pull: action ${id} was not found; its tiles are not checked`,
   invalidOutput: (error: string) => `the pulled requirements do not validate: ${error}`,

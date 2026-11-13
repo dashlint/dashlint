@@ -1,0 +1,126 @@
+{
+  "recorded": {
+    "by": "scripts/record-demo-hogql.mjs",
+    "host": "https://us.posthog.com",
+    "project": 731105,
+    "on": "2026-11-13",
+    "definitionsOn": "2026-11-13",
+    "windowDays": 30
+  },
+  "queries": [
+    {
+      "request": {
+        "query": {
+          "kind": "HogQLQuery",
+          "query": "SELECT maxIf(timestamp, JSONHas(properties, {p0})) FROM events WHERE event = {e} AND timestamp >= now() - INTERVAL 30 DAY",
+          "values": {
+            "e": "book_viewed",
+            "p0": "genre"
+          }
+        }
+      },
+      "status": 200,
+      "headers": {
+        "x-posthog-query-bytes-read": "2392257"
+      },
+      "answer": {
+        "results": [
+          [
+            "1970-01-01T00:00:00Z"
+          ]
+        ],
+        "columns": [
+          "maxIf(timestamp, JSONHas(properties, 'genre'))"
+        ],
+        "error": null
+      }
+    },
+    {
+      "request": {
+        "query": {
+          "kind": "HogQLQuery",
+          "query": "SELECT maxIf(timestamp, JSONHas(properties, {p0})), maxIf(timestamp, JSONHas(properties, {p1})) FROM events WHERE event = {e} AND timestamp >= now() - INTERVAL 30 DAY",
+          "values": {
+            "e": "order_completed",
+            "p0": "format",
+            "p1": "total"
+          }
+        }
+      },
+      "status": 200,
+      "headers": {
+        "x-posthog-query-bytes-read": "2372530"
+      },
+      "answer": {
+        "results": [
+          [
+            "1970-01-01T00:00:00Z",
+            "2026-11-13T10:31:11.255000Z"
+          ]
+        ],
+        "columns": [
+          "maxIf(timestamp, JSONHas(properties, 'format'))",
+          "maxIf(timestamp, JSONHas(properties, 'total'))"
+        ],
+        "error": null
+      }
+    },
+    {
+      "request": {
+        "query": {
+          "kind": "HogQLQuery",
+          "query": "SELECT maxIf(timestamp, JSONHas(properties, {p0})), maxIf(timestamp, JSONHas(properties, {p1})) FROM events WHERE event = {e} AND timestamp >= now() - INTERVAL 30 DAY",
+          "values": {
+            "e": "order_completed_native",
+            "p0": "gift_wrap",
+            "p1": "total"
+          }
+        }
+      },
+      "status": 200,
+      "headers": {
+        "x-posthog-query-bytes-read": "2430458"
+      },
+      "answer": {
+        "results": [
+          [
+            "1970-01-01T00:00:00Z",
+            "2026-11-13T10:31:11.255000Z"
+          ]
+        ],
+        "columns": [
+          "maxIf(timestamp, JSONHas(properties, 'gift_wrap'))",
+          "maxIf(timestamp, JSONHas(properties, 'total'))"
+        ],
+        "error": null
+      }
+    },
+    {
+      "request": {
+        "query": {
+          "kind": "HogQLQuery",
+          "query": "SELECT maxIf(timestamp, JSONHas(properties, {p0})) FROM events WHERE event = {e} AND timestamp >= now() - INTERVAL 30 DAY",
+          "values": {
+            "e": "payment_method_selected",
+            "p0": "payment_method"
+          }
+        }
+      },
+      "status": 200,
+      "headers": {
+        "x-posthog-query-bytes-read": "2367719"
+      },
+      "answer": {
+        "results": [
+          [
+            "2026-11-13T10:30:11.255000Z"
+          ]
+        ],
+        "columns": [
+          "maxIf(timestamp, JSONHas(properties, 'payment_method'))"
+        ],
+        "error": null
+      }
+    }
+  ]
+}

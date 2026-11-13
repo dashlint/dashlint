@@ -78,6 +78,17 @@ describe('dashlint pull', () => {
     expect(r.err).not.toContain(pullMessages.publicNames);
   });
 
+  it('hogql: true turns the recency opt-in on; without it the pull says GET only', async () => {
+    const on = await run(`${CONFIG}    hogql: true\n`);
+    expect(on.code).toBe(0);
+    expect(on.err).toContain('project 12345 (GET only, and POST query/ for HogQL recency)');
+    for (const config of [CONFIG, `${CONFIG}    hogql: false\n`]) {
+      const off = await run(config);
+      expect(off.code).toBe(0);
+      expect(off.err).toContain('project 12345 (GET only)');
+    }
+  });
+
   it('negative control: a literal key is refused with exit 2 and the 6.8 sentence, before any request', async () => {
     let asked = 0;
     const r = await run(CONFIG.replace('env:DASHLINT_POSTHOG_KEY', KEY), {
@@ -123,7 +134,7 @@ describe('dashlint pull', () => {
     ['observedDays 0', `${CONFIG}    observedDays: 0\n`, 'observedDays must be a whole number'],
     ['observedDays 1.5', `${CONFIG}    observedDays: 1.5\n`, 'observedDays must be a whole number'],
     ['redact text', `${CONFIG}    redact: "yes"\n`, 'redact must be true or false'],
-    ['hogql on', `${CONFIG}    hogql: true\n`, 'hogql: true is not available'],
+    ['hogql text', `${CONFIG}    hogql: "yes"\n`, 'hogql must be true or false'],
     [
       'yaml requirements',
       CONFIG.replace('requirements.json', 'requirements.yml'),

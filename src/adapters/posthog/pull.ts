@@ -3,6 +3,9 @@
 // twice gives the same bytes apart from `source.pulledAt`: every list is sorted by the normalisers,
 // observed data follows the requirements' own references, and the writer orders every key.
 //
+// `hogql: true` (spec 6.5.1, cut-order item 1) replaces each referenced property's "ever seen on this
+// event" with whether it arrived inside the window, from aggregate HogQL queries (hogql.ts, ADR-036).
+//
 // `redact: true` (spec 6.13, cut-order item 2) replaces tile titles with their ids and leaves out
 // dashboard, alert and action names (ADR-035). Filter values stay: the checks need them.
 import { toCanonicalJson } from '../../formats/canonical.js';
@@ -10,6 +13,7 @@ import type { Requirements, SeriesNode } from '../../formats/requirements.js';
 import { formatValidationErrors, validateRequirements } from '../../formats/validate.js';
 import { pullMessages } from '../../report/messages.js';
 import { PostHogClient, PullError, type ClientOptions } from './client.js';
+import { applyRecency, propertyRecency } from './hogql.js';
 import {
   actionIdsOf,
   actionLookup,
@@ -27,6 +31,8 @@ export interface PullSettings {
   /** `observedDays`; default 30. */
   observedDays?: number;
   redact?: boolean;
+  /** The HogQL property recency opt-in (6.5.1): POST `query/`, aggregates only. */
+  hogql?: boolean;
 }
 
 export interface PullOptions extends PullSettings {
@@ -192,6 +198,7 @@ export async function pullRequirements(options: PullOptions): Promise<Requiremen
     host: options.host,
     project: options.project,
     key: options.key,
+    hogql: options.hogql === true,
     info,
     ...(options.fetch ? { fetch: options.fetch } : {}),
     ...(options.sleep ? { sleep: options.sleep } : {}),
@@ -199,7 +206,7 @@ export async function pullRequirements(options: PullOptions): Promise<Requiremen
     now,
   });
   const { definitions, requirements } = await readProject(client, info);
-  const observed = withObserved(requirements, {
+  let observed = withObserved(requirements, {
     ...(options.observedDays === undefined ? {} : { windowDays: options.observedDays }),
     eventDefinitions: definitions.eventDefinitions,
     eventProperties: definitions.eventProperties,
@@ -207,6 +214,12 @@ export async function pullRequirements(options: PullOptions): Promise<Requiremen
       ? {}
       : { personProperties: definitions.personProperties }),
   });
+  if (options.hogql === true && observed.observed !== undefined) {
+    const events = definitions.eventProperties.size;
+    if (events > 0) info(pullMessages.hogqlAsking(events));
+    const recency = await propertyRecency(client, requirements, observed.observed.windowDays);
+    observed = { ...observed, observed: applyRecency(observed.observed, recency) };
+  }
   const stamped: Requirements = {
     ...observed,
     source: { ...observed.source, pulledAt: pullTime(now()), tool: options.tool },

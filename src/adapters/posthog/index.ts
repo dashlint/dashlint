@@ -7,6 +7,14 @@ export {
   type Page,
 } from './client.js';
 export {
+  applyRecency,
+  assertAggregateOnly,
+  propertyRecency,
+  recencyQuery,
+  type Recency,
+  type RecencyQuery,
+} from './hogql.js';
+export {
   LATEST_QUERY_VERSIONS,
   normalizeInsight,
   normalizeInsights,
