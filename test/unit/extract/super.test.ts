@@ -123,6 +123,60 @@ describe('resolveSuperProperties: person properties', () => {
   });
 });
 
+describe('resolveSuperProperties: React Native identify and register edges (T10.2)', () => {
+  const edgesScan = perMutant(() => scan('posthog-react-native/people-edges'));
+  let edges: SuperScan;
+  beforeEach(() => {
+    edges = edgesScan();
+  });
+  const compact = (s: SuperScan) => ({
+    persons: Object.fromEntries(
+      Object.entries(s.personProperties).map(([k, p]) => [
+        k,
+        p.sites.map((x) => `${x.line} ${x.call}`),
+      ]),
+    ),
+    open: s.openWorld.map((o) => `${o.line} ${o.reason}`),
+  });
+
+  it('reads each identify object by its shape and type', () => {
+    expect(compact(edges).persons).toEqual({
+      // A conditional $set: its keys, and the object's own keys as well.
+      plan: ['17 identify.$set'],
+      email: ['17 identify.$set', '20 identify.$set', '21 identify.$set'],
+      // $groups and $set_once are not person properties of the fallback.
+      nickname: ['19 identify.$set', '21 identify.$set'],
+      since: ['19 identify.$set_once'],
+      badge: ['23 identify.$set_once'],
+    });
+    expect(Object.keys(edges.personProperties)).toEqual([
+      'badge',
+      'email',
+      'nickname',
+      'plan',
+      'since',
+    ]);
+  });
+
+  it('is open for an index signature, a union, `object` and a spread; closed types and {} set nothing more', () => {
+    const has = 'the properties are read from `$set_once`, which their value does not have';
+    expect(compact(edges).open).toEqual([
+      '16 person properties: the properties have type `Record<string, string>`, which has an index signature',
+      `16 person properties: ${has}`,
+      '18 person properties: the properties have type `Record<string, string>`, which has an index signature',
+      `21 person properties: ${has}`,
+      '22 person properties: the properties have type `object`, which accepts any object',
+      `22 person properties: ${has}`,
+      '25 person properties: the properties are in a spread argument',
+      '25 person properties: the properties are in a spread argument',
+      '27 super properties: the properties are in a spread argument',
+    ]);
+    expect(edges.openPersonSites).toBe(8);
+    expect(edges.openSuperSites).toBe(1);
+    expect(edges.superProperties).toEqual({});
+  });
+});
+
 describe('resolveSuperProperties: order', () => {
   const both = perMutant(() =>
     ['posthog-js/super', 'posthog-react-native/people'].map((repo) => {
