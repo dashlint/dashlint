@@ -1,0 +1,54 @@
+{
+  "repo": "cli",
+  "number": 1,
+  "pr": {
+    "author": {
+      "id": "MDQ6VXNlcjEyNTQxMjM2",
+      "is_bot": false,
+      "login": "guptaaman678",
+      "name": "Aman Gupta"
+    },
+    "baseRefName": "main",
+    "baseRefOid": "a220e61fc1d8eea30317dba13ba717f8a08e469b",
+    "body": "A test pull request for the merge checker (scripts/sp4-check.mjs). It adds one docs page and is closed without merging.\n",
+    "commits": [
+      {
+        "authoredDate": "2026-11-14T01:49:44Z",
+        "authors": [
+          {
+            "email": "12541236+guptaaman678@users.noreply.github.com",
+            "id": "MDQ6VXNlcjEyNTQxMjM2",
+            "login": "guptaaman678",
+            "name": "Aman Gupta"
+          }
+        ],
+        "committedDate": "2026-11-14T01:49:44Z",
+        "messageBody": "",
+        "messageHeadline": "docs: a page for the merge checker test PR",
+        "oid": "7bb1e9876e135f89dfa0adc53c4d819df5309fb0"
+      }
+    ],
+    "headRefName": "docs/2026-11-14-sp4-test",
+    "headRefOid": "7bb1e9876e135f89dfa0adc53c4d819df5309fb0",
+    "isCrossRepository": false,
+    "isDraft": false,
+    "number": 1,
+    "state": "OPEN",
+    "title": "docs: merge checker test page",
+    "url": "https://github.com/dashlint/dashlint/pull/1"
+  },
+  "files": [
+    {
+      "filename": "docs/sp4-test.md",
+      "status": "added",
+      "additions": 4,
+      "deletions": 0
+    }
+  ],
+  "diff": "diff --git a/docs/sp4-test.md b/docs/sp4-test.md\nnew file mode 100644\nindex 0000000..754bbc8\n--- /dev/null\n+++ b/docs/sp4-test.md\n@@ -0,0 +1,4 @@\n+# SP4 checker test\n+\n+This page exists only for the pull request that tests the merge checker. That pull request is\n+closed, never merged.\n",
+  "diffNote": "",
+  "base": {
+    "package.json": "{\n  \"name\": \"dashlint\",\n  \"version\": \"0.0.0\",\n  \"description\": \"Checks that your analytics SDK calls match what your dashboards, alerts and insights actually need.\",\n  \"license\": \"MIT\",\n  \"author\": \"Aman Gupta (https://github.com/guptaaman678)\",\n  \"type\": \"module\",\n  \"bin\": {\n    \"dashlint\": \"dist/cli/main.js\"\n  },\n  \"files\": [\n    \"dist\",\n    \"!dist/action.mjs\",\n    \"descriptors\",\n    \"README.md\",\n    \"LICENSE\"\n  ],\n  \"engines\": {\n    \"node\": \">=22.13\"\n  },\n  \"scripts\": {\n    \"build\": \"node scripts/build.mjs\",\n    \"test\": \"vitest run\",\n    \"test:coverage\": \"vitest run --coverage\",\n    \"lint\": \"eslint . && prettier --check .\",\n    \"check:formats\": \"node scripts/build.mjs && node scripts/check-formats.mjs\",\n    \"ci:local\": \"node scripts/ci-local.mjs\",\n    \"sync:action\": \"node scripts/sync-action.mjs\"\n  },\n  \"dependencies\": {\n    \"typescript\": \"~6.0.3\",\n    \"yaml\": \"2.9.1\",\n    \"tinyglobby\": \"0.2.17\"\n  },\n  \"devDependencies\": {\n    \"@changesets/cli\": \"3.0.3\",\n    \"@stryker-mutator/core\": \"10.1.1\",\n    \"@stryker-mutator/vitest-runner\": \"10.1.1\",\n    \"@types/node\": \"26.6.6\",\n    \"@vitest/coverage-v8\": \"5.1.0\",\n    \"ajv\": \"8.20.0\",\n    \"esbuild\": \"0.28.2\",\n    \"eslint\": \"10.14.0\",\n    \"eslint-config-prettier\": \"10.1.8\",\n    \"prettier\": \"3.10.1\",\n    \"typescript-eslint\": \"8.72.2\",\n    \"vitest\": \"5.1.0\"\n  }\n}\n",
+    ".gitleaks.toml": null
+  }
+}
