@@ -8,10 +8,11 @@
 // the app's own useAnalytics hook and one from another package (spec T4.4) are never SDK calls.
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { loadDescriptors } from '../../../src/descriptors/index.js';
 import { extractCatalog, type Extracted } from '../../../src/extract/index.js';
 import type { Platform } from '../../../src/descriptors/index.js';
+import { perMutant } from '../per-mutant.js';
 
 const FIXTURES = fileURLToPath(new URL('../../fixtures/extract/', import.meta.url));
 const loaded = loadDescriptors();
@@ -37,7 +38,11 @@ const finite = (...set: (string | number | boolean)[]) => ({
 });
 
 describe('segment-analytics-next with the stub', { timeout: 30000 }, () => {
-  const { catalog } = extract('segment-analytics-next/calls', ['web']);
+  const fixture = perMutant(() => extract('segment-analytics-next/calls', ['web']));
+  let catalog: Extracted['catalog'];
+  beforeEach(() => {
+    ({ catalog } = fixture());
+  }, 30000);
   const via = (event: string) => catalog.events[event]?.sites.map((s) => s.via.join(' > '));
 
   it('resolves the SDK from its stub', () => {
@@ -119,7 +124,11 @@ describe('segment-analytics-next with the stub', { timeout: 30000 }, () => {
 });
 
 describe('segment-analytics-next installed', { timeout: 30000 }, () => {
-  const { catalog } = extract('segment-analytics-next/installed', ['web']);
+  const fixture = perMutant(() => extract('segment-analytics-next/installed', ['web']));
+  let catalog: Extracted['catalog'];
+  beforeEach(() => {
+    ({ catalog } = fixture());
+  }, 30000);
 
   it('matches the package’s own arrow-typed members and rest-tuple methods', () => {
     expect(catalog.source.sdks).toEqual([
@@ -136,7 +145,11 @@ describe('segment-analytics-next installed', { timeout: 30000 }, () => {
 });
 
 describe('segment-analytics-react-native with the stub', { timeout: 30000 }, () => {
-  const { catalog } = extract('segment-analytics-react-native/calls', ['ios', 'android']);
+  const fixture = perMutant(() => extract('segment-analytics-react-native/calls', ['ios', 'android']));
+  let catalog: Extracted['catalog'];
+  beforeEach(() => {
+    ({ catalog } = fixture());
+  }, 30000);
   const via = (event: string) => catalog.events[event]?.sites.map((s) => s.via.join(' > '));
 
   it('finds track through useAnalytics(), destructured or whole, and on the client', () => {

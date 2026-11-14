@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
-import { afterAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { loadDescriptors } from '../../../src/descriptors/index.js';
 import {
   createSourceProgram,
@@ -19,6 +19,7 @@ import {
 } from '../../../src/extract/index.js';
 import type { Catalog } from '../../../src/formats/catalog.js';
 import { validateCatalog } from '../../../src/formats/validate.js';
+import { perMutant } from '../per-mutant.js';
 
 const FIXTURES = fileURLToPath(new URL('../../fixtures/extract/', import.meta.url));
 const loaded = loadDescriptors();
@@ -93,8 +94,13 @@ function sourceTextIn(catalog: unknown, files: readonly string[]): string[] {
 }
 
 describe('extractCatalog: crash guard', () => {
-  const crash = extract('posthog-js/crash');
-  const c = crash.catalog;
+  const scan = perMutant(() => extract('posthog-js/crash'));
+  let crash: Extracted;
+  let c: Extracted['catalog'];
+  beforeEach(() => {
+    crash = scan();
+    c = crash.catalog;
+  });
 
   it('counts the file nested too deep to analyse, and the file the parse overflows on, as unknown', () => {
     expect(c.coverage.crashedFiles).toBe(2);

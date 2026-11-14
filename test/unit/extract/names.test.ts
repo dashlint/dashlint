@@ -167,10 +167,15 @@ describe('resolveEventNames: open world', () => {
 });
 
 describe('resolveEventNames: open names keep their fixed head and tail (ADR-061)', () => {
-  const s = names('posthog-js/open-templates');
-  const bounds = Object.fromEntries(
-    s.openWorld.map((o) => [`${o.line}`, { prefix: o.prefix, suffix: o.suffix }]),
-  );
+  const scan = perMutant(() => names('posthog-js/open-templates'));
+  let s: NameScan;
+  let bounds: Record<string, { prefix: string | undefined; suffix: string | undefined }>;
+  beforeEach(() => {
+    s = scan();
+    bounds = Object.fromEntries(
+      s.openWorld.map((o) => [`${o.line}`, { prefix: o.prefix, suffix: o.suffix }]),
+    );
+  });
 
   it('a template with a `string` part keeps its literal head and tail', () => {
     expect(bounds['15']).toEqual({ prefix: 'shared_via_', suffix: undefined });

@@ -5,10 +5,11 @@
 // `People` class of the app's own are never SDK calls.
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { loadDescriptors } from '../../../src/descriptors/index.js';
 import { extractCatalog, type Extracted } from '../../../src/extract/index.js';
 import type { Platform } from '../../../src/descriptors/index.js';
+import { perMutant } from '../per-mutant.js';
 
 const FIXTURES = fileURLToPath(new URL('../../fixtures/extract/', import.meta.url));
 const loaded = loadDescriptors();
@@ -29,7 +30,11 @@ function extract(repo: string, platforms: Platform[]): Extracted {
 }
 
 describe('mixpanel-browser with the stub', { timeout: 30000 }, () => {
-  const { catalog } = extract('mixpanel-browser/calls', ['web']);
+  const fixture = perMutant(() => extract('mixpanel-browser/calls', ['web']));
+  let catalog: Extracted['catalog'];
+  beforeEach(() => {
+    ({ catalog } = fixture());
+  }, 30000);
   const via = (event: string) => catalog.events[event]?.sites.map((s) => s.via.join(' > '));
 
   it('resolves the SDK from its stub', () => {
@@ -117,7 +122,11 @@ describe('mixpanel-browser with the stub', { timeout: 30000 }, () => {
 });
 
 describe('mixpanel-browser installed', { timeout: 30000 }, () => {
-  const { catalog } = extract('mixpanel-browser/installed', ['web']);
+  const fixture = perMutant(() => extract('mixpanel-browser/installed', ['web']));
+  let catalog: Extracted['catalog'];
+  beforeEach(() => {
+    ({ catalog } = fixture());
+  }, 30000);
 
   it('matches module-level functions declared at the top of the package’s own types', () => {
     expect(catalog.source.sdks).toEqual([
@@ -134,7 +143,11 @@ describe('mixpanel-browser installed', { timeout: 30000 }, () => {
 });
 
 describe('mixpanel-react-native with the stub', { timeout: 30000 }, () => {
-  const { catalog } = extract('mixpanel-react-native/calls', ['ios', 'android']);
+  const fixture = perMutant(() => extract('mixpanel-react-native/calls', ['ios', 'android']));
+  let catalog: Extracted['catalog'];
+  beforeEach(() => {
+    ({ catalog } = fixture());
+  }, 30000);
 
   it('finds track and trackWithGroups with their properties', () => {
     expect(Object.keys(catalog.events).sort()).toEqual(['book_borrowed', 'book_reserved']);

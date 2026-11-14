@@ -1,6 +1,7 @@
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { perMutant } from '../per-mutant.js';
 import { loadDescriptors } from '../../../src/descriptors/index.js';
 import {
   createSourceProgram,
@@ -248,11 +249,17 @@ describe('evaluateCondition (ADR-003)', () => {
 });
 
 describe('platforms (spec 6.4 item 9)', () => {
-  const sp = program('posthog-react-native/platforms');
-  const events = followWrappers(sp, descriptors).events;
-  const byFile = Object.fromEntries(
-    events.map((e) => [e.file, sitePlatforms(e.file, e.descriptor.platforms)]),
-  );
+  const platformsScan = perMutant(() => {
+    const sp = program('posthog-react-native/platforms');
+    const events = followWrappers(sp, descriptors).events;
+    return Object.fromEntries(
+      events.map((e) => [e.file, sitePlatforms(e.file, e.descriptor.platforms)]),
+    );
+  });
+  let byFile: ReturnType<typeof platformsScan>;
+  beforeEach(() => {
+    byFile = platformsScan();
+  });
 
   it('React Native suffixes narrow the source platforms', () => {
     expect(byFile).toEqual({
