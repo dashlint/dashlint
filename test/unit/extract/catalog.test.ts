@@ -364,6 +364,30 @@ describe('writeCatalog', () => {
     expect(json.endsWith('}\n')).toBe(true);
   });
 
+  it('keeps the prefix and suffix bounds of an open-world site through a written file (ADR-061)', () => {
+    const site = {
+      file: 'src/a.ts',
+      line: 3,
+      kind: 'template' as const,
+      reason: 'a template name',
+      prefix: 'order_',
+      suffix: '_done',
+    };
+    const c: Catalog = { ...catalog, openWorld: [site] };
+    const back = JSON.parse(writeCatalog(c)) as Catalog;
+    expect(back.openWorld).toEqual([site]);
+    expect(back.openWorld[0]?.prefix).toBe('order_');
+    expect(back.openWorld[0]?.suffix).toBe('_done');
+    expect(Object.keys(back.openWorld[0] ?? {})).toEqual([
+      'file',
+      'line',
+      'kind',
+      'reason',
+      'prefix',
+      'suffix',
+    ]);
+  });
+
   it('sorts names by code point, integer-like names included', () => {
     const base = catalog.events.wishlist_shared;
     if (!base) throw new Error('no event');
