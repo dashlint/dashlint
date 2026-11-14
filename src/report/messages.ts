@@ -661,6 +661,8 @@ export const descriptorErrors = {
   roleConflict: (a: string, b: string) => `${a} and ${b} cannot be on the same call`,
   onlyWithEvent: (key: string) => `${key} is only allowed on a call with event`,
   fallbackNeedsPersonSet: 'personSetFallback needs personSet',
+  formNeedsPersonSet: 'objectForm.personSet needs personSet on the call',
+  formPropertiesNeedEvent: 'objectForm.properties needs objectForm.event',
   duplicateCall: (container: string, member: string) => `${container}.${member} is described twice`,
   duplicateHook: (hook: string) => `hook ${hook} is described twice`,
   packageNotDeclaredIn: (pkg: string) => `declaredIn must include the package ${pkg}`,

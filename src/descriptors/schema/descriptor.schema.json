@@ -178,9 +178,13 @@
         "objectForm": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["event"],
-          "description": "The same member called with an event object instead of a name (Amplitude's `track({ event_type })`): used when the argument `event` reads from has an object type.",
+          "minProperties": 1,
+          "description": "The same member called with an event object instead of a name (Amplitude's `track({ event_type })`), or with the traits in place of the id (Segment's `identify(traits)`): used when the argument `event` (or `personSet`) reads from has an object type.",
           "properties": {
+            "personSet": {
+              "$ref": "#/$defs/argPath",
+              "description": "Where the person properties are when that argument is an object: `args[0]`."
+            },
             "event": {
               "type": "string",
               "pattern": "^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)+$",

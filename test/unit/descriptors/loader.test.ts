@@ -482,6 +482,32 @@ describe('descriptor rules', () => {
     expect(bare[0]).toMatchObject({ path: '/calls/0/objectForm/event' });
   });
 
+  // ADR-056: Segment's identify takes the traits in place of the id.
+  it('allows an objectForm with personSet only on a call that sets person properties', () => {
+    const identify = (form: string, personSet = '    personSet: args[1]\n') =>
+      withCall(
+        `  - member: track\n    on: [Shelf]\n    identity: identify\n${personSet}    objectForm:\n${form}`,
+      );
+    expect(parseDescriptor(identify('      personSet: args[0]\n')).ok).toBe(true);
+    expect(descriptorErrors(identify('      personSet: args[0]\n', ''))).toEqual([
+      expect.objectContaining({
+        path: '/calls/0/objectForm/personSet',
+        message: 'objectForm.personSet needs personSet on the call',
+      }),
+    ]);
+    expect(
+      descriptorErrors(identify('      personSet: args[0]\n      properties: args[0].x\n')).map(
+        (e) => e.message,
+      ),
+    ).toEqual(['objectForm.properties needs objectForm.event']);
+    const empty = descriptorErrors(
+      withCall(
+        '  - member: track\n    on: [Shelf]\n    identity: identify\n    personSet: args[1]\n    objectForm: {}\n',
+      ),
+    );
+    expect(empty).toEqual([expect.objectContaining({ path: '/calls/0/objectForm' })]);
+  });
+
   it('takes init options as one position or a list of positions', () => {
     const init = (options: string) =>
       `${DESCRIPTOR}init:\n  - member: init\n    on: [Shelf]\n    options: ${options}\n`;

@@ -63,7 +63,25 @@ const amplitude = (client: string, extra: string[]) =>
     'Identify.setOnce',
   ].sort();
 const AMPLITUDE_SCREEN = ['trackScreenView', 'trackScreenViewOnNavigationStateChange'];
+// Segment (T4.4, ADR-056): V1's rows less page, screen (a destination names them), group, alias,
+// register (plugins, never super properties) and addSourceMiddleware; the link and form helpers
+// are cited from analytics-next's dist/types/core/analytics/index.d.ts:61-64 and
+// core/buffer/index.d.ts:78-80, where AnalyticsBuffered has no trackForm.
+const SEGMENT_HELPERS = ['trackClick', 'trackLink', 'trackSubmit'];
+const SEGMENT_SURFACE = {
+  'segment-analytics-next': [
+    ...['identify', 'reset', 'track', 'trackForm', ...SEGMENT_HELPERS].map((m) => `Analytics.${m}`),
+    ...['identify', 'track'].map((m) => `AnalyticsCore.${m}`),
+    ...['identify', 'reset', 'track', ...SEGMENT_HELPERS].map((m) => `AnalyticsBuffered.${m}`),
+  ].sort(),
+  'segment-analytics-react-native': [
+    ...['identify', 'reset', 'track'].map((m) => `SegmentClient.${m}`),
+    ...['identify', 'reset', 'track'].map((m) => `ClientMethods.${m}`),
+    'hook:useAnalytics',
+  ].sort(),
+};
 const V1_SURFACE: Record<string, string[]> = {
+  ...SEGMENT_SURFACE,
   'amplitude-browser': amplitude('AmplitudeBrowserLite', []),
   'amplitude-react-native': [
     ...amplitude('AmplitudeReactNative', AMPLITUDE_SCREEN),
@@ -119,7 +137,7 @@ function surfaceOf(d: Descriptor): string[] {
 }
 
 describe('shipped descriptors', () => {
-  it('are the PostHog, Mixpanel and Amplitude SDKs, loaded without errors', () => {
+  it('are the PostHog, Mixpanel, Amplitude and Segment SDKs, loaded without errors', () => {
     expect(descriptors.map((d) => d.sdk)).toEqual([
       'amplitude-browser',
       'amplitude-react-native',
@@ -127,7 +145,11 @@ describe('shipped descriptors', () => {
       'mixpanel-react-native',
       'posthog-js',
       'posthog-react-native',
+      'segment-analytics-next',
+      'segment-analytics-react-native',
     ]);
+    expect(bySdk.get('segment-analytics-next')?.platforms).toEqual(['web']);
+    expect(bySdk.get('segment-analytics-react-native')?.platforms).toEqual(['ios', 'android']);
     expect(bySdk.get('posthog-js')?.platforms).toEqual(['web']);
     expect(bySdk.get('posthog-react-native')?.platforms).toEqual(['ios', 'android']);
     expect(bySdk.get('mixpanel-browser')?.platforms).toEqual(['web']);
@@ -168,6 +190,9 @@ describe('shipped descriptors', () => {
     it('carries the upstream licence header in its stub', () => {
       if (d.sdk.startsWith('amplitude-')) {
         expect(stubText).toMatch(/MIT License\. Copyright \(c\) 2022 Amplitude Analytics\./);
+        expect(stubText).toMatch(/The above copyright notice\s+\/\/ and this permission notice/);
+      } else if (d.sdk.startsWith('segment-')) {
+        expect(stubText).toMatch(/MIT License(?: \(MIT\))?\. Copyright \(c\) 202[01] Segment\./);
         expect(stubText).toMatch(/The above copyright notice\s+\/\/ and this permission notice/);
       } else {
         expect(stubText).toMatch(/Licensed under the Apache License, Version 2\.0/);
@@ -276,6 +301,40 @@ describe('shipped descriptors', () => {
         sdk,
       ).toEqual([]);
     }
+  });
+
+  // ADR-056: Segment's React Native lifecycle and deep-link events are off unless switched on
+  // (src/analytics.ts:583, 760, 812); the browser SDK sends no event of its own, and context
+  // fields are unknown on every event (a destination maps them), each name once.
+  it('gives the Segment builtins their conditions, with context fields unknown', () => {
+    const rn = descriptorOf('segment-analytics-react-native').builtins;
+    expect(rn.events.map((e) => [e.name, e.when])).toEqual([
+      ['Application Installed', { option: 'trackAppLifecycleEvents', is: true }],
+      ['Application Updated', { option: 'trackAppLifecycleEvents', is: true }],
+      ['Application Opened', { option: 'trackAppLifecycleEvents', is: true }],
+      ['Application Backgrounded', { option: 'trackAppLifecycleEvents', is: true }],
+      ['Deep Link Opened', { option: 'trackDeepLinks', is: true }],
+    ]);
+    const next = descriptorOf('segment-analytics-next').builtins;
+    expect(next.events).toEqual([]);
+    expect(next.properties.map((p) => p.name)).toEqual([
+      'path',
+      'referrer',
+      'search',
+      'title',
+      'url',
+      'userAgent',
+      'library',
+      'campaign',
+    ]);
+    for (const p of next.properties) {
+      expect(p.events, p.name).toBe('*');
+      expect(p.when, p.name).toEqual({ unknown: expect.any(String) });
+    }
+    for (const name of ['app', 'device', 'os', 'screen', 'timezone'])
+      expect(rn.properties.find((p) => p.name === name)?.when, name).toEqual({
+        unknown: expect.stringContaining('context field'),
+      });
   });
 });
 

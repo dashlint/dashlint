@@ -99,9 +99,17 @@ function callRules(call: CallEntry, at: string): ValidationError[] {
   if (first === undefined) errors.push({ path: at, message: msg.noRole });
   else if (second !== undefined)
     errors.push({ path: `${at}/${second}`, message: msg.roleConflict(first, second) });
+  // An objectForm with personSet only (ADR-056) belongs to a call that sets person properties.
+  const form = call.objectForm;
+  const personForm = form !== undefined && form.event === undefined;
   if (!has('event'))
     for (const k of EVENT_ONLY)
-      if (has(k)) errors.push({ path: `${at}/${k}`, message: msg.onlyWithEvent(k) });
+      if (has(k) && !(k === 'objectForm' && personForm))
+        errors.push({ path: `${at}/${k}`, message: msg.onlyWithEvent(k) });
+  if (form?.personSet !== undefined && !has('personSet'))
+    errors.push({ path: `${at}/objectForm/personSet`, message: msg.formNeedsPersonSet });
+  if (personForm && form.properties !== undefined)
+    errors.push({ path: `${at}/objectForm/properties`, message: msg.formPropertiesNeedEvent });
   if (has('personSetFallback') && !has('personSet'))
     errors.push({ path: `${at}/personSetFallback`, message: msg.fallbackNeedsPersonSet });
   return errors;

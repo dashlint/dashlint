@@ -20,10 +20,15 @@ export interface PersonSetFallback {
   omit: string[];
 }
 
-/** Where an event object keeps its name and properties: `args[0].event_type`. */
+/**
+ * Where an event object keeps its name and properties (`args[0].event_type`), or, for an identify
+ * call whose first argument may be the traits object (Segment's `identify(traits)`, ADR-056),
+ * where the person properties are then.
+ */
 export interface ObjectForm {
-  event: ArgPath;
+  event?: ArgPath;
   properties?: ArgPath | ArgPath[];
+  personSet?: ArgPath;
 }
 
 /**
@@ -43,8 +48,9 @@ export interface MemberCall {
   properties?: ArgPath | ArgPath[];
   /**
    * The member called with an event object instead of a name (Amplitude's `track({ event_type })`,
-   * ADR-055): used in place of `event` and `properties` when the argument `objectForm.event` reads
-   * from has an object type at the call.
+   * ADR-055), or with the traits in place of the id (ADR-056): used in place of `event` and
+   * `properties`, or of `personSet`, when the argument the form reads from has an object type at
+   * the call.
    */
   objectForm?: ObjectForm;
   /** Properties the SDK adds to the event from other arguments, by name. */

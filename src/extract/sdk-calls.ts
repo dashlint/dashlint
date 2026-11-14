@@ -156,24 +156,30 @@ const OBJECT_TYPE = ts.TypeFlags.Object | ts.TypeFlags.NonPrimitive | ts.TypeFla
 
 /**
  * The entry as this call uses it: its object form (ADR-055) when the argument the form reads from
- * has an object type, so `track({ event_type: "x" })` reads the name from `event_type`. A name,
- * `any`, a union with a string, a spread or a missing argument keep the plain form, where a
- * non-literal name is open world.
+ * has an object type, so `track({ event_type: "x" })` reads the name from `event_type`, and
+ * Segment's `identify({ email })` reads the traits from `args[0]` (ADR-056). A name, `any`, a
+ * union with a string, a spread or a missing argument keep the plain form, where a non-literal
+ * name is open world.
  */
 function asCalled(entry: MemberCall, call: ts.CallExpression, checker: ts.TypeChecker): MemberCall {
   const form = entry.objectForm;
-  if (!form) return entry;
-  const index = Number(/^args\[(\d+)\]/.exec(form.event)?.[1] ?? NaN);
+  const from = form?.event ?? form?.personSet;
+  if (!form || from === undefined) return entry;
+  const index = Number(/^args\[(\d+)\]/.exec(from)?.[1] ?? NaN);
   const args = call.arguments.slice(0, index + 1);
   const arg = call.arguments[index];
   if (!arg || args.some((a) => ts.isSpreadElement(a))) return entry;
   const type = checker.getNonNullableType(checker.getTypeAtLocation(arg));
   const parts = type.isUnion() ? type.types : [type];
   if (!parts.every((t) => (t.flags & OBJECT_TYPE) !== 0)) return entry;
-  const asObject: MemberCall = { ...entry, event: form.event };
+  const asObject: MemberCall = { ...entry };
   delete asObject.objectForm;
-  delete asObject.properties;
-  if (form.properties !== undefined) asObject.properties = form.properties;
+  if (form.event !== undefined) {
+    asObject.event = form.event;
+    delete asObject.properties;
+    if (form.properties !== undefined) asObject.properties = form.properties;
+  }
+  if (form.personSet !== undefined) asObject.personSet = form.personSet;
   return asObject;
 }
 
