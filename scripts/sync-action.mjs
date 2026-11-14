@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Action sync (spec T1.5, §5.2, §6.11): stages the Action's files from this repo (action.yml,
-// README.md, smoke.yml, the built dist/action.mjs bundle, descriptors/, LICENSE), checks for a stray `.map` file
+// README.md, smoke.yml and its smoke/ fixture, the built dist/action.mjs bundle, descriptors/, LICENSE), checks for a stray `.map` file
 // (nothing published ever carries one), then runs the denylist and copy checks over the staged copy.
 // Without --dry-run it commits the staged files to an `action/v<version>` branch of --dest, a local
 // checkout of dashlint/action; pushing that branch and opening the sync PR is a separate step done
@@ -25,6 +25,8 @@ const FILES = [
   { from: join(ROOT, 'action', 'action.yml'), to: 'action.yml' },
   { from: join(ROOT, 'action', 'README.md'), to: 'README.md' },
   { from: join(ROOT, 'action', 'smoke.yml'), to: join('.github', 'workflows', 'smoke.yml') },
+  // The synthetic bookshop the smoke workflow runs `uses: ./` on.
+  { from: join(ROOT, 'action', 'smoke'), to: 'smoke' },
   { from: join(ROOT, 'dist', 'action.mjs'), to: join('dist', 'action.mjs') },
   // The bundle reads the descriptors and their stubs from ../descriptors/ (scripts/build.mjs).
   { from: join(ROOT, 'descriptors'), to: 'descriptors' },

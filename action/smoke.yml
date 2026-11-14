@@ -10,4 +10,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: ./
+      # The synthetic bookshop in smoke/ against itself: nothing breaks.
+      - id: clean
+        uses: ./
+        with:
+          config: smoke/dashlint.config.yml
+          base: HEAD
+          comment: 'false'
+      - name: Clean run reports nothing newly broken
+        run: test "${{ steps.clean.outputs.newly-broken }}" = 0 && test -s "${{ steps.clean.outputs.report-json }}"
+      # Rename one tracked event in the working tree: its tile must be newly dead and the step fail.
+      - run: sed -i 's/wishlist_shared/wishlist_sent/' smoke/web/src/shelf.ts
+      - id: broken
+        uses: ./
+        continue-on-error: true
+        with:
+          config: smoke/dashlint.config.yml
+          base: HEAD
+          comment: 'false'
+      - name: Broken run fails with one newly broken tile
+        run: test "${{ steps.broken.outcome }}" = failure && test "${{ steps.broken.outputs.newly-broken }}" = 1

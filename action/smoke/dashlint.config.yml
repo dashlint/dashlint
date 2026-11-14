@@ -1,0 +1,8 @@
+# Synthetic fixture for the smoke workflow: a fictional bookshop, no real app or data.
+version: 1
+requirements: dashlint.requirements.json
+sources:
+  - name: web
+    path: web
+    platform: web
+failOn: dead

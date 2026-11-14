@@ -1,0 +1,18 @@
+{
+  "schema": "dashlint.requirements/1",
+  "source": { "platform": "posthog" },
+  "tiles": [
+    {
+      "id": "insight:Wish01",
+      "title": "Wishlist shares",
+      "kind": "trends",
+      "series": [{ "ref": "A", "node": "event", "event": "wishlist_shared" }]
+    },
+    {
+      "id": "insight:Ord02",
+      "title": "Orders",
+      "kind": "trends",
+      "series": [{ "ref": "A", "node": "event", "event": "order_completed" }]
+    }
+  ]
+}
