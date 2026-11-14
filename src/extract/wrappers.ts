@@ -336,7 +336,7 @@ export function followWrappers(sp: SourceProgram, descriptors: readonly Descript
         descriptor: c.descriptor,
         entry,
         event: typeof entry.event === 'string' ? { arg: entry.event } : entry.event,
-        properties: entry.properties ? [{ arg: entry.properties }] : [],
+        properties: [entry.properties ?? []].flat().map((arg) => ({ arg })),
         addProperties: Object.fromEntries(
           Object.entries(entry.addProperties ?? {}).map(([k, arg]) => [k, { arg }]),
         ),

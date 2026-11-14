@@ -36,7 +36,7 @@ function input(repo: string, extra: Partial<ExtractInput> = {}): ExtractInput {
     source: { name: 'app', path: '.' },
     descriptors,
     tool: '0.0.0-test',
-    platforms: repo.startsWith('posthog-react-native/') ? ['ios', 'android'] : ['web'],
+    platforms: /react-native\//.test(repo) ? ['ios', 'android'] : ['web'],
     commit: null,
     ...extra,
   };

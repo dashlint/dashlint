@@ -32,7 +32,36 @@ function descriptorOf(sdk: string): Descriptor {
 
 // The members V1 recorded at the verified versions (notes research/v1-summary.md), as
 // `Container.member` (or `hook:name`). A change here needs new V1 evidence.
+// mixpanel-browser's track_links and track_forms are cited from its src/index.d.ts (lines 503, 508,
+// 595, 600) by T4.2 (ADR-054); `(module)` is a module-level function.
+const MIXPANEL_BROWSER_SHARED = [
+  'identify',
+  'register',
+  'register_once',
+  'reset',
+  'track',
+  'track_forms',
+  'track_links',
+  'track_with_groups',
+];
 const V1_SURFACE: Record<string, string[]> = {
+  'mixpanel-browser': [
+    ...MIXPANEL_BROWSER_SHARED.map((m) => `(module).${m}`),
+    ...MIXPANEL_BROWSER_SHARED.map((m) => `Mixpanel.${m}`),
+    'Mixpanel.track_pageview',
+    'People.set',
+    'People.set_once',
+  ].sort(),
+  'mixpanel-react-native': [
+    'Mixpanel.identify',
+    'Mixpanel.registerSuperProperties',
+    'Mixpanel.registerSuperPropertiesOnce',
+    'Mixpanel.reset',
+    'Mixpanel.track',
+    'Mixpanel.trackWithGroups',
+    'People.set',
+    'People.setOnce',
+  ],
   'posthog-js': [
     'PostHog.capture',
     'PostHog.identify',
@@ -66,10 +95,17 @@ function surfaceOf(d: Descriptor): string[] {
 }
 
 describe('shipped descriptors', () => {
-  it('are the two PostHog SDKs, loaded without errors', () => {
-    expect(descriptors.map((d) => d.sdk)).toEqual(['posthog-js', 'posthog-react-native']);
+  it('are the PostHog and Mixpanel SDKs, loaded without errors', () => {
+    expect(descriptors.map((d) => d.sdk)).toEqual([
+      'mixpanel-browser',
+      'mixpanel-react-native',
+      'posthog-js',
+      'posthog-react-native',
+    ]);
     expect(bySdk.get('posthog-js')?.platforms).toEqual(['web']);
     expect(bySdk.get('posthog-react-native')?.platforms).toEqual(['ios', 'android']);
+    expect(bySdk.get('mixpanel-browser')?.platforms).toEqual(['web']);
+    expect(bySdk.get('mixpanel-react-native')?.platforms).toEqual(['ios', 'android']);
   });
 
   it.each(Object.entries(V1_SURFACE))('%s describes exactly the V1 members', (sdk, members) => {
@@ -103,7 +139,9 @@ describe('shipped descriptors', () => {
 
     it('carries the upstream licence header in its stub', () => {
       expect(stubText).toMatch(/Licensed under the Apache License, Version 2\.0/);
-      expect(stubText).toMatch(/MIT License\. Copyright \(c\) 2022 PostHog/);
+      if (d.sdk.startsWith('posthog-'))
+        expect(stubText).toMatch(/MIT License\. Copyright \(c\) 2022 PostHog/);
+      else expect(stubText).toMatch(/Copyright 20\d\d Mixpanel, Inc\./);
       expect(stubText).toContain('Modified by dashlint');
     });
 
@@ -122,7 +160,8 @@ describe('shipped descriptors', () => {
   });
 
   // ADR-012, ADR-029: PostHog's GeoIP transformation, cited in notes/research/t39-ingestion.md.
-  it.each(descriptors.map((d) => [d.sdk, d] as const))(
+  const posthog = descriptors.filter((d) => d.sdk.startsWith('posthog-'));
+  it.each(posthog.map((d) => [d.sdk, d] as const))(
     '%s carries the $geoip_* ingestion rows, each unknown',
     (_, d) => {
       const geo = (list: { name: string }[]) =>
@@ -137,6 +176,31 @@ describe('shipped descriptors', () => {
           expect(b.when, b.name).toEqual({ unknown: expect.stringContaining('GeoIP') });
     },
   );
+
+  it('keeps PostHog ingestion rows out of the Mixpanel builtins', () => {
+    for (const sdk of ['mixpanel-browser', 'mixpanel-react-native']) {
+      const b = descriptorOf(sdk).builtins;
+      const names = [...b.events, ...b.properties, ...b.personProperties].map((x) => x.name);
+      expect(
+        names.filter((n) => n.startsWith('$geoip_')),
+        sdk,
+      ).toEqual([]);
+      expect(descriptorOf(sdk).unknownNames?.events, sdk).toEqual(['$']);
+    }
+  });
+
+  // research/v2-mixpanel.md lead review: an object config switches autocapture on (`is: true`),
+  // track_marketing is on unless false, and the page view has no decidable option.
+  it('gives the mixpanel-browser autocapture, marketing and page view rows their conditions', () => {
+    const b = descriptorOf('mixpanel-browser').builtins;
+    const when = (name: string) =>
+      [...b.events, ...b.properties].find((x) => x.name === name)?.when;
+    expect(when('$mp_click')).toEqual({ option: 'autocapture', is: true });
+    expect(when('utm_source')).toEqual({ option: 'track_marketing', not: false });
+    expect(when('$mp_web_page_view')).toEqual({ unknown: expect.stringContaining('default off') });
+    expect(when('$mp_page_leave')).toEqual({ unknown: expect.stringContaining('page_leave') });
+    expect(descriptorOf('mixpanel-react-native').builtins.events).toEqual([]);
+  });
 });
 
 // Resolves each call in the fixture app through the checker with the stub as the only source of
@@ -170,13 +234,14 @@ function resolvedCalls(
           ? decl.parent.parent
           : decl.parent;
         const path: string[] = [];
-        while (owner && !ts.isClassDeclaration(owner) && !ts.isModuleBlock(owner)) {
+        const named = (n: ts.Node) => ts.isClassDeclaration(n) || ts.isInterfaceDeclaration(n);
+        while (owner && !named(owner) && !ts.isModuleBlock(owner)) {
           if (ts.isPropertySignature(owner) || ts.isPropertyDeclaration(owner))
             path.unshift(owner.name.getText());
           owner = owner.parent;
         }
         const container =
-          owner && ts.isClassDeclaration(owner) && owner.name
+          owner && (ts.isClassDeclaration(owner) || ts.isInterfaceDeclaration(owner)) && owner.name
             ? [owner.name.text, ...path].join('.')
             : '-';
         out.push({
@@ -228,6 +293,52 @@ describe('stubs resolve calls when the package is not installed', { timeout: 300
       'posthog.reset -> PostHog',
       'usePostHog -> -',
       'client.capture -> PostHogCore',
+    ]);
+  });
+
+  it('mixpanel-browser, default export, namespace and named imports', () => {
+    const d = descriptorOf('mixpanel-browser');
+    const calls = resolvedCalls(d, 'mixpanel-browser-app.ts');
+    for (const c of calls) expect(c.file).toBe(d.stub.file.replace(/\\/g, '/'));
+    // `-` is a module-level function, which the extractor keys as `(module)`.
+    expect(calls.map((c) => `${c.call} -> ${c.container}`)).toEqual([
+      'mixpanel.init -> OverridedMixpanel',
+      'mixpanel.track -> Mixpanel',
+      'mixpanel.track_with_groups -> Mixpanel',
+      'mixpanel.track_pageview -> Mixpanel',
+      'mixpanel.track_links -> Mixpanel',
+      'mixpanel.register -> Mixpanel',
+      'mixpanel.identify -> Mixpanel',
+      'mixpanel.people.set -> People',
+      'mixpanel.people.set_once -> People',
+      'mixpanel.reset -> Mixpanel',
+      'ns.track -> -',
+      'ns.register_once -> -',
+      'ns.people.set -> People',
+      'track -> -',
+      'mixpanel.init -> OverridedMixpanel',
+      'second.track -> Mixpanel',
+    ]);
+  });
+
+  it('mixpanel-react-native, with people through getPeople()', () => {
+    const d = descriptorOf('mixpanel-react-native');
+    const calls = resolvedCalls(d, 'mixpanel-react-native-app.ts');
+    for (const c of calls) expect(c.file).toBe(d.stub.file.replace(/\\/g, '/'));
+    expect(calls.map((c) => `${c.call} -> ${c.container}`)).toEqual([
+      'mixpanel.init -> Mixpanel',
+      'mixpanel.track -> Mixpanel',
+      'mixpanel.trackWithGroups -> Mixpanel',
+      'mixpanel.registerSuperProperties -> Mixpanel',
+      'mixpanel.registerSuperPropertiesOnce -> Mixpanel',
+      'mixpanel.identify -> Mixpanel',
+      'mixpanel.getPeople().set -> People',
+      'mixpanel.getPeople -> Mixpanel',
+      'mixpanel.getPeople().setOnce -> People',
+      'mixpanel.getPeople -> Mixpanel',
+      'mixpanel.reset -> Mixpanel',
+      'Mixpanel.init -> Mixpanel',
+      'other.track -> Mixpanel',
     ]);
   });
 });

@@ -3,7 +3,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import ts from 'typescript';
-import { isHook, type Descriptor, type MemberCall } from './model.js';
+import { isHook, MODULE_CONTAINER, type Descriptor, type MemberCall } from './model.js';
 
 /** Where a member is declared: `PostHog`, `PostHogCore` or `PostHog.people` and the member name. */
 export interface MemberKey {
@@ -58,12 +58,24 @@ function isPropertyHolder(node: ts.Node): node is MemberNode {
   return ts.isPropertySignature(node) || ts.isPropertyDeclaration(node);
 }
 
+/** A function declared at module level, in a file or a `declare module` block (ADR-054). */
+export function moduleFunctionName(declaration: ts.Node): string | undefined {
+  if (!ts.isFunctionDeclaration(declaration) || !declaration.name) return undefined;
+  const parent = declaration.parent;
+  const moduleLevel =
+    ts.isSourceFile(parent) || (ts.isModuleBlock(parent) && ts.isStringLiteral(parent.parent.name));
+  return moduleLevel ? declaration.name.text : undefined;
+}
+
 /**
- * The container and member of a resolved signature declaration: a method, or a function type or
- * function expression held by a property (`set: (prop) => void`). Anything else (a module-level
- * function, a local arrow function) has no member key.
+ * The container and member of a resolved signature declaration: a method, a function type or
+ * function expression held by a property (`set: (prop) => void`), or a module-level function
+ * (container `(module)`). Anything else (a local arrow function) has no member key. Which package
+ * declares it is the caller's check, so a user's own module-level function never matches.
  */
 export function memberKey(declaration: ts.Node): MemberKey | undefined {
+  const fn = moduleFunctionName(declaration);
+  if (fn !== undefined) return { container: MODULE_CONTAINER, member: fn };
   let member: MemberNode;
   if (ts.isMethodDeclaration(declaration) || ts.isMethodSignature(declaration)) {
     member = declaration;

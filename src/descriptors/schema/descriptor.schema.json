@@ -83,8 +83,8 @@
     "identifier": { "type": "string", "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*$" },
     "container": {
       "type": "string",
-      "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$",
-      "description": "A class or interface name, optionally followed by property names whose type is an object type (`PostHog.people`)."
+      "pattern": "^(?:\\(module\\)|[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*)$",
+      "description": "A class or interface name, optionally followed by property names whose type is an object type (`PostHog.people`), or `(module)` for a function declared at module level."
     },
     "relativeFile": {
       "type": "string",
@@ -162,7 +162,13 @@
           ],
           "description": "Where the event name comes from: an argument, or a fixed name."
         },
-        "properties": { "$ref": "#/$defs/argPath" },
+        "properties": {
+          "anyOf": [
+            { "$ref": "#/$defs/argPath" },
+            { "type": "array", "minItems": 2, "items": { "$ref": "#/$defs/argPath" } }
+          ],
+          "description": "The properties argument, or several merged in order (a later key overwrites an earlier one)."
+        },
         "addProperties": {
           "type": "object",
           "minProperties": 1,

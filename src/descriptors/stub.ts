@@ -2,7 +2,7 @@
 // ambient modules, the classes and interfaces with their members, and module-level functions. The
 // loader uses it to refuse a descriptor whose members the stub does not declare (T3.1).
 import ts from 'typescript';
-import type { StubSurface } from './model.js';
+import { MODULE_CONTAINER, type StubSurface } from './model.js';
 
 function memberName(m: ts.ClassElement | ts.TypeElement): string | undefined {
   const name = m.name;
@@ -36,7 +36,10 @@ function addStatements(surface: StubSurface, statements: readonly ts.Statement[]
     if ((ts.isClassDeclaration(s) || ts.isInterfaceDeclaration(s)) && s.name) {
       addContainer(surface, s.name.text, s.members);
     } else if (ts.isFunctionDeclaration(s) && s.name) {
+      // A module-level function is a hook, or a member of the `(module)` container (ADR-054).
       surface.functions.add(s.name.text);
+      const fns = surface.containers.get(MODULE_CONTAINER) ?? new Set<string>();
+      surface.containers.set(MODULE_CONTAINER, fns.add(s.name.text));
     } else if (ts.isVariableStatement(s)) {
       for (const d of s.declarationList.declarations)
         if (ts.isIdentifier(d.name)) surface.functions.add(d.name.text);

@@ -388,6 +388,8 @@ describe('match helpers', () => {
         'declare const o: { [k: string]: { r(): void } };',
         'declare class D { ["computed"](): void; [k: string]: unknown }',
         'declare const E: { new (): { m(): void } };',
+        'function outer() { function inner() {} }',
+        'declare module "m" { function track(): void; namespace N { function deep(): void } }',
       ].join('\n'),
       ts.ScriptTarget.Latest,
       true,
@@ -399,8 +401,20 @@ describe('match helpers', () => {
       ts.forEachChild(n, visit);
     };
     visit(sf);
-    // A computed name, an index signature's member and a construct signature's result have no key.
-    expect(keys).toEqual(['A.m', 'A.p.q', 'A.f', 'B.m', 'C.m', 'C.n']);
+    // A computed name, an index signature's member and a construct signature's result have no key;
+    // a module-level function (in a file or a `declare module` block) is on `(module)` (ADR-054),
+    // a function inside a function body or a namespace is not.
+    expect(keys).toEqual([
+      'A.m',
+      'A.p.q',
+      'A.f',
+      'B.m',
+      'C.m',
+      'C.n',
+      '(module).free',
+      '(module).outer',
+      '(module).track',
+    ]);
   });
 
   it('matches only a declaredIn package with the member on a listed container', () => {

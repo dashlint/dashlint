@@ -10,6 +10,8 @@ import ts from 'typescript';
 import {
   ambientModule,
   isInitComponent,
+  MODULE_CONTAINER,
+  moduleFunctionName,
   PackageResolver,
   packageName,
   type BuiltinCondition,
@@ -182,8 +184,10 @@ function initMatches(entry: InitEntry, container: string, member: string): boole
   return !isInitComponent(entry) && entry.member === member && entry.on.includes(container);
 }
 
-/** The container and member of a constructor or method declaration. */
+/** The container and member of a constructor, method or module-level function declaration. */
 function declarationKey(decl: ts.Node): { container: string; member: string } | undefined {
+  const fn = moduleFunctionName(decl);
+  if (fn !== undefined) return { container: MODULE_CONTAINER, member: fn };
   const parent = decl.parent;
   if (!parent || !(ts.isClassLike(parent) || ts.isInterfaceDeclaration(parent)) || !parent.name)
     return undefined;

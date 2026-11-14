@@ -7,6 +7,12 @@ export type Platform = 'web' | 'ios' | 'android';
 /** A call argument by position, optionally followed by object keys: `args[0]`, `args[1].$set`. */
 export type ArgPath = string;
 
+/**
+ * The container of a function declared at module level (`export function track` in
+ * mixpanel-browser), called through a namespace import or a named import (ADR-054).
+ */
+export const MODULE_CONTAINER = '(module)';
+
 /** When the object at `personSet` is absent, the SDK sets the keys of `from`, less `omit`. */
 export interface PersonSetFallback {
   from: ArgPath;
@@ -20,10 +26,14 @@ export interface PersonSetFallback {
  */
 export interface MemberCall {
   member: string;
-  /** Containers that declare the member: a class or interface, or `Class.property` for a member of an object-typed property. */
+  /**
+   * Containers that declare the member: a class or interface, `Class.property` for a member of an
+   * object-typed property, or `(module)` for a module-level function.
+   */
   on: string[];
   event?: ArgPath | { literal: string };
-  properties?: ArgPath;
+  /** The properties argument; a list is merged in order, a later key overwriting an earlier one. */
+  properties?: ArgPath | ArgPath[];
   /** Properties the SDK adds to the event from other arguments, by name. */
   addProperties?: Record<string, ArgPath>;
   superProperties?: ArgPath;

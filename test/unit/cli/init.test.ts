@@ -188,7 +188,10 @@ describe('dashlint init: the command', () => {
     const r = await runIn(dir, ['init']);
     expect(r.code).toBe(0);
     expect(r.err).toContain('with no sources');
-    expect(read(dir)).toContain('# No app here depends on posthog-js, posthog-react-native.');
+    // The packages of the shipped descriptors (ADR-052), Mixpanel's since T4.2.
+    expect(read(dir)).toContain(
+      '# No app here depends on mixpanel-browser, mixpanel-react-native, posthog-js, posthog-react-native.',
+    );
     expect(loadConfig(join(dir, 'dashlint.config.yml')).sources).toEqual([]);
   });
 
