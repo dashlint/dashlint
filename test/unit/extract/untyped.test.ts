@@ -110,6 +110,65 @@ describe('posthog-js client in an untyped binding', () => {
   });
 });
 
+describe('untyped bindings: edge shapes (T10.2)', () => {
+  const fixture = perMutant(() =>
+    Object.fromEntries(
+      ['untyped-edges', 'untyped-rounds', 'untyped-return'].map((repo) => {
+        const r = findSdkCalls(program(`posthog-js/${repo}`), descriptors);
+        return [
+          repo,
+          {
+            calls: r.calls.length,
+            open: r.openWorld.map(
+              (o) => `${o.file}:${o.line} ${/called on `([^`]+)`/.exec(o.reason)?.[1] ?? o.reason}`,
+            ),
+          },
+        ];
+      }),
+    ),
+  );
+  let found: Record<string, { calls: number; open: string[] }>;
+  beforeEach(() => {
+    found = fixture();
+  });
+
+  it('marks exactly the bindings that get an SDK value, and nothing throws on the rest', () => {
+    expect(found['untyped-edges']).toEqual({
+      calls: 0,
+      open: [
+        'src/follow.ts:10 this.client',
+        'src/follow.ts:47 viaThen',
+        'src/loads.ts:10 settled',
+        'src/loads.ts:12 first',
+        'src/loads.ts:14 raced',
+        'src/loads.ts:34 second',
+        'src/loads.ts:38 keyed',
+        'src/loads.ts:41 awaited',
+      ],
+    });
+  });
+
+  it('negative controls: other.all, two arguments, load(), a template name, a non-SDK package, a typed binding', () => {
+    const open = found['untyped-edges']?.open.join('\n') ?? '';
+    for (const line of [16, 22, 24, 26, 28, 36, 47])
+      expect(open).not.toContain(`loads.ts:${line} `);
+  });
+
+  it('negative controls: catch, a plain callback, a typed return, a default, rest and extra arguments, an alias', () => {
+    const open = found['untyped-edges']?.open.join('\n') ?? '';
+    for (const line of [16, 17, 18, 20, 22, 25, 27, 48, 49, 57, 58, 64, 67, 81])
+      expect(open).not.toContain(`follow.ts:${line} `);
+  });
+
+  it('marks over five rounds at most, one link per round', () => {
+    expect(found['untyped-rounds']).toEqual({ calls: 0, open: ['src/chain.ts:23 b'] });
+  });
+
+  it('a round that only marks a return value still counts as a change', () => {
+    expect(found['untyped-return']).toEqual({ calls: 0, open: ['src/shop.ts:16 shop'] });
+  });
+});
+
 describe('posthog-react-native client in an untyped binding', () => {
   const fixture = perMutant(() => {
     const result = findSdkCalls(program('posthog-react-native/untyped-client'), descriptors);

@@ -26,10 +26,12 @@ export default tseslint.config(
   },
   {
     // The untyped-client fixtures are about code that holds the SDK client in `any` (ADR-045).
-    files: ['test/fixtures/extract/*/untyped-client/**'],
+    files: ['test/fixtures/extract/*/untyped-*/**'],
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-require-imports': 'off',
+      // untyped-edges imports a namespace member with `import x = Ns.member` (T10.2).
+      '@typescript-eslint/no-namespace': 'off',
       'prefer-const': 'off',
     },
   },
