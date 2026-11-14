@@ -360,6 +360,121 @@ describe('unresolved SDK imports (open world)', () => {
   });
 });
 
+describe('unresolved imports and untyped receivers: which path, which reason (T10.2)', () => {
+  const config = '{ "compilerOptions": { "strict": true, "moduleResolution": "bundler" } }';
+  const reasons = (s: SdkCallScan): string[] =>
+    s.openWorld.map((o) => `${o.file}:${o.line} ${o.reason.split(',')[0]}`);
+
+  it('a require of one literal name is the import; other loads are not', () => {
+    const root = temp({
+      'tsconfig.json': config,
+      'src/legacy.js': [
+        "const lite = require('posthog-js/lite');",
+        "lite.register({ till: 'front' });",
+        "const two = require('posthog-js/lite', 1);",
+        "two.capture('two_args');",
+        "const loaded = load('posthog-js/lite');",
+        "loaded.capture('loaded');",
+        "const pair = require(['posthog-js/lite']);",
+        "pair.capture('pair');",
+        '',
+      ].join('\n'),
+    });
+    expect(reasons(scan(root))).toEqual([
+      'src/legacy.js:2 `register` comes from "posthog-js/lite"',
+    ]);
+  });
+
+  it('follows eight aliases back to the import, not nine; a cycle ends', () => {
+    const chain = (n: number, v: string) =>
+      Array.from({ length: n }, (_, i) => `const ${v}${i + 1} = ${i === 0 ? 'lite' : `${v}${i}`};`);
+    const root = temp({
+      'tsconfig.json': config,
+      'src/a.ts': [
+        "import lite from 'posthog-js/lite';",
+        ...chain(8, 'a'),
+        "a8.capture('eight');",
+        '',
+      ].join('\n'),
+      'src/b.ts': [
+        "import lite from 'posthog-js/lite';",
+        ...chain(9, 'b'),
+        "b9.capture('nine');",
+        '',
+      ].join('\n'),
+      'src/c.js': ['var x = y;', 'var y = x;', "x.capture('cycle');", ''].join('\n'),
+    });
+    const r = reasons(scan(root));
+    expect(r).toContain('src/a.ts:10 `capture` comes from "posthog-js/lite"');
+    expect(r.filter((x) => x.startsWith('src/b.ts'))).toEqual([
+      'src/b.ts:11 `capture` is called on `b9`',
+    ]);
+    expect(r.filter((x) => x.startsWith('src/c.js'))).toEqual([]);
+  });
+
+  it('a member the descriptor does not name, or a name with no symbol, is nothing', () => {
+    const root = temp({
+      'tsconfig.json': config,
+      'src/a.ts': [
+        "import lite from 'posthog-js/lite';",
+        "lite.group('company', 'bookshop');",
+        'missingHelper();',
+        'declare const require: (name: string) => any;',
+        "const client: any = require('posthog-js');",
+        "client.track('not_a_posthog_member');",
+        '',
+      ].join('\n'),
+    });
+    expect(reasons(scan(root))).toEqual([]);
+  });
+
+  it('records the line of the called name for an element access', () => {
+    const root = temp({
+      'tsconfig.json': config,
+      'src/a.ts': [
+        "import lite from 'posthog-js/lite';",
+        'lite',
+        "  ['capture']('split');",
+        '',
+      ].join('\n'),
+    });
+    expect(reasons(scan(root))).toEqual(['src/a.ts:3 `capture` comes from "posthog-js/lite"']);
+  });
+});
+
+describe('the object form only for an object argument (T10.2)', () => {
+  const config = '{ "compilerOptions": { "strict": true, "moduleResolution": "bundler" } }';
+  const forms = (s: SdkCallScan): string[] =>
+    s.calls.map(
+      (c) => `${c.line} ${JSON.stringify(c.entry.event)} ${JSON.stringify(c.entry.properties)}`,
+    );
+
+  it('a spread, a missing argument or a union with a name keep the name form', () => {
+    const root = temp({
+      'tsconfig.json': config,
+      'src/a.ts': [
+        "import * as amplitude from '@amplitude/analytics-browser';",
+        'declare const events: [string];',
+        'declare const flag: boolean;',
+        "amplitude.track({ event_type: 'object_form' }, ...events);",
+        'amplitude.track(...events);',
+        'amplitude.track();',
+        "amplitude.track(flag ? 'name_form' : { event_type: 'object_form' });",
+        "amplitude.track('name_form', { aisle: 'poetry' });",
+        '',
+      ].join('\n'),
+    });
+    const f = forms(scan(root));
+    expect(f[0]).toBe('4 "args[0].event_type" ["args[0].event_properties","args[1]"]');
+    expect(f.slice(1).map((x) => x.split(' ').slice(0, 2).join(' '))).toEqual([
+      '5 "args[0]"',
+      '6 "args[0]"',
+      '7 "args[0]"',
+      '8 "args[0]"',
+    ]);
+  });
+});
+
 describe('match helpers', () => {
   it('names the package of a specifier', () => {
     expect(packageName('posthog-js/react')).toBe('posthog-js');
