@@ -123,6 +123,58 @@ describe('resolveSuperProperties: person properties', () => {
   });
 });
 
+describe('resolveSuperProperties: order', () => {
+  const both = perMutant(() =>
+    ['posthog-js/super', 'posthog-react-native/people'].map((repo) => {
+      const sp = program(repo);
+      const calls = findSdkCalls(sp, descriptors).calls;
+      return {
+        forward: resolveSuperProperties(sp, calls),
+        backward: resolveSuperProperties(sp, [...calls].reverse()),
+      };
+    }),
+  );
+  const inFileOrder = (sites: readonly { file: string; line: number }[]): boolean =>
+    sites.every(
+      (s, i) =>
+        i === 0 ||
+        (sites[i - 1] as { file: string }).file < s.file ||
+        ((sites[i - 1] as { file: string }).file === s.file &&
+          (sites[i - 1] as { line: number }).line <= s.line),
+    );
+  const byCodePoint = (names: string[]): string[] =>
+    [...names].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+
+  it('gives the same scan, names by code point and sites in file order, whatever the order of the calls', () => {
+    for (const { forward, backward } of both()) {
+      expect(JSON.stringify(backward)).toBe(JSON.stringify(forward));
+      for (const scan of [forward, backward]) {
+        const supers = Object.keys(scan.superProperties);
+        const persons = Object.keys(scan.personProperties);
+        expect(supers).toEqual(byCodePoint(supers));
+        expect(persons).toEqual(byCodePoint(persons));
+        for (const p of [
+          ...Object.values(scan.superProperties),
+          ...Object.values(scan.personProperties),
+        ])
+          expect(inFileOrder(p.sites)).toBe(true);
+        expect(inFileOrder(scan.openWorld)).toBe(true);
+      }
+    }
+  });
+
+  it('the fixtures have what the order test needs: several sites per name, on different lines', () => {
+    const [web] = both();
+    const multi = Object.values(web?.forward.superProperties ?? {}).filter(
+      (p) => new Set(p.sites.map((s) => `${s.file}:${s.line}`)).size > 1,
+    );
+    expect(multi.length).toBeGreaterThan(0);
+    expect(web?.forward.openWorld.length).toBeGreaterThan(1);
+    const names = Object.keys(web?.forward.superProperties ?? {});
+    expect(names).not.toEqual([...names].reverse());
+  });
+});
+
 describe('findIdentityCalls', () => {
   const identityScan = perMutant(() => {
     const sp = program('posthog-js/super');
