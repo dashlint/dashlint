@@ -56,8 +56,8 @@ export function checksScope(scope: Scope): boolean {
 }
 
 /**
- * Two strings: equal, different, or unknown when they differ only in case. Whether the platform
- * compares case-sensitively is open until spike V3 is reproduced in the demo (R4, T9.6).
+ * Two strings: equal, different, or unknown when they differ only in case, for a platform whose
+ * case rule was never measured (the `generic` profile; PostHog's is settled in its own profile).
  */
 export function equalStrings(filter: string, code: string): Tri {
   if (filter === code) return 'yes';

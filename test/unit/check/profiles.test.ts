@@ -108,8 +108,18 @@ describe('row 4: exact and is_not against a finite domain', () => {
     expect(posthogProfile.equal(true, false)).toBe('no');
   });
 
-  it('posthog: case and string-number-boolean coercion stay unknown until V3 is reproduced', () => {
-    expect(posthogProfile.equal('Card', 'card')).toBe('unknown');
+  it('posthog: exact is case-sensitive for text (V3 R4, reproduced in the demo)', () => {
+    expect(posthogProfile.equal('Card', 'card')).toBe('no');
+    expect(posthogProfile.equal('card', 'CARD')).toBe('no');
+    expect(posthogProfile.equal('Cash', 'Cash')).toBe('yes');
+  });
+
+  it('posthog: a case-only difference in true or false stays unknown (V3 R3 not reproduced)', () => {
+    expect(posthogProfile.equal('true', 'True')).toBe('unknown');
+    expect(posthogProfile.equal('FALSE', 'false')).toBe('unknown');
+  });
+
+  it('posthog: string-number-boolean coercion and null stay unknown', () => {
     expect(posthogProfile.equal('true', true)).toBe('unknown');
     expect(posthogProfile.equal('false', true)).toBe('unknown');
     expect(posthogProfile.equal('0', 0)).toBe('unknown');

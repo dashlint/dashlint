@@ -204,10 +204,12 @@ describe('value-is-reachable: exact', () => {
     });
   });
 
-  it('a case-only difference is unknown until V3 is reproduced (R4)', () => {
+  it('a case-only difference is dead in posthog (V3 R4, reproduced) and unknown in generic', () => {
     const r = check(filter('format', 'exact', ['Ebook']));
-    expect(r).toMatchObject({ effect: 'unknown', reasons: [VALUE_NOT_COMPARABLE] });
-    expect(value(r)?.finding).toBeUndefined();
+    expect(r.effect).toBe('dead');
+    expect(value(r)?.finding).toMatchObject({ effect: 'dead', detail: { unreachable: ['Ebook'] } });
+    const generic = check(filter('format', 'exact', ['Ebook']), context([shop()], genericProfile));
+    expect(generic).toMatchObject({ effect: 'unknown', reasons: [VALUE_NOT_COMPARABLE] });
   });
 
   it('negative control: "true" against [true, false] is unknown, never dead, in both profiles', () => {
@@ -248,7 +250,7 @@ describe('value-is-reachable: exact', () => {
   });
 
   it('an unreachable value next to an undecided one: degraded, with the reason', () => {
-    const r = check(filter('format', 'exact', ['audiobook', 'Ebook']));
+    const r = check(filter('format', 'exact', ['audiobook', 0]));
     expect(r.effect).toBe('degraded');
     expect(value(r)).toMatchObject({
       effect: 'degraded',
@@ -258,7 +260,7 @@ describe('value-is-reachable: exact', () => {
   });
 
   it('a reachable value next to an undecided one: unknown', () => {
-    const r = check(filter('format', 'exact', ['ebook', 'Ebook']));
+    const r = check(filter('format', 'exact', ['ebook', 0]));
     expect(r).toMatchObject({ effect: 'unknown', reasons: [VALUE_NOT_COMPARABLE] });
   });
 
