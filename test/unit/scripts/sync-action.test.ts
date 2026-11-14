@@ -140,6 +140,17 @@ describe('sync-action run', () => {
       'descriptors/shelf.yml',
       'descriptors/stubs/shelf.d.ts',
     ]);
+    // `.github` shares the `.git` prefix; the staging repo's own .git must be the only thing left out.
+    const all = execFileSync('git', ['-C', dest, 'ls-files'], { encoding: 'utf8' });
+    expect(all.trim().split('\n').sort()).toEqual([
+      '.github/workflows/smoke.yml',
+      'LICENSE',
+      'README.md',
+      'action.yml',
+      'descriptors/shelf.yml',
+      'descriptors/stubs/shelf.d.ts',
+      'dist/action.mjs',
+    ]);
   });
 
   it('exits 2 when --dest does not exist', () => {

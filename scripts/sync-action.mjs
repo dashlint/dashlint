@@ -12,7 +12,7 @@
 import { spawnSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { run as copyCheck } from './copy-check.mjs';
 import { run as denylistScan } from './denylist-scan.mjs';
@@ -142,9 +142,11 @@ export function run(argv, env = process.env, { files = FILES } = {}) {
       throw new Error(
         `git checkout -B ${branch} failed in ${opts.dest}: ${checkout.stderr?.trim()}`,
       );
+    // Leave out the staging repo's own .git, and only that (`.github` shares the prefix).
+    const stagingGit = join(staging, '.git');
     cpSync(staging, opts.dest, {
       recursive: true,
-      filter: (src) => !src.includes(`${staging}/.git`),
+      filter: (src) => src !== stagingGit && !src.startsWith(`${stagingGit}${sep}`),
     });
     const add = spawnSync('git', ['-C', opts.dest, 'add', '-A'], { encoding: 'utf8' });
     if (add.status !== 0) throw new Error(`git add failed in ${opts.dest}: ${add.stderr?.trim()}`);
