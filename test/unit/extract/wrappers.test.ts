@@ -330,9 +330,7 @@ describe('followWrappers: edge shapes (T10.2)', () => {
       'trackFixedLabel (src/lib/labels.ts:7)',
       'PostHog.capture',
     ]);
-    expect(add(at(edges, 'src/pages/till.ts:47').addProperties)).toEqual([
-      "$label='shelf' as any",
-    ]);
+    expect(add(at(edges, 'src/pages/till.ts:47').addProperties)).toEqual(["$label='shelf' as any"]);
     expect(add(at(edges, 'src/pages/till.ts:48').addProperties)).toEqual([]);
     expect(add(at(edges, 'src/lib/edges.ts:52').addProperties)).toEqual(['$label=args[2]']);
   });

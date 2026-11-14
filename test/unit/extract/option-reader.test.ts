@@ -90,8 +90,10 @@ describe('OptionReader: literals and types', () => {
 describe('OptionReader: const aliases', () => {
   it('follows a const, and an imported-style chain up to eight steps', () => {
     const chain = (n: number) =>
-      ['const c0 = { k: true };', ...Array.from({ length: n }, (_, i) => `const c${i + 1} = c${i};`)]
-        .join('\n');
+      [
+        'const c0 = { k: true };',
+        ...Array.from({ length: n }, (_, i) => `const c${i + 1} = c${i};`),
+      ].join('\n');
     expect(readIn(chain(7), 'c7', ['k'])).toEqual(val(true));
     expect(readIn(chain(8), 'c8', ['k'])).toEqual(
       unknown('the options are `c0`, not an object literal'),

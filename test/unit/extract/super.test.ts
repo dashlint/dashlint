@@ -184,7 +184,7 @@ describe('findIdentityCalls', () => {
   beforeEach(() => {
     identity = identityScan();
   });
-  const at =(file: string, line: number) =>
+  const at = (file: string, line: number) =>
     identity.find((c) => c.file === file && c.line === line);
 
   it('records reset and identify with the file and line of the call', () => {

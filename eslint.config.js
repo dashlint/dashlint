@@ -33,5 +33,13 @@ export default tseslint.config(
       'prefer-const': 'off',
     },
   },
+  {
+    // The wrapper edge fixture is about overloads and values the tracer cannot type (T10.2).
+    files: ['test/fixtures/extract/posthog-js/wrappers-edges/**'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/unified-signatures': 'off',
+    },
+  },
   eslintConfigPrettier,
 );

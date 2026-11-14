@@ -145,7 +145,9 @@ describe('segment-analytics-next installed', { timeout: 30000 }, () => {
 });
 
 describe('segment-analytics-react-native with the stub', { timeout: 30000 }, () => {
-  const fixture = perMutant(() => extract('segment-analytics-react-native/calls', ['ios', 'android']));
+  const fixture = perMutant(() =>
+    extract('segment-analytics-react-native/calls', ['ios', 'android']),
+  );
   let catalog: Extracted['catalog'];
   beforeEach(() => {
     ({ catalog } = fixture());

@@ -49,7 +49,7 @@ export function openTill(till: Till): void {
   storyTrack('story_sent');
   level5('five_deep');
   level6('six_deep');
-  trackTag('same_line_a'); trackTag('same_line_b');
+  void [trackTag('same_line_a'), trackTag('same_line_b')];
 }
 
 export function readDeep(): void {
