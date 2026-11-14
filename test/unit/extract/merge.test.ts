@@ -7,6 +7,7 @@ import {
   eventFact,
   extractCatalog,
   mergeCatalogs,
+  nameResolutionRate,
   personPropertyFact,
   propertyFact,
   type BuiltinTables,
@@ -280,6 +281,55 @@ describe('negative control: an open site keeps "no" unknown', () => {
       platforms: [],
     });
     expect(eventFact(mergeCatalogs([open, closed], NO_TABLES), 'book_shelved').fact).toBe('yes');
+  });
+
+  it('an open template site covers only the names it can match (ADR-061)', () => {
+    const site = (prefix?: string, suffix?: string) => ({
+      file: 'mobile/t.ts',
+      line: 2,
+      kind: 'event-name' as const,
+      reason: 'event name is a template with a part of type `string`',
+      ...(prefix !== undefined && { prefix }),
+      ...(suffix !== undefined && { suffix }),
+    });
+    const withSites = (...openWorld: ReturnType<typeof site>[]) =>
+      mergeCatalogs(
+        [
+          closed,
+          mobile({
+            coverage: {
+              callSites: 10,
+              literalNameSites: 10 - openWorld.length,
+              openSites: openWorld.length,
+              nameResolutionRate: nameResolutionRate(10 - openWorld.length, 10),
+            },
+            openWorld,
+          }),
+        ],
+        NO_TABLES,
+      );
+    const fact = (m: ReturnType<typeof withSites>, name: string) => eventFact(m, name).fact;
+    const prefixed = withSites(site('shared_via_'));
+    expect(fact(prefixed, 'shared_via_email')).toBe('unknown');
+    expect(eventFact(prefixed, 'shared_via_email').unknown).toEqual(['open-event-name']);
+    expect(fact(prefixed, 'book_burned')).toBe('no');
+    // An empty part sends the fixed text alone.
+    expect(fact(prefixed, 'shared_via_')).toBe('unknown');
+    const suffixed = withSites(site(undefined, '_redeemed'));
+    expect(fact(suffixed, 'coupon_redeemed')).toBe('unknown');
+    expect(fact(suffixed, 'coupon_redeemed_late')).toBe('no');
+    const both = withSites(site('gift_', '_wrapped'));
+    expect(fact(both, 'gift_book_wrapped')).toBe('unknown');
+    expect(fact(both, 'gift_book')).toBe('no');
+    expect(fact(both, 'book_wrapped')).toBe('no');
+    // Head and tail overlap in a name too short to hold both.
+    expect(fact(withSites(site('ab', 'ba')), 'aba')).toBe('no');
+    expect(fact(withSites(site('ab', 'ba')), 'abba')).toBe('unknown');
+    // Negative control: a plain open site still keeps every "no" unknown.
+    expect(fact(withSites(site()), 'book_burned')).toBe('unknown');
+    expect(fact(withSites(site('shared_via_'), site()), 'book_burned')).toBe('unknown');
+    // Any one matching site is enough.
+    expect(fact(withSites(site('shared_via_'), site('book_')), 'book_burned')).toBe('unknown');
   });
 
   it('a source below 70% name resolution gives no event-level "no" (D9)', () => {

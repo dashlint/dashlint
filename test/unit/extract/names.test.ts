@@ -155,6 +155,39 @@ describe('resolveEventNames: open world', () => {
   });
 });
 
+describe('resolveEventNames: open names keep their fixed head and tail (ADR-061)', () => {
+  const s = names('posthog-js/open-templates');
+  const bounds = Object.fromEntries(
+    s.openWorld.map((o) => [`${o.line}`, { prefix: o.prefix, suffix: o.suffix }]),
+  );
+
+  it('a template with a `string` part keeps its literal head and tail', () => {
+    expect(bounds['15']).toEqual({ prefix: 'shared_via_', suffix: undefined });
+    expect(bounds['16']).toEqual({ prefix: undefined, suffix: '_coupon_redeemed' });
+    expect(bounds['17']).toEqual({ prefix: 'gift_', suffix: '_wrapped' });
+    // Through a `string` wrapper parameter, at the wrapper's call site.
+    expect(bounds['23']).toEqual({ prefix: 'lent_to_', suffix: undefined });
+  });
+
+  it('a pattern template type keeps its head and tail', () => {
+    expect(bounds['20']).toEqual({ prefix: 'review_', suffix: '_posted' });
+  });
+
+  it('negative control: a template with no literal text, or `string`, has no bounds', () => {
+    for (const line of ['18', '19', '21', '22']) {
+      expect(bounds[line], line).toEqual({ prefix: undefined, suffix: undefined });
+      expect(Object.keys(s.openWorld.find((o) => `${o.line}` === line) ?? {})).not.toContain(
+        'prefix',
+      );
+    }
+  });
+
+  it('every open template is still an open site, counted once', () => {
+    expect(s.openWorld.map((o) => o.line)).toEqual([15, 16, 17, 18, 19, 20, 21, 22, 23]);
+    expect(s.coverage).toMatchObject({ callSites: 10, literalNameSites: 1, openSites: 9 });
+  });
+});
+
 describe('resolveEventNames: other sources', () => {
   it('a member with a fixed name gives it (React Native screen)', () => {
     const n = named(names('posthog-react-native/calls'));

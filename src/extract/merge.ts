@@ -343,14 +343,32 @@ function hasPrefix(name: string, prefixes: readonly string[]): boolean {
   return prefixes.some((p) => name.startsWith(p));
 }
 
+/** Whether an open site's fixed head and tail rule `name` out (ADR-061); a plain one never does. */
+function cannotSend(o: OpenWorldSite, name: string): boolean {
+  if (o.kind !== 'event-name') return false;
+  const { prefix = '', suffix = '' } = o;
+  return (
+    name.length < prefix.length + suffix.length ||
+    !name.startsWith(prefix) ||
+    !name.endsWith(suffix)
+  );
+}
+
+/** The open sites of a catalog that may send `name`: every one but those whose bounds rule it out. */
+function openSitesFor(c: Catalog, name: string): number {
+  return c.coverage.openSites - c.openWorld.filter((o) => cannotSend(o, name)).length;
+}
+
 function unknown(reasons: Iterable<UnknownReason>): UnknownReason[] {
   return [...new Set(reasons)].sort(byCodePoint);
 }
 
 /**
  * Whether the code sends an event (spec 6.3.1): "yes" with a site or as a sent builtin in any
- * catalog; "no" only when every catalog is closed (no open event-name site, no crashed file, at
- * least 70% of names resolved, D9) and no builtin of any catalog may send it; otherwise "unknown".
+ * catalog; "no" only when every catalog is closed (no open event-name site that may send it, no
+ * crashed file, at least 70% of names resolved, D9) and no builtin of any catalog may send it;
+ * otherwise "unknown". An open template site may send only names with its fixed head and tail
+ * (ADR-061).
  */
 export function eventFact(m: MergedCatalogs, name: string): EventCodeFact {
   const event = Object.hasOwn(m.events, name) ? m.events[name] : undefined;
@@ -358,7 +376,7 @@ export function eventFact(m: MergedCatalogs, name: string): EventCodeFact {
   const reasons: UnknownReason[] = [];
   if (m.sources.length === 0) reasons.push('no-catalog');
   for (const { catalog: c, unknownTables, unknownNames } of m.sources) {
-    if (c.coverage.openSites > 0) reasons.push('open-event-name');
+    if (openSitesFor(c, name) > 0) reasons.push('open-event-name');
     if ((c.coverage.crashedFiles ?? 0) > 0) reasons.push('crashed-file');
     if (c.coverage.nameResolutionRate < MIN_NAME_RESOLUTION_RATE)
       reasons.push('low-name-resolution');

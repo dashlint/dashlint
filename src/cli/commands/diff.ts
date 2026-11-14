@@ -109,18 +109,17 @@ export function diffRun(opts: DiffOptions, ctx: CommandContext): CommentInput {
   let diff: DiffResult;
   let requirements: Requirements;
   let headCatalogs: readonly Catalog[];
+  let baseCatalogs: readonly Catalog[];
   const baseFile = resolve(ctx.cwd, base);
   if (base.toLowerCase().endsWith('.json') && existsSync(baseFile) && statSync(baseFile).isFile()) {
     // A catalog file as the base: no git, the requirements' change and renames are unknown.
     if (headRef !== undefined) throw usageError(cliMessages.diffHeadNeedsGit);
     requirements = readRequirements(config.requirements);
     headCatalogs = configCatalogs(ctx, config, all);
+    baseCatalogs = [readCatalog(baseFile), ...config.catalogs.map(readCatalog)];
     diff = diffResults({
       requirements,
-      base: {
-        catalogs: [readCatalog(baseFile), ...config.catalogs.map(readCatalog)],
-        commit: null,
-      },
+      base: { catalogs: baseCatalogs, commit: null },
       head: { catalogs: headCatalogs, commit: null },
       ...common,
     });
@@ -160,6 +159,7 @@ export function diffRun(opts: DiffOptions, ctx: CommandContext): CommentInput {
       throw e;
     }
     headCatalogs = byCommit.get(headCommit) ?? [];
+    baseCatalogs = byCommit.get(baseCommit) ?? [];
   }
 
   const head = checkModel(ctx, {
@@ -168,6 +168,7 @@ export function diffRun(opts: DiffOptions, ctx: CommandContext): CommentInput {
     requirements,
     ignore: config.ignore,
     all,
+    base: baseCatalogs,
   });
   return { diff, head, requirementsFile: slash(relative(config.dir, config.requirements)) };
 }

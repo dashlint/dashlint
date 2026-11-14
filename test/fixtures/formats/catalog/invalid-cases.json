@@ -71,6 +71,10 @@
     "path": "/events/wishlist_shared/properties/genre_id/values/type",
     "rule": "open values have a primitive type"
   },
+  "open-world-empty-prefix.json": {
+    "path": "/openWorld/0/prefix",
+    "rule": "an open-world prefix is never empty: absent means any start (ADR-061)"
+  },
   "open-world-kind-unknown.json": {
     "path": "/openWorld/0/kind",
     "rule": "open-world kinds are listed"

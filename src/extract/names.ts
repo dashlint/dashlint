@@ -32,7 +32,10 @@ export interface NameScan {
   coverage: NameCoverage;
 }
 
-type Names = { names: string[] } | { reason: string };
+/** An open name keeps the fixed head and tail it always has, when it has one (ADR-061). */
+type Open = { reason: string } & Pick<OpenWorldSite, 'prefix' | 'suffix'>;
+
+type Names = { names: string[] } | Open;
 
 const NOTHING = ts.TypeFlags.Undefined | ts.TypeFlags.Null | ts.TypeFlags.Void;
 
@@ -40,8 +43,13 @@ function sorted(names: Iterable<string>): string[] {
   return [...new Set(names)].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
 }
 
-function tooMany(count: number): Names {
+function tooMany(count: number): Open {
   return { reason: `event name is one of ${count} names, more than ${MAX_NAMES}` };
+}
+
+/** `open` with the head and tail every name it can be starts and ends with; empty ones are left out. */
+function bounded(open: Open, prefix: string, suffix: string): Open {
+  return { ...open, ...(prefix && { prefix }), ...(suffix && { suffix }) };
 }
 
 /** `literalNameSites / callSites` rounded to three decimals; 1 when there is no call site. */
@@ -64,8 +72,14 @@ class NameResolver {
   ofType(type: ts.Type, at: ts.Node): Names {
     const members = type.isUnion() ? type.types : [type];
     const named = members.filter((t) => !(t.flags & NOTHING));
-    if (named.length === 0 || named.some((t) => !t.isStringLiteral()))
-      return { reason: `event name has type \`${this.typeText(type, at)}\`` };
+    if (named.length === 0 || named.some((t) => !t.isStringLiteral())) {
+      const open = { reason: `event name has type \`${this.typeText(type, at)}\`` };
+      const only = named.length === 1 ? named[0] : undefined;
+      if (!only || !(only.flags & ts.TypeFlags.TemplateLiteral)) return open;
+      // A pattern type (`shelf_${string}`) sends only names with its fixed head and tail.
+      const { texts } = only as ts.TemplateLiteralType;
+      return bounded(open, texts[0] ?? '', texts.at(-1) ?? '');
+    }
     const names = sorted(named.map((t) => (t as ts.StringLiteralType).value));
     return names.length > MAX_NAMES ? tooMany(names.length) : { names };
   }
@@ -83,19 +97,22 @@ class NameResolver {
 
   /**
    * A template expression (`\`genre_${genre}_browsed\``) has type `string` unless it is
-   * contextually typed, so it is expanded from its parts' types instead, up to MAX_NAMES.
+   * contextually typed, so it is expanded from its parts' types instead, up to MAX_NAMES. When it
+   * stays open, its literal head and tail still bound the names it can send (ADR-061).
    */
   ofTemplate(e: ts.TemplateExpression): Names {
-    let names = [e.head.text];
+    const head = e.head.text;
+    const tail = e.templateSpans.at(-1)?.literal.text ?? '';
+    let names = [head];
     for (const span of e.templateSpans) {
       const type = this.checker.getTypeAtLocation(span.expression);
       const texts = this.partTexts(type);
-      if (!texts)
-        return {
-          reason: `event name is a template with a part of type \`${this.typeText(type, span)}\``,
-        };
+      if (!texts) {
+        const reason = `event name is a template with a part of type \`${this.typeText(type, span)}\``;
+        return bounded({ reason }, head, tail);
+      }
       const count = names.length * new Set(texts).size;
-      if (count > MAX_NAMES) return tooMany(count);
+      if (count > MAX_NAMES) return bounded(tooMany(count), head, tail);
       names = names.flatMap((n) => texts.map((t) => n + t + span.literal.text));
     }
     return { names: sorted(names) };
@@ -153,7 +170,7 @@ export function resolveEventNames(sp: SourceProgram, scan: WrapperScan): NameSca
   for (const event of scan.events) {
     const r = resolver.of(event);
     if ('names' in r) sites.push({ event, names: r.names });
-    else open.push({ file: event.file, line: event.line, kind: 'event-name', reason: r.reason });
+    else open.push({ file: event.file, line: event.line, kind: 'event-name', ...r });
   }
   // Stable: entries already in file order keep their order on the same line.
   const openWorld = [...scan.openWorld, ...open].sort(compareSites);

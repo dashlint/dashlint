@@ -58,6 +58,10 @@ export interface OpenWorldSite {
   line: number;
   kind: OpenWorldKind;
   reason: string;
+  /** An `event-name` site's fixed head: it can only send names that start with it (ADR-061). */
+  prefix?: string;
+  /** An `event-name` site's fixed tail: it can only send names that end with it (ADR-061). */
+  suffix?: string;
 }
 
 export interface EventSite {

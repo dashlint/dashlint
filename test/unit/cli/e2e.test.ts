@@ -334,6 +334,27 @@ for (const [mode, runner] of [
         expect(git(repo, 'worktree', 'list').split('\n')).toHaveLength(1);
       });
 
+      it('a renamed event PostHog saw: the comment names the rename, not another producer', async () => {
+        // ADR-060: the head report the comment reads is checked as the diff's verdicts are.
+        const seen = JSON.parse(REQUIREMENTS) as Record<string, unknown>;
+        seen['source'] = { platform: 'posthog', pulledAt: '2026-11-14T00:00:00.000Z' };
+        seen['observed'] = {
+          windowDays: 7,
+          events: { wishlist_shared: { defined: true, lastSeenAt: '2026-11-13T00:00:00.000Z' } },
+        };
+        commit(repo, 'pull', { 'dashlint.requirements.json': JSON.stringify(seen, null, 2) });
+        renamePr();
+        const r = await bin(['diff', '--base', 'HEAD~1', '--format', 'markdown'], repo);
+        expect(r.code).toBe(1);
+        expect(r.out).toContain(
+          `| ${commentText.renamed('wishlist_shared', 'wishlist_sent', 'web/src/shelf.ts:4')} | `,
+        );
+        expect(r.out).not.toContain(commentText.otherChanges);
+        const json = await bin(['diff', '--base', 'HEAD~1', '--format', 'json'], repo);
+        const report = JSON.parse(json.out) as { tiles: { id: string; verdict: string }[] };
+        expect(report.tiles.find((t) => t.id === 'insight:Wish01')?.verdict).toBe('dead');
+      });
+
       it('--format json prints the head report in mode diff', async () => {
         renamePr();
         const r = await bin(['diff', '--base', 'main~1', '--format', 'json'], repo);

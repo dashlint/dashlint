@@ -391,7 +391,10 @@ export function writeCatalog(c: Catalog): string {
           'openPersonSites',
         ]),
       ],
-      ['openWorld', c.openWorld.map((o) => fields(o, ['file', 'line', 'kind', 'reason']))],
+      [
+        'openWorld',
+        c.openWorld.map((o) => fields(o, ['file', 'line', 'kind', 'reason', 'prefix', 'suffix'])),
+      ],
       [
         'events',
         names(

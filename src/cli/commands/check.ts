@@ -67,10 +67,26 @@ export function checkModel(
     requirements: Requirements;
     ignore: readonly IgnoreEntry[];
     all: Descriptor[];
+    /**
+     * A diff's base catalogs: sightings of what the change removes are not "produced elsewhere"
+     * in the head's report, as in the diff's own verdicts (ADR-060).
+     */
+    base?: readonly Catalog[];
   },
 ): ReportModel {
   const { catalogs, requirements } = input;
-  const checks = checkContext(catalogs, requirements, builtinTables(input.all));
+  const tables = builtinTables(input.all);
+  const head = checkContext(catalogs, requirements, tables);
+  const checks =
+    input.base === undefined
+      ? head
+      : {
+          ...head,
+          facts: {
+            ...head.facts,
+            removedBy: checkContext(input.base, requirements, tables).facts.code,
+          },
+        };
   const now = new Date(ctx.now?.() ?? Date.now());
   const outcome = applyIgnore(
     requirements,

@@ -84,7 +84,15 @@
           "file": { "$ref": "#/$defs/filePath" },
           "line": { "$ref": "#/$defs/line" },
           "kind": { "enum": ["event-name", "properties", "unresolved-import", "file-error"] },
-          "reason": { "$ref": "#/$defs/nonEmpty" }
+          "reason": { "$ref": "#/$defs/nonEmpty" },
+          "prefix": {
+            "description": "An event-name site can only send names that start with this; absent means any start.",
+            "$ref": "#/$defs/nonEmpty"
+          },
+          "suffix": {
+            "description": "An event-name site can only send names that end with this; absent means any end.",
+            "$ref": "#/$defs/nonEmpty"
+          }
         }
       }
     },
