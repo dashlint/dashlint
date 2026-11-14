@@ -74,7 +74,7 @@ function propertyName(name: ts.PropertyName): string | undefined {
   return undefined;
 }
 
-class OptionReader {
+export class OptionReader {
   constructor(private readonly checker: ts.TypeChecker) {}
 
   private fromType(node: ts.Expression): OptionValue {
@@ -205,7 +205,7 @@ function declarationKey(decl: ts.Node): { container: string; member: string } | 
  * The options argument of a call at `args[i]`, or a reason it cannot be known. Given several
  * positions, the last one the call passes holds the options (ADR-055).
  */
-function optionsArgument(
+export function optionsArgument(
   args: readonly ts.Expression[] | undefined,
   path: string | readonly string[],
 ): InitOptions {

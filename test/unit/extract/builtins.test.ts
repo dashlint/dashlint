@@ -166,6 +166,34 @@ describe('resolveBuiltins: options with a spread, and two SDKs in one source', (
   });
 });
 
+describe('findInitSites: provider props and spread arguments', () => {
+  it('reads each provider prop shape into the init options', () => {
+    const scan = builtins('posthog-react-native/provider-forms');
+    expect(scan.inits.map((i) => [i.line, i.options.kind])).toEqual([
+      [8, 'unknown'],
+      [13, 'none'],
+      [16, 'unknown'],
+      [22, 'unknown'],
+      [28, 'expression'],
+    ]);
+    const reasons = scan.inits.map((i) => (i.options.kind === 'unknown' ? i.options.reason : ''));
+    expect(reasons[0]).toBe('the provider props are in a spread');
+    expect(reasons[2]).toBe('the options prop is not an expression');
+    expect(reasons[3]).toBe('the options prop is not an expression');
+  });
+
+  it('a spread argument hides the options, so the builtins stay conditional', () => {
+    const scan = builtins('posthog-js/init-args');
+    expect(scan.inits).toHaveLength(1);
+    expect(scan.inits[0]?.options).toEqual({
+      kind: 'unknown',
+      reason: 'the options are in a spread argument',
+    });
+    expect(scan.off).not.toContain('$pageview');
+    expect(scan.builtins.conditional).toContain('$pageview');
+  });
+});
+
 describe('evaluateCondition (ADR-003)', () => {
   const site = { file: 'a.ts', line: 1 } as InitSite;
   const one = (v: OptionValue) => ({ option: () => v });
