@@ -74,7 +74,7 @@ export function satisfies(version: string, range: string): boolean {
 // ---------------------------------------------------------------------------------------------
 // Rules the schemas cannot express.
 
-const EVENT_ONLY = ['properties', 'addProperties'] as const;
+const EVENT_ONLY = ['properties', 'objectForm', 'addProperties'] as const;
 const PERSON_KEYS = ['personSet', 'personSetOnce', 'personSetFallback'] as const;
 
 function callRules(call: CallEntry, at: string): ValidationError[] {

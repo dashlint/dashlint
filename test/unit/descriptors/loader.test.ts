@@ -461,6 +461,36 @@ describe('descriptor rules', () => {
     ]);
   });
 
+  // ADR-055: Amplitude's track takes a name or an event object.
+  it('allows objectForm only with event, reading a key of the event object', () => {
+    const form =
+      '    objectForm:\n      event: args[0].event_type\n      properties: args[0].props\n';
+    expect(
+      parseDescriptor(withCall(`  - member: track\n    on: [Shelf]\n    event: args[0]\n${form}`))
+        .ok,
+    ).toBe(true);
+    expect(
+      descriptorErrors(
+        withCall(`  - member: track\n    on: [Shelf]\n    identity: reset\n${form}`),
+      ).map((e) => e.message),
+    ).toEqual(['objectForm is only allowed on a call with event']);
+    const bare = descriptorErrors(
+      withCall(
+        '  - member: track\n    on: [Shelf]\n    event: args[0]\n    objectForm:\n      event: args[0]\n',
+      ),
+    );
+    expect(bare[0]).toMatchObject({ path: '/calls/0/objectForm/event' });
+  });
+
+  it('takes init options as one position or a list of positions', () => {
+    const init = (options: string) =>
+      `${DESCRIPTOR}init:\n  - member: init\n    on: [Shelf]\n    options: ${options}\n`;
+    expect(parseDescriptor(init('args[1]')).ok).toBe(true);
+    expect(parseDescriptor(init('\n      - args[1]\n      - args[2]')).ok).toBe(true);
+    expect(parseDescriptor(init('\n      - args[1]')).ok).toBe(false);
+    expect(parseDescriptor(init('\n      - args[1]\n      - opts')).ok).toBe(false);
+  });
+
   it('needs personSet for personSetFallback', () => {
     const errors = descriptorErrors(
       withCall(

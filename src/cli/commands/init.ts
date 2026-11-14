@@ -148,8 +148,9 @@ export function configText(detection: Detection, all: readonly Descriptor[]): st
   ];
   if (detection.sources.length === 0)
     lines.push(
-      `# No app here depends on ${packages}. Add one source per app that sends`,
-      '# events, for example:',
+      '# No app here depends on an SDK dashlint reads:',
+      `# ${packages}.`,
+      '# Add one source per app that sends events, for example:',
       '#   - name: web',
       '#     path: web',
       '#     platform: web',

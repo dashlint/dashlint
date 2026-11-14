@@ -152,6 +152,31 @@ class ImportTracer {
   }
 }
 
+const OBJECT_TYPE = ts.TypeFlags.Object | ts.TypeFlags.NonPrimitive | ts.TypeFlags.Intersection;
+
+/**
+ * The entry as this call uses it: its object form (ADR-055) when the argument the form reads from
+ * has an object type, so `track({ event_type: "x" })` reads the name from `event_type`. A name,
+ * `any`, a union with a string, a spread or a missing argument keep the plain form, where a
+ * non-literal name is open world.
+ */
+function asCalled(entry: MemberCall, call: ts.CallExpression, checker: ts.TypeChecker): MemberCall {
+  const form = entry.objectForm;
+  if (!form) return entry;
+  const index = Number(/^args\[(\d+)\]/.exec(form.event)?.[1] ?? NaN);
+  const args = call.arguments.slice(0, index + 1);
+  const arg = call.arguments[index];
+  if (!arg || args.some((a) => ts.isSpreadElement(a))) return entry;
+  const type = checker.getNonNullableType(checker.getTypeAtLocation(arg));
+  const parts = type.isUnion() ? type.types : [type];
+  if (!parts.every((t) => (t.flags & OBJECT_TYPE) !== 0)) return entry;
+  const asObject: MemberCall = { ...entry, event: form.event };
+  delete asObject.objectForm;
+  delete asObject.properties;
+  if (form.properties !== undefined) asObject.properties = form.properties;
+  return asObject;
+}
+
 /**
  * Every call in the source's analysed files whose resolved declaration is an SDK member a
  * descriptor describes, and the calls that come from an unresolved SDK import (open world).
@@ -195,7 +220,13 @@ export function findSdkCalls(sp: SourceProgram, descriptors: readonly Descriptor
           const pkg = key ? packageOf(declaration) : undefined;
           const match = key && pkg ? matchMember(ordered, pkg, key) : undefined;
           if (match)
-            calls.push({ call: node, file, line: lineOf(calledNode(node.expression)), ...match });
+            calls.push({
+              call: node,
+              file,
+              line: lineOf(calledNode(node.expression)),
+              ...match,
+              entry: asCalled(match.entry, node, checker),
+            });
         } else {
           const name = calledName(node.expression, checker);
           const described = (pkg: string | undefined): Descriptor | undefined =>

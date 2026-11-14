@@ -84,7 +84,7 @@
     "container": {
       "type": "string",
       "pattern": "^(?:\\(module\\)|[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*)$",
-      "description": "A class or interface name, optionally followed by property names whose type is an object type (`PostHog.people`), or `(module)` for a function declared at module level."
+      "description": "A class or interface name, optionally followed by property names whose type is an object type (`PostHog.people`), or `(module)` for a function (or a `const` of a function type) declared at module level."
     },
     "relativeFile": {
       "type": "string",
@@ -112,7 +112,13 @@
               "description": "The method, or `constructor` for `new`, matched by its resolved declaration."
             },
             "on": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/container" } },
-            "options": { "$ref": "#/$defs/argPath" }
+            "options": {
+              "anyOf": [
+                { "$ref": "#/$defs/argPath" },
+                { "type": "array", "minItems": 2, "items": { "$ref": "#/$defs/argPath" } }
+              ],
+              "description": "The options argument, or several positions of which the last one the call passes holds them (`init(key, options)` and `init(key, userId, options)`)."
+            }
           }
         },
         {
@@ -168,6 +174,25 @@
             { "type": "array", "minItems": 2, "items": { "$ref": "#/$defs/argPath" } }
           ],
           "description": "The properties argument, or several merged in order (a later key overwrites an earlier one)."
+        },
+        "objectForm": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["event"],
+          "description": "The same member called with an event object instead of a name (Amplitude's `track({ event_type })`): used when the argument `event` reads from has an object type.",
+          "properties": {
+            "event": {
+              "type": "string",
+              "pattern": "^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)+$",
+              "description": "The key of the event object that holds the name: `args[0].event_type`."
+            },
+            "properties": {
+              "anyOf": [
+                { "$ref": "#/$defs/argPath" },
+                { "type": "array", "minItems": 2, "items": { "$ref": "#/$defs/argPath" } }
+              ]
+            }
+          }
         },
         "addProperties": {
           "type": "object",

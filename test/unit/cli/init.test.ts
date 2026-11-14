@@ -188,9 +188,14 @@ describe('dashlint init: the command', () => {
     const r = await runIn(dir, ['init']);
     expect(r.code).toBe(0);
     expect(r.err).toContain('with no sources');
-    // The packages of the shipped descriptors (ADR-052), Mixpanel's since T4.2.
+    // The packages of the shipped descriptors (ADR-052), Mixpanel's since T4.2, Amplitude's since
+    // T4.3, on a line of their own.
     expect(read(dir)).toContain(
-      '# No app here depends on mixpanel-browser, mixpanel-react-native, posthog-js, posthog-react-native.',
+      [
+        '# No app here depends on an SDK dashlint reads:',
+        '# @amplitude/analytics-browser, @amplitude/analytics-react-native, mixpanel-browser, mixpanel-react-native, posthog-js, posthog-react-native.',
+        '# Add one source per app that sends events, for example:',
+      ].join('\n'),
     );
     expect(loadConfig(join(dir, 'dashlint.config.yml')).sources).toEqual([]);
   });

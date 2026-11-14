@@ -201,14 +201,24 @@ function declarationKey(decl: ts.Node): { container: string; member: string } | 
   return undefined;
 }
 
-/** The options argument of a call at `args[i]`, or a reason it cannot be known. */
-function optionsArgument(args: readonly ts.Expression[] | undefined, path: string): InitOptions {
-  const index = Number(/^args\[(\d+)\]/.exec(path)?.[1] ?? NaN);
+/**
+ * The options argument of a call at `args[i]`, or a reason it cannot be known. Given several
+ * positions, the last one the call passes holds the options (ADR-055).
+ */
+function optionsArgument(
+  args: readonly ts.Expression[] | undefined,
+  path: string | readonly string[],
+): InitOptions {
   const list = args ?? [];
+  const indexes = [path]
+    .flat()
+    .map((p) => Number(/^args\[(\d+)\]/.exec(p)?.[1] ?? NaN))
+    .sort((a, b) => a - b);
   const spread = list.findIndex((a) => ts.isSpreadElement(a));
-  if (spread >= 0 && spread <= index)
+  if (spread >= 0 && spread <= (indexes.at(-1) ?? 0))
     return { kind: 'unknown', reason: 'the options are in a spread argument' };
-  const node = list[index];
+  const index = [...indexes].reverse().find((i) => list[i] !== undefined);
+  const node = index === undefined ? undefined : list[index];
   return node ? { kind: 'expression', node } : { kind: 'none' };
 }
 

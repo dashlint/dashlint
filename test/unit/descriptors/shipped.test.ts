@@ -44,7 +44,31 @@ const MIXPANEL_BROWSER_SHARED = [
   'track_links',
   'track_with_groups',
 ];
+// Amplitude (T4.3, ADR-055): V1's rows less groupIdentify and setGroup (group calls, as for
+// Mixpanel) and Identify's add, append and unset; `(module)` is a module-level const.
+const AMPLITUDE_EVENTS = ['logEvent', 'track'];
+const amplitude = (client: string, extra: string[]) =>
+  [
+    ...[...AMPLITUDE_EVENTS, 'identify', 'reset', 'setUserId', ...extra].map(
+      (m) => `(module).${m}`,
+    ),
+    ...[...AMPLITUDE_EVENTS, 'identify'].map((m) => `AmplitudeCore.${m}`),
+    ...[...AMPLITUDE_EVENTS, 'identify'].map((m) => `CoreClient.${m}`),
+    'Client.reset',
+    'Client.setUserId',
+    ...['identify', 'reset', 'setUserId', ...extra].map((m) => `${client}.${m}`),
+    'IIdentify.set',
+    'IIdentify.setOnce',
+    'Identify.set',
+    'Identify.setOnce',
+  ].sort();
+const AMPLITUDE_SCREEN = ['trackScreenView', 'trackScreenViewOnNavigationStateChange'];
 const V1_SURFACE: Record<string, string[]> = {
+  'amplitude-browser': amplitude('AmplitudeBrowserLite', []),
+  'amplitude-react-native': [
+    ...amplitude('AmplitudeReactNative', AMPLITUDE_SCREEN),
+    ...AMPLITUDE_SCREEN.map((m) => `ReactNativeClient.${m}`),
+  ].sort(),
   'mixpanel-browser': [
     ...MIXPANEL_BROWSER_SHARED.map((m) => `(module).${m}`),
     ...MIXPANEL_BROWSER_SHARED.map((m) => `Mixpanel.${m}`),
@@ -95,8 +119,10 @@ function surfaceOf(d: Descriptor): string[] {
 }
 
 describe('shipped descriptors', () => {
-  it('are the PostHog and Mixpanel SDKs, loaded without errors', () => {
+  it('are the PostHog, Mixpanel and Amplitude SDKs, loaded without errors', () => {
     expect(descriptors.map((d) => d.sdk)).toEqual([
+      'amplitude-browser',
+      'amplitude-react-native',
       'mixpanel-browser',
       'mixpanel-react-native',
       'posthog-js',
@@ -106,6 +132,8 @@ describe('shipped descriptors', () => {
     expect(bySdk.get('posthog-react-native')?.platforms).toEqual(['ios', 'android']);
     expect(bySdk.get('mixpanel-browser')?.platforms).toEqual(['web']);
     expect(bySdk.get('mixpanel-react-native')?.platforms).toEqual(['ios', 'android']);
+    expect(bySdk.get('amplitude-browser')?.platforms).toEqual(['web']);
+    expect(bySdk.get('amplitude-react-native')?.platforms).toEqual(['ios', 'android']);
   });
 
   it.each(Object.entries(V1_SURFACE))('%s describes exactly the V1 members', (sdk, members) => {
@@ -138,10 +166,15 @@ describe('shipped descriptors', () => {
     });
 
     it('carries the upstream licence header in its stub', () => {
-      expect(stubText).toMatch(/Licensed under the Apache License, Version 2\.0/);
-      if (d.sdk.startsWith('posthog-'))
-        expect(stubText).toMatch(/MIT License\. Copyright \(c\) 2022 PostHog/);
-      else expect(stubText).toMatch(/Copyright 20\d\d Mixpanel, Inc\./);
+      if (d.sdk.startsWith('amplitude-')) {
+        expect(stubText).toMatch(/MIT License\. Copyright \(c\) 2022 Amplitude Analytics\./);
+        expect(stubText).toMatch(/The above copyright notice\s+\/\/ and this permission notice/);
+      } else {
+        expect(stubText).toMatch(/Licensed under the Apache License, Version 2\.0/);
+        if (d.sdk.startsWith('posthog-'))
+          expect(stubText).toMatch(/MIT License\. Copyright \(c\) 2022 PostHog/);
+        else expect(stubText).toMatch(/Copyright 20\d\d Mixpanel, Inc\./);
+      }
       expect(stubText).toContain('Modified by dashlint');
     });
 
@@ -200,6 +233,49 @@ describe('shipped descriptors', () => {
     expect(when('$mp_web_page_view')).toEqual({ unknown: expect.stringContaining('default off') });
     expect(when('$mp_page_leave')).toEqual({ unknown: expect.stringContaining('page_leave') });
     expect(descriptorOf('mixpanel-react-native').builtins.events).toEqual([]);
+  });
+
+  // ADR-055: the V2 drafts name an autocapture key by its last segment; the option an init call
+  // writes is `autocapture.<key>`, and React Native sessions depend on two options.
+  it('reads the Amplitude autocapture switches under `autocapture`', () => {
+    const when = (sdk: string, name: string) => {
+      const b = descriptorOf(sdk).builtins;
+      return [...b.events, ...b.properties, ...b.personProperties].find((x) => x.name === name)
+        ?.when;
+    };
+    expect(when('amplitude-browser', '[Amplitude] Page Viewed')).toEqual({
+      option: 'autocapture.pageViews',
+      not: false,
+    });
+    expect(when('amplitude-browser', '[Amplitude] Element Clicked')).toEqual({
+      option: 'autocapture.elementInteractions',
+      is: true,
+    });
+    expect(when('amplitude-browser', 'gclid')).toEqual({
+      option: 'autocapture.attribution',
+      not: false,
+    });
+    expect(when('amplitude-browser', 'platform')).toEqual({
+      option: 'trackingOptions.platform',
+      not: false,
+    });
+    expect(when('amplitude-react-native', '[Amplitude] Application Opened')).toEqual({
+      option: 'autocapture.appLifecycles',
+      is: true,
+    });
+    expect(when('amplitude-react-native', 'session_start')).toEqual({
+      unknown: expect.stringContaining('trackingSessionEvents'),
+    });
+    for (const sdk of ['amplitude-browser', 'amplitude-react-native']) {
+      const b = descriptorOf(sdk).builtins;
+      const options = [...b.events, ...b.properties, ...b.personProperties].flatMap((x) =>
+        typeof x.when === 'object' && 'option' in x.when ? [x.when.option] : [],
+      );
+      expect(
+        options.filter((o) => !o.includes('.')),
+        sdk,
+      ).toEqual([]);
+    }
   });
 });
 

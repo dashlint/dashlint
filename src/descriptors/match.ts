@@ -58,19 +58,39 @@ function isPropertyHolder(node: ts.Node): node is MemberNode {
   return ts.isPropertySignature(node) || ts.isPropertyDeclaration(node);
 }
 
-/** A function declared at module level, in a file or a `declare module` block (ADR-054). */
+function atModuleLevel(statement: ts.Node): boolean {
+  const parent = statement.parent;
+  return (
+    ts.isSourceFile(parent) || (ts.isModuleBlock(parent) && ts.isStringLiteral(parent.parent.name))
+  );
+}
+
+/**
+ * A function declared at module level, in a file or a `declare module` block (ADR-054), or a
+ * module-level `const` whose type is written as a function type or an object type of call
+ * signatures (`export declare const track: (...) => ...`, `init: { (...): ...; (...): ... }`,
+ * ADR-055).
+ */
 export function moduleFunctionName(declaration: ts.Node): string | undefined {
-  if (!ts.isFunctionDeclaration(declaration) || !declaration.name) return undefined;
-  const parent = declaration.parent;
-  const moduleLevel =
-    ts.isSourceFile(parent) || (ts.isModuleBlock(parent) && ts.isStringLiteral(parent.parent.name));
-  return moduleLevel ? declaration.name.text : undefined;
+  if (ts.isFunctionDeclaration(declaration))
+    return declaration.name && atModuleLevel(declaration) ? declaration.name.text : undefined;
+  let holder: ts.Node | undefined;
+  if (ts.isFunctionTypeNode(declaration)) holder = declaration.parent;
+  else if (ts.isCallSignatureDeclaration(declaration) && ts.isTypeLiteralNode(declaration.parent))
+    holder = declaration.parent.parent;
+  if (!holder || !ts.isVariableDeclaration(holder) || !ts.isIdentifier(holder.name))
+    return undefined;
+  const list = holder.parent;
+  if (!ts.isVariableDeclarationList(list) || !(list.flags & ts.NodeFlags.Const)) return undefined;
+  return ts.isVariableStatement(list.parent) && atModuleLevel(list.parent)
+    ? holder.name.text
+    : undefined;
 }
 
 /**
  * The container and member of a resolved signature declaration: a method, a function type or
- * function expression held by a property (`set: (prop) => void`), or a module-level function
- * (container `(module)`). Anything else (a local arrow function) has no member key. Which package
+ * function expression held by a property (`set: (prop) => void`), or a module-level function or
+ * function-typed `const` (container `(module)`). Anything else (a local arrow function) has no member key. Which package
  * declares it is the caller's check, so a user's own module-level function never matches.
  */
 export function memberKey(declaration: ts.Node): MemberKey | undefined {

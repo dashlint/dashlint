@@ -9,7 +9,8 @@ export type ArgPath = string;
 
 /**
  * The container of a function declared at module level (`export function track` in
- * mixpanel-browser), called through a namespace import or a named import (ADR-054).
+ * mixpanel-browser, ADR-054, or `export declare const track: (...) => ...` in Amplitude's SDKs,
+ * ADR-055), called through a namespace import or a named import.
  */
 export const MODULE_CONTAINER = '(module)';
 
@@ -17,6 +18,12 @@ export const MODULE_CONTAINER = '(module)';
 export interface PersonSetFallback {
   from: ArgPath;
   omit: string[];
+}
+
+/** Where an event object keeps its name and properties: `args[0].event_type`. */
+export interface ObjectForm {
+  event: ArgPath;
+  properties?: ArgPath | ArgPath[];
 }
 
 /**
@@ -34,6 +41,12 @@ export interface MemberCall {
   event?: ArgPath | { literal: string };
   /** The properties argument; a list is merged in order, a later key overwriting an earlier one. */
   properties?: ArgPath | ArgPath[];
+  /**
+   * The member called with an event object instead of a name (Amplitude's `track({ event_type })`,
+   * ADR-055): used in place of `event` and `properties` when the argument `objectForm.event` reads
+   * from has an object type at the call.
+   */
+  objectForm?: ObjectForm;
   /** Properties the SDK adds to the event from other arguments, by name. */
   addProperties?: Record<string, ArgPath>;
   superProperties?: ArgPath;
@@ -61,7 +74,8 @@ export type InitEntry = InitCall | InitComponent;
 export interface InitCall {
   member: string;
   on: string[];
-  options: ArgPath;
+  /** The options argument; in a list, the last position the call passes holds them (ADR-055). */
+  options: ArgPath | ArgPath[];
 }
 
 export interface InitComponent {
