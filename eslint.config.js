@@ -9,6 +9,8 @@ export default tseslint.config(
     ignores: [
       'dist/**',
       'coverage/**',
+      '.stryker-tmp/**',
+      'reports/**',
       'test/golden/**',
       'test/fixtures/extract/posthog-js/crash/src/deep-*.ts',
       'src/formats/generated/**',

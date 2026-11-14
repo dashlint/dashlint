@@ -1,5 +1,7 @@
 dist
 coverage
+.stryker-tmp
+reports
 node_modules
 test/golden
 test/fixtures/cli/bookshop

@@ -1,7 +1,15 @@
 // T3.2: one program per source, the files it analyses and skips (spec 6.4 item 1), and where each
 // SDK's types come from (item 2, D2). The fixtures are mini repos with synthetic bookshop names.
 import { spawnSync } from 'node:child_process';
-import { chmodSync, cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  chmodSync,
+  cpSync,
+  mkdirSync,
+  mkdtempSync,
+  realpathSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -102,7 +110,8 @@ describe('SDK resolution (D2)', () => {
     const calls = captureCalls(sp, root);
     expect(calls).toHaveLength(1);
     expect(calls[0]?.declaredIn).toBe(
-      join(root, 'node_modules/posthog-js/dist/module.d.ts').replace(/\\/g, '/'),
+      // The real path: Stryker's sandbox links the fixture's node_modules to the original.
+      realpathSync(join(root, 'node_modules/posthog-js/dist/module.d.ts')).replace(/\\/g, '/'),
     );
   });
 
