@@ -124,3 +124,19 @@ export function keyed8(p: Deep): void {
 export function keyed9(p: Deep): void {
   posthog.capture(p['k']['k']['k']['k']['k']['k']['k']['k']['k']);
 }
+
+// A wrapper adding a key to its properties parameter, and a wrapper of it.
+export function trackSourced(event: string, props: { title: string }): void {
+  posthog.capture(event, { ...props, source: 'till' });
+}
+export function trackSourcedTwice(event: string): void {
+  trackSourced(event, { title: 'twice' });
+}
+
+// Properties read from a key the outer call's literal does not write.
+export function trackPayloadProps(payload: { name: string; props?: { isbn: string } }): void {
+  posthog.capture(payload.name, payload.props);
+}
+export function trackPayloadName(label: string): void {
+  trackPayloadProps({ name: label });
+}

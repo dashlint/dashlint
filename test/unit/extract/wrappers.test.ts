@@ -297,6 +297,22 @@ describe('followWrappers: edge shapes (T10.2)', () => {
     ]);
   });
 
+  it('a wrapper of a wrapper that adds a key: the literal parts pass through, the parameter is read', () => {
+    const e = at(edges, 'src/pages/more.ts:5');
+    expect(e.via).toEqual([
+      'trackSourcedTwice (src/lib/edges.ts:132)',
+      'trackSourced (src/lib/edges.ts:129)',
+      'PostHog.capture',
+    ]);
+    expect(e.properties.map(part)).toEqual(["{title: 'twice'}", "{source: 'till'}"]);
+  });
+
+  it('a key the outer literal does not write stays a read of that literal', () => {
+    const e = at(edges, 'src/pages/more.ts:6');
+    expect(e.via[0]).toBe('trackPayloadName (src/lib/edges.ts:140)');
+    expect(e.properties.map(part)).toEqual(['{ name: label }.props']);
+  });
+
   it(`follows ${8} const aliases or property reads, not ${9}`, () => {
     expect(via0('src/pages/till.ts:44')).toBe('aliased8 (src/lib/edges.ts:88)');
     expect(at(edges, 'src/pages/till.ts:56').event).toEqual({ arg: 'args[0].k.k.k.k.k.k.k.k' });
@@ -366,6 +382,10 @@ describe('followWrappers: edge shapes (T10.2)', () => {
       'trackKeyed (src/lib/edges.ts:46)',
       'trackLabelled (src/lib/labels.ts:4)',
       'trackOuter (src/lib/labels.ts:10)',
+      'trackPayloadName (src/lib/edges.ts:140)',
+      'trackPayloadProps (src/lib/edges.ts:137)',
+      'trackSourced (src/lib/edges.ts:129)',
+      'trackSourcedTwice (src/lib/edges.ts:132)',
       'trackTag (src/lib/edges.ts:38)',
       'trackUnlabelled (src/lib/labels.ts:13)',
     ]);
