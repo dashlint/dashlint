@@ -4,13 +4,20 @@ import { OptionReader, optionsArgument, type OptionValue } from '../../../src/ex
 
 const FILE = '/virtual/a.ts';
 
+// The lib files never change: parse them once for all the programs of this file (each program
+// would otherwise parse lib.es2022 again, which made these tests slow under coverage).
+const libs = new Map<string, ts.SourceFile | undefined>();
+
 /** Reads `export const target = <expr>;` in a one-file program, at `path`. */
 function readIn(prelude: string, expr: string, path: string[] = []): OptionValue {
   const text = `${prelude}\nexport const target = ${expr};\n`;
   const host = ts.createCompilerHost({});
   const original = host.getSourceFile.bind(host);
-  host.getSourceFile = (name, lang, ...rest) =>
-    name === FILE ? ts.createSourceFile(name, text, lang, true) : original(name, lang, ...rest);
+  host.getSourceFile = (name, lang, ...rest) => {
+    if (name === FILE) return ts.createSourceFile(name, text, lang, true);
+    if (!libs.has(name)) libs.set(name, original(name, lang, ...rest));
+    return libs.get(name);
+  };
   host.fileExists = (name) => name === FILE || ts.sys.fileExists(name);
   const program = ts.createProgram([FILE], { strict: true, target: ts.ScriptTarget.ES2022 }, host);
   const sf = program.getSourceFile(FILE);
