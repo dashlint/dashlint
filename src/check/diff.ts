@@ -305,12 +305,11 @@ const ALERT_BROKEN = new Set<AlertResult>([
   'invalid-target',
 ]);
 
-function evaluate(
+function evaluateIn(
+  ctx: CheckContext,
   input: DiffInput,
-  catalogs: readonly Catalog[],
   requirements: Requirements,
 ): IgnoreOutcome {
-  const ctx = input.contextFor(catalogs, requirements);
   return applyIgnore(
     requirements,
     checkTiles(ctx, requirements),
@@ -318,6 +317,14 @@ function evaluate(
     input.ignore ?? [],
     input.now,
   );
+}
+
+function evaluate(
+  input: DiffInput,
+  catalogs: readonly Catalog[],
+  requirements: Requirements,
+): IgnoreOutcome {
+  return evaluateIn(input.contextFor(catalogs, requirements), input, requirements);
 }
 
 function verdicts(o: IgnoreOutcome): Map<string, Verdict> {
@@ -360,8 +367,16 @@ function requirementsChanges(
 /** Compares the two sides (spec 6.7.5) without touching git: the base may come from a catalog file. */
 export function diffResults(input: DiffInput): DiffResult {
   const { requirements, failOn } = input;
-  const base = evaluate(input, input.base.catalogs, requirements);
-  const head = evaluate(input, input.head.catalogs, requirements);
+  const baseCtx = input.contextFor(input.base.catalogs, requirements);
+  const base = evaluateIn(baseCtx, input, requirements);
+  // The snapshot's sightings predate the change: what the base code sent and the head's no longer
+  // sends is not "produced elsewhere" on the head (ADR-060).
+  const headCtx = input.contextFor(input.head.catalogs, requirements);
+  const head = evaluateIn(
+    { ...headCtx, facts: { ...headCtx.facts, removedBy: baseCtx.facts.code } },
+    input,
+    requirements,
+  );
   const before = verdicts(base);
   const after = verdicts(head);
   const fail = FAIL_RANK[failOn];

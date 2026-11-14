@@ -42,6 +42,17 @@ export interface FactInputs {
   observed?: Observed;
   /** `source.pulledAt`: the end of the observed window. */
   pulledAt?: string;
+  /**
+   * The head of a diff only: the base's code. PostHog saw an event or property this code sends and
+   * the head's does not (or only might) because of the code the change removes, so on the head that
+   * sighting is unknown instead of "produced elsewhere" or a reason for live (ADR-060).
+   */
+  removedBy?: CodeFacts;
+}
+
+/** A sighting the removed code explains says nothing about the head (ADR-060). */
+function explained(code: Tri, base: () => CodeFact | undefined): boolean {
+  return code !== 'yes' && base()?.fact === 'yes';
 }
 
 export function factInputs(requirements: Requirements, code: CodeFacts): FactInputs {
@@ -146,9 +157,11 @@ function observedEntry(observed: Observed | undefined, name: string): ObservedEv
 /** The 6.7.1 table for an event. */
 export function eventFacts(inputs: FactInputs, name: string): EventFacts {
   const { fact, rate } = codeEvent(inputs.code, name);
-  const observed = observedEvent(inputs.observed, name, inputs.pulledAt ?? '');
-  const entry = observedEntry(inputs.observed, name);
   const code = fact.fact;
+  const observed = explained(code, () => inputs.removedBy?.event(name))
+    ? 'unknown'
+    : observedEvent(inputs.observed, name, inputs.pulledAt ?? '');
+  const entry = observedEntry(inputs.observed, name);
   if (code === 'no') {
     if (observed === 'yes') return { code, observed, status: 'live', producedElsewhere: true };
     return { code, observed, status: 'dead', basis: observed === 'no' ? 'high' : 'code-only' };
@@ -209,7 +222,9 @@ function unknownSent(code: Tri, observed: Tri, reasons: readonly string[]): Prop
 export function propertyFacts(inputs: FactInputs, event: string, key: string): PropertyFacts {
   const fact = inputs.code.property(event, key);
   const code = fact.fact;
-  const observed = seenFact(eventProperties(inputs.observed, event), key);
+  const observed = explained(code, () => inputs.removedBy?.property(event, key))
+    ? 'unknown'
+    : seenFact(eventProperties(inputs.observed, event), key);
   if (code === 'yes') return yes(code, observed, fact);
   if (observed === 'yes') return yes(code, observed);
   if (code === 'no')

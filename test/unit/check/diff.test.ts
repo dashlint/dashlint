@@ -579,6 +579,104 @@ describe('failOn and newly broken (D5)', () => {
   });
 });
 
+describe('observations the removed code explains (ADR-060)', () => {
+  // PostHog saw these events and properties in the window before the change: the base code sent them.
+  const observed = (
+    extra: Record<string, { defined: boolean; lastSeenAt: string | null }> = {},
+  ) => ({
+    windowDays: 30,
+    events: {
+      cart_viewed: { defined: true, lastSeenAt: '2026-12-17T10:00:00Z' },
+      order_completed: { defined: true, lastSeenAt: '2026-12-17T10:00:00Z' },
+      order_placed: { defined: false, lastSeenAt: null },
+      ...extra,
+    },
+    eventProperties: {
+      order_completed: { seen: ['format', 'total'], notSeen: [] },
+    },
+  });
+  const seen = (tiles: Tile[], base: Catalog, head: Catalog, failOn: FailOn = 'dead') =>
+    diffResults({
+      requirements: {
+        ...requirements(tiles),
+        source: { platform: 'posthog', pulledAt: '2026-12-18T09:00:00Z' },
+        observed: observed(),
+      },
+      base: { catalogs: [base], commit: 'b' },
+      head: { catalogs: [head], commit: 'h' },
+      contextFor,
+      failOn,
+      now: NOW,
+    });
+  const orders: Tile = {
+    id: 'insight:Ord07',
+    title: 'Orders',
+    kind: 'trends',
+    series: [ev('order_completed')],
+  };
+  const byFormat: Tile = {
+    ...orders,
+    id: 'insight:Ord08',
+    breakdown: [{ key: 'format', scope: 'event' }],
+  };
+
+  it('a renamed event PostHog sees today is newly dead, not "produced elsewhere"', () => {
+    const base = catalog({ cart_viewed: event(3), order_completed: event(9) });
+    const head = catalog({ cart_viewed: event(3), order_placed: event(9) });
+    const d = seen([orders], base, head);
+    expect(changeIds(d.worse)).toEqual([['insight:Ord07', 'live', 'dead', true]]);
+    expect(d.fails).toBe(true);
+  });
+
+  it('a property removed in the change degrades its breakdown although PostHog saw it', () => {
+    const base = catalog({ order_completed: event(9, { format: always(['paperback']) }) });
+    const head = catalog({ order_completed: event(9) });
+    const d = seen([byFormat], base, head, 'degraded');
+    expect(changeIds(d.worse)).toEqual([['insight:Ord08', 'live', 'degraded', true]]);
+  });
+
+  it('a head that only might send it (an open event name) is not checked, never "fixed"', () => {
+    const tiles: Tile[] = [{ ...orders, series: [ev('cart_viewed')] }];
+    // On the base, cart_viewed is web only on a web and ios project: one platform.
+    const iosSite = { ...(event(9).sites[0] as CatalogEvent['sites'][number]), platforms: ['ios'] };
+    const iosOnly = catalog(
+      { order_completed: { ...event(9), sites: [iosSite] } },
+      { source: { name: 'ios', root: '.', commit: null, platforms: ['ios'], sdks: [] } },
+    );
+    const base = [catalog({ cart_viewed: event(3) }), iosOnly];
+    const open = catalog(
+      {},
+      {
+        openWorld: [{ file: 'src/shop.ts', line: 3, kind: 'event-name', reason: 'open' }],
+        coverage: { ...catalog({}).coverage, openSites: 1 },
+      },
+    );
+    const d = diffResults({
+      requirements: {
+        ...requirements(tiles),
+        source: { platform: 'posthog', pulledAt: '2026-12-18T09:00:00Z' },
+        observed: observed(),
+      },
+      base: { catalogs: base, commit: 'b' },
+      head: { catalogs: [open, iosOnly], commit: 'h' },
+      contextFor,
+      failOn: 'dead',
+      now: NOW,
+    });
+    expect(changeIds(d.changed)).toEqual([['insight:Ord07', 'one-platform', 'not-checked', false]]);
+    expect(d.fixed).toEqual([]);
+  });
+
+  it('negative control: an event no code sent on either side stays produced elsewhere, live', () => {
+    const base = catalog({ cart_viewed: event(3) });
+    const head = catalog({ cart_viewed: event(4) });
+    const d = seen([orders, byFormat], base, head, 'degraded');
+    expect(d.worse).toEqual([]);
+    expect(d.fixed).toEqual([]);
+    expect(d.fails).toBe(false);
+  });
+});
+
 describe('alert changes', () => {
   it('an alert on a series that goes dead can never fire: worse; back again: fixed', () => {
     const t: Tile = {
