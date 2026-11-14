@@ -1,7 +1,8 @@
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, expect, it } from 'vitest';
-import { loadDescriptors } from '../../../src/descriptors/index.js';
+import ts from 'typescript';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { loadDescriptors, type Descriptor } from '../../../src/descriptors/index.js';
 import {
   createSourceProgram,
   followWrappers,
@@ -11,6 +12,7 @@ import {
   type PropertyPart,
   type WrapperScan,
 } from '../../../src/extract/index.js';
+import { perMutant } from '../per-mutant.js';
 
 const FIXTURES = fileURLToPath(new URL('../../fixtures/extract/', import.meta.url));
 const loaded = loadDescriptors();
@@ -42,8 +44,14 @@ function at(s: WrapperScan, where: string): EventCall {
   return found[0] as EventCall;
 }
 
-const wrappers = scan('posthog-js/wrappers');
-const shared = scan('posthog-js/wrappers-shared', 'app');
+const wrappersScan = perMutant(() => scan('posthog-js/wrappers'));
+const sharedScan = perMutant(() => scan('posthog-js/wrappers-shared', 'app'));
+let wrappers: WrapperScan;
+let shared: WrapperScan;
+beforeEach(() => {
+  wrappers = wrappersScan();
+  shared = sharedScan();
+});
 
 describe('followWrappers: posthog-js wrappers', () => {
   it('finds exactly the event sites, none inside a wrapper', () => {
@@ -214,6 +222,208 @@ describe('followWrappers: posthog-js wrappers', () => {
         ...s.openWorld.map((o) => o.reason),
       ].join('\n');
     expect(flat(again)).toBe(flat(wrappers));
+  });
+});
+
+describe('followWrappers: edge shapes (T10.2)', () => {
+  // The posthog-js capture entry given an added property from its third argument, so wrappers
+  // carry addProperties (no shipped descriptor has one on an entry whose name is an argument).
+  const labelled: Descriptor[] = descriptors.map((d) =>
+    d.sdk !== 'posthog-js'
+      ? d
+      : {
+          ...d,
+          calls: d.calls.map((c) =>
+            'member' in c && c.member === 'capture'
+              ? { ...c, addProperties: { $label: 'args[2]' } }
+              : c,
+          ),
+        },
+  );
+  const edgesScan = perMutant(() => {
+    const r = createSourceProgram({
+      repoRoot: join(FIXTURES, 'posthog-js/wrappers-edges'),
+      source: { name: 'app', path: '.' },
+      descriptors: labelled,
+    });
+    if (!r.ok) throw new Error(r.error);
+    return followWrappers(r.value, labelled);
+  });
+  let edges: WrapperScan;
+  beforeEach(() => {
+    edges = edgesScan();
+  });
+  const via0 = (where: string): string | undefined => at(edges, where).via[0];
+  const labels = (): string[] => edges.wrappers.map((w) => w.label);
+  const add = (r: EventCall['addProperties']): string[] =>
+    Object.entries(r).map(([k, v]) => `${k}=${part(v)}`);
+
+  it('overloads: the call of a function or a method reaches the body', () => {
+    expect(via0('src/pages/till.ts:30')).toBe('trackFormat (src/lib/edges.ts:7)');
+    expect(via0('src/pages/till.ts:31')).toBe('Till.ring (src/lib/edges.ts:16)');
+  });
+
+  it('names a private or computed method (computed), a class expression method by itself', () => {
+    expect(via0('src/lib/edges.ts:26')).toBe('Till.(computed) (src/lib/edges.ts:19)');
+    expect(via0('src/pages/till.ts:32')).toBe('Till.(computed) (src/lib/edges.ts:22)');
+    expect(via0('src/pages/till.ts:33')).toBe('tally (src/lib/edges.ts:32)');
+  });
+
+  it('names a function expression by its const or its own name, else (anonymous)', () => {
+    expect(via0('src/pages/till.ts:34')).toBe('trackTag (src/lib/edges.ts:38)');
+    expect(via0('src/pages/till.ts:35')).toBe('sendNamed (src/lib/edges.ts:41)');
+    expect(via0('src/pages/till.ts:41')).toBe('(anonymous) (src/lib/default-sender.ts:4)');
+    expect(via0('src/lib/edges.ts:72')).toBe('(anonymous) (src/lib/edges.ts:71)');
+  });
+
+  it('follows a string literal key read', () => {
+    expect(at(edges, 'src/pages/till.ts:36').event).toEqual({ arg: 'args[0].name' });
+  });
+
+  it('does not follow a rest parameter, a rest or array pattern, a computed key or a name with no declaration', () => {
+    for (const line of [52, 55, 58, 61, 66, 67])
+      expect(at(edges, `src/lib/edges.ts:${line}`).via).toEqual(['PostHog.capture']);
+    const sites = edges.events.map(site);
+    for (const line of [37, 38, 39, 40]) expect(sites).not.toContain(`src/pages/till.ts:${line}`);
+    for (const name of ['trackRest', 'trackRestPicked', 'trackFirst', 'trackComputed'])
+      expect(labels().some((l) => l.startsWith(`${name} `))).toBe(false);
+  });
+
+  it('options of an outer function stay values of the inner wrapper', () => {
+    expect(at(edges, 'src/pages/till.ts:42').properties.map(part)).toEqual(['opts']);
+    expect(at(edges, 'src/pages/till.ts:43').properties.map(part)).toEqual([
+      '{...opts}',
+      "{kind: 'spread'}",
+    ]);
+  });
+
+  it(`follows ${8} const aliases or property reads, not ${9}`, () => {
+    expect(via0('src/pages/till.ts:44')).toBe('aliased8 (src/lib/edges.ts:88)');
+    expect(at(edges, 'src/pages/till.ts:56').event).toEqual({ arg: 'args[0].k.k.k.k.k.k.k.k' });
+    expect(at(edges, 'src/pages/till.ts:58').event).toEqual({ arg: 'args[0].k.k.k.k.k.k.k.k' });
+    for (const line of [109, 119, 125])
+      expect(at(edges, `src/lib/edges.ts:${line}`).via).toEqual(['PostHog.capture']);
+    const sites = edges.events.map(site);
+    for (const line of [45, 57, 59]) expect(sites).not.toContain(`src/pages/till.ts:${line}`);
+  });
+
+  it('carries added properties through wrappers: a parameter, a fixed value, none', () => {
+    expect(add(at(edges, 'src/pages/till.ts:46').addProperties)).toEqual(['$label=args[1]']);
+    expect(at(edges, 'src/pages/till.ts:47').via).toEqual([
+      'trackOuter (src/lib/labels.ts:10)',
+      'trackFixedLabel (src/lib/labels.ts:7)',
+      'PostHog.capture',
+    ]);
+    expect(add(at(edges, 'src/pages/till.ts:47').addProperties)).toEqual([
+      "$label='shelf' as any",
+    ]);
+    expect(add(at(edges, 'src/pages/till.ts:48').addProperties)).toEqual([]);
+    expect(add(at(edges, 'src/lib/edges.ts:52').addProperties)).toEqual(['$label=args[2]']);
+  });
+
+  it('a wrapper in a skipped story file is not user code: its call is no site', () => {
+    expect(edges.events.map(site)).not.toContain('src/pages/till.ts:49');
+    expect(labels().some((l) => l.includes('stories'))).toBe(false);
+  });
+
+  it('two calls of the cut-off wrapper in one function give one cut-off per outside call', () => {
+    expect(edges.cutOffs).toBe(1);
+    expect(edges.openWorld.map((o) => `${o.file}:${o.line} ${o.kind}`)).toEqual([
+      'src/pages/till.ts:51 event-name',
+      'src/pages/z-untyped.ts:7 unresolved-import',
+    ]);
+  });
+
+  it('orders two sites on one line by their position', () => {
+    const same = edges.events.filter((e) => site(e) === 'src/pages/till.ts:52');
+    expect(same.map((e) => e.call.getText())).toEqual([
+      "trackTag('same_line_a')",
+      "trackTag('same_line_b')",
+    ]);
+  });
+
+  it('lists the wrappers sorted by their via chain', () => {
+    expect(labels()).toEqual([
+      '(anonymous) (src/lib/default-sender.ts:4)',
+      '(anonymous) (src/lib/edges.ts:71)',
+      '(anonymous) (src/lib/edges.ts:77)',
+      '(anonymous) (src/lib/edges.ts:82)',
+      'aliased8 (src/lib/edges.ts:88)',
+      'dotted8 (src/lib/edges.ts:115)',
+      'keyed8 (src/lib/edges.ts:121)',
+      'level1 (src/lib/chain.ts:4)',
+      'level2 (src/lib/chain.ts:7)',
+      'level3 (src/lib/chain.ts:10)',
+      'level4 (src/lib/chain.ts:13)',
+      'level5 (src/lib/chain.ts:16)',
+      'sendNamed (src/lib/edges.ts:41)',
+      'tally (src/lib/edges.ts:32)',
+      'Till.(computed) (src/lib/edges.ts:19)',
+      'Till.(computed) (src/lib/edges.ts:22)',
+      'Till.ring (src/lib/edges.ts:16)',
+      'trackFixedLabel (src/lib/labels.ts:7)',
+      'trackFormat (src/lib/edges.ts:7)',
+      'trackKeyed (src/lib/edges.ts:46)',
+      'trackLabelled (src/lib/labels.ts:4)',
+      'trackOuter (src/lib/labels.ts:10)',
+      'trackTag (src/lib/edges.ts:38)',
+      'trackUnlabelled (src/lib/labels.ts:13)',
+    ]);
+  });
+});
+
+describe('valueAt on parsed calls', () => {
+  const sf = ts.createSourceFile(
+    'calls.ts',
+    [
+      "function t(a: unknown, b = 'dflt') {}",
+      "t(...xs, 'x');",
+      "t('a', ...xs);",
+      "t({ name: 'a', name: 'b' });",
+      't({ name });',
+      "t({ name: 'a', ...more });",
+      "t('only');",
+      "t(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'ten');",
+    ].join('\n'),
+    ts.ScriptTarget.Latest,
+    true,
+  );
+  const callee = sf.statements[0] as ts.FunctionDeclaration;
+  const calls = sf.statements
+    .slice(1)
+    .map((s) => (s as ts.ExpressionStatement).expression as ts.CallExpression);
+  const text = (i: number, path: string, fn: ts.FunctionDeclaration | null = callee) => {
+    const v = valueAt(calls[i] as ts.CallExpression, path, fn ?? undefined);
+    return v && [v.node.getText(), ...v.keys].join(' ');
+  };
+
+  it('an argument at or after a spread has no known position', () => {
+    expect(text(0, 'args[0]')).toBeUndefined();
+    expect(text(0, 'args[1]')).toBeUndefined();
+    expect(text(1, 'args[0]')).toBe("'a'");
+    expect(text(1, 'args[1]')).toBeUndefined();
+  });
+
+  it('the last key written wins, and reading it twice gives the same answer', () => {
+    expect(text(2, 'args[0].name')).toBe("'b'");
+    expect(text(2, 'args[0].name')).toBe("'b'");
+  });
+
+  it('a shorthand property reads its identifier; a spread after the key stops the read', () => {
+    expect(text(3, 'args[0].name')).toBe('name');
+    expect(text(4, 'args[0].name')).toBe("{ name: 'a', ...more } name");
+  });
+
+  it('a left-out argument is the default, or nothing past the parameters or without the callee', () => {
+    expect(text(5, 'args[1]')).toBe("'dflt'");
+    expect(text(5, 'args[2]')).toBeUndefined();
+    expect(text(5, 'args[1]', null)).toBeUndefined();
+    expect(text(5, 'name')).toBeUndefined();
+  });
+
+  it('reads an argument index of two digits', () => {
+    expect(text(6, 'args[10]')).toBe("'ten'");
+    expect(text(6, 'args[1]')).toBe('1');
   });
 });
 

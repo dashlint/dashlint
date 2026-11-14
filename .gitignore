@@ -3,6 +3,9 @@ dist/
 coverage/
 *.log
 .DS_Store
+# Stryker mutation reports (T10.2, local only). The sandbox .stryker-tmp/ must NOT be ignored:
+# the extractor asks git which files are ignored, and the sandbox lives inside this repo.
+reports/
 # Extractor fixtures are mini repos with their own node_modules and build outputs (T3.2).
 !test/fixtures/extract/**/node_modules/
 !test/fixtures/extract/**/dist/

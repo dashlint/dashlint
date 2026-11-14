@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { loadDescriptors } from '../../../src/descriptors/index.js';
 import {
   createSourceProgram,
@@ -10,6 +10,7 @@ import {
   type SourceProgram,
   type SuperScan,
 } from '../../../src/extract/index.js';
+import { perMutant } from '../per-mutant.js';
 
 const FIXTURES = fileURLToPath(new URL('../../fixtures/extract/', import.meta.url));
 const loaded = loadDescriptors();
@@ -31,8 +32,14 @@ function scan(repo: string): SuperScan {
   return resolveSuperProperties(sp, findSdkCalls(sp, descriptors).calls);
 }
 
-const web = scan('posthog-js/super');
-const native = scan('posthog-react-native/people');
+const webScan = perMutant(() => scan('posthog-js/super'));
+const nativeScan = perMutant(() => scan('posthog-react-native/people'));
+let web: SuperScan;
+let native: SuperScan;
+beforeEach(() => {
+  web = webScan();
+  native = nativeScan();
+});
 
 describe('resolveSuperProperties: super properties', () => {
   it('register adds each key as a sometimes super property with its values and sites', () => {
@@ -117,9 +124,15 @@ describe('resolveSuperProperties: person properties', () => {
 });
 
 describe('findIdentityCalls', () => {
-  const sp = program('posthog-js/super');
-  const identity = findIdentityCalls(findSdkCalls(sp, descriptors).calls);
-  const at = (file: string, line: number) =>
+  const identityScan = perMutant(() => {
+    const sp = program('posthog-js/super');
+    return findIdentityCalls(findSdkCalls(sp, descriptors).calls);
+  });
+  let identity: ReturnType<typeof findIdentityCalls>;
+  beforeEach(() => {
+    identity = identityScan();
+  });
+  const at =(file: string, line: number) =>
     identity.find((c) => c.file === file && c.line === line);
 
   it('records reset and identify with the file and line of the call', () => {

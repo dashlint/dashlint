@@ -3,14 +3,17 @@
 // fixtures are mini repos with synthetic bookshop names.
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { loadDescriptors, type Descriptor } from '../../../src/descriptors/index.js';
 import {
   createSourceProgram,
   findSdkCalls,
   followWrappers,
   resolveEventNames,
+  type SdkCallScan,
+  type SourceProgram,
 } from '../../../src/extract/index.js';
+import { perMutant } from '../per-mutant.js';
 
 const FIXTURES = fileURLToPath(new URL('../../fixtures/extract/', import.meta.url));
 
@@ -29,9 +32,17 @@ function program(fixture: string) {
 }
 
 describe('posthog-js client in an untyped binding', () => {
-  const sp = program('posthog-js/untyped-client');
-  const result = findSdkCalls(sp, descriptors);
-  const open = result.openWorld.map((o) => `${o.file}:${o.line} ${o.kind}`);
+  const fixture = perMutant(() => {
+    const sp = program('posthog-js/untyped-client');
+    const result = findSdkCalls(sp, descriptors);
+    return { sp, result, open: result.openWorld.map((o) => `${o.file}:${o.line} ${o.kind}`) };
+  });
+  let sp: SourceProgram;
+  let result: SdkCallScan;
+  let open: string[];
+  beforeEach(() => {
+    ({ sp, result, open } = fixture());
+  });
 
   it('makes calls on a module let filled by a dynamic import() open world', () => {
     expect(open.filter((o) => o.startsWith('src/dynamic.ts'))).toEqual([
@@ -100,8 +111,15 @@ describe('posthog-js client in an untyped binding', () => {
 });
 
 describe('posthog-react-native client in an untyped binding', () => {
-  const result = findSdkCalls(program('posthog-react-native/untyped-client'), descriptors);
-  const open = result.openWorld.map((o) => `${o.file}:${o.line} ${o.kind}`);
+  const fixture = perMutant(() => {
+    const result = findSdkCalls(program('posthog-react-native/untyped-client'), descriptors);
+    return { result, open: result.openWorld.map((o) => `${o.file}:${o.line} ${o.kind}`) };
+  });
+  let result: SdkCallScan;
+  let open: string[];
+  beforeEach(() => {
+    ({ result, open } = fixture());
+  });
 
   it('makes calls on a required client in a class field and on a client built in import().then open world', () => {
     expect(open).toEqual([

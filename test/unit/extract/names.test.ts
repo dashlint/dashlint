@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { loadDescriptors } from '../../../src/descriptors/index.js';
 import {
   createSourceProgram,
@@ -10,6 +10,7 @@ import {
   resolveEventNames,
   type NameScan,
 } from '../../../src/extract/index.js';
+import { perMutant } from '../per-mutant.js';
 
 const FIXTURES = fileURLToPath(new URL('../../fixtures/extract/', import.meta.url));
 const loaded = loadDescriptors();
@@ -43,13 +44,20 @@ function open(s: NameScan, kind = 'event-name'): Record<string, string> {
   );
 }
 
-const fixture = names('posthog-js/names');
+const fixtureScan = perMutant(() => names('posthog-js/names'));
+let fixture: NameScan;
+beforeEach(() => {
+  fixture = fixtureScan();
+});
 const aisles50 = ['0', '1', '2', '3', '4'].flatMap((t) =>
   ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].map((d) => `aisle_${t}${d}`),
 );
 
 describe('resolveEventNames: names from types', () => {
-  const n = named(fixture);
+  let n: Record<string, string[]>;
+  beforeEach(() => {
+    n = named(fixture);
+  });
 
   it('a string literal, directly and through a const', () => {
     expect(n['src/direct.ts:25']).toEqual(['book_opened']);
@@ -115,7 +123,10 @@ describe('resolveEventNames: names from types', () => {
 });
 
 describe('resolveEventNames: open world', () => {
-  const o = open(fixture);
+  let o: Record<string, string>;
+  beforeEach(() => {
+    o = open(fixture);
+  });
 
   it('a union of 51 literals is open world, not 51 names (negative control)', () => {
     expect(o['src/direct.ts:34']).toBe('event name is one of 51 names, more than 50');

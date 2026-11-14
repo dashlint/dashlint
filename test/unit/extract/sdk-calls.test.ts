@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   loadDescriptors,
   matchMember,
@@ -16,6 +16,7 @@ import {
   type Descriptor,
 } from '../../../src/descriptors/index.js';
 import { createSourceProgram, findSdkCalls, type SdkCallScan } from '../../../src/extract/index.js';
+import { perMutant } from '../per-mutant.js';
 
 const FIXTURES = fileURLToPath(new URL('../../fixtures/extract/', import.meta.url));
 
@@ -64,7 +65,11 @@ function open(s: SdkCallScan): string[] {
 }
 
 describe('posthog-js calls by declaration (stub)', () => {
-  const result = scan(join(FIXTURES, 'posthog-js/calls'));
+  const fixture = perMutant(() => scan(join(FIXTURES, 'posthog-js/calls')));
+  let result: SdkCallScan;
+  beforeEach(() => {
+    result = fixture();
+  });
 
   it('matches direct calls with the entry for each member, on the line of the called name', () => {
     expect(sites(result).filter((s) => s.startsWith('src/direct.ts'))).toEqual([
@@ -122,7 +127,11 @@ describe('posthog-js calls by declaration (stub)', () => {
 });
 
 describe('posthog-react-native calls by declaration (stub)', () => {
-  const result = scan(join(FIXTURES, 'posthog-react-native/calls'));
+  const fixture = perMutant(() => scan(join(FIXTURES, 'posthog-react-native/calls')));
+  let result: SdkCallScan;
+  beforeEach(() => {
+    result = fixture();
+  });
 
   it('matches an inherited member on the base container and the subclass own members', () => {
     expect(sites(result).filter((s) => s.startsWith('src/direct.ts'))).toEqual([

@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { loadDescriptors } from '../../../src/descriptors/index.js';
 import {
   createSourceProgram,
@@ -15,6 +15,7 @@ import {
   type PropertySite,
 } from '../../../src/extract/index.js';
 import type { PropertyFact } from '../../../src/formats/catalog.js';
+import { perMutant } from '../per-mutant.js';
 
 const FIXTURES = fileURLToPath(new URL('../../fixtures/extract/', import.meta.url));
 const loaded = loadDescriptors();
@@ -32,7 +33,11 @@ function scan(repo: string): PropertyScan {
   return resolveProperties(r.value, names);
 }
 
-const fixture = scan('posthog-js/properties');
+const fixtureScan = perMutant(() => scan('posthog-js/properties'));
+let fixture: PropertyScan;
+beforeEach(() => {
+  fixture = fixtureScan();
+});
 
 /** The sites that send `event`, in file order. */
 function sitesOf(s: PropertyScan, event: string): PropertySite[] {
@@ -189,11 +194,14 @@ describe('resolveProperties: presence', () => {
 });
 
 describe('resolveProperties: open properties', () => {
-  const reasons = Object.fromEntries(
-    fixture.openWorld
-      .filter((o) => o.kind === 'properties')
-      .map((o) => [`${o.file}:${o.line}`, o.reason]),
-  );
+  let reasons: Record<string, string>;
+  beforeEach(() => {
+    reasons = Object.fromEntries(
+      fixture.openWorld
+        .filter((o) => o.kind === 'properties')
+        .map((o) => [`${o.file}:${o.line}`, o.reason]),
+    );
+  });
 
   it('an index signature, any, object, {}, a type parameter or a computed string key make the site open', () => {
     expect(reasons).toEqual({
