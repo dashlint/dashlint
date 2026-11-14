@@ -18,6 +18,8 @@ function sourceTree(): Record<string, string> {
     'README.md': README,
     'smoke.yml': 'name: smoke\n',
     'dist/action.mjs': 'export {};\n',
+    'descriptors/shelf.yml': 'sdk: shelf\n',
+    'descriptors/stubs/shelf.d.ts': 'export {};\n',
     LICENSE: 'MIT\n',
   });
   return {
@@ -25,6 +27,7 @@ function sourceTree(): Record<string, string> {
     readme: join(dir, 'README.md'),
     smoke: join(dir, 'smoke.yml'),
     bundle: join(dir, 'dist/action.mjs'),
+    descriptors: join(dir, 'descriptors'),
     license: join(dir, 'LICENSE'),
   };
 }
@@ -34,6 +37,7 @@ function filesFrom(t: ReturnType<typeof sourceTree>) {
     { from: t.readme, to: 'README.md' },
     { from: t.smoke, to: '.github/workflows/smoke.yml' },
     { from: t.bundle, to: 'dist/action.mjs' },
+    { from: t.descriptors, to: 'descriptors' },
     { from: t.license, to: 'LICENSE' },
   ];
 }
@@ -62,7 +66,7 @@ describe('sync-action run', () => {
     const files = filesFrom(sourceTree());
     const r = run(['--version', '0.0.0', '--dry-run'], {}, { files });
     expect(r.code).toBe(0);
-    expect(r.out.join('\n')).toMatch(/staged 5 file\(s\)/);
+    expect(r.out.join('\n')).toMatch(/staged 6 file\(s\)/);
     expect(r.out.at(-1)).toBe('CLEAN');
   });
 
@@ -128,6 +132,14 @@ describe('sync-action run', () => {
       encoding: 'utf8',
     }).trim();
     expect(log).toBe('chore: sync action v0.2.0');
+    // The bundle reads descriptors/ beside dist/: the folder arrives whole.
+    const tracked = execFileSync('git', ['-C', dest, 'ls-files', 'descriptors'], {
+      encoding: 'utf8',
+    });
+    expect(tracked.trim().split('\n')).toEqual([
+      'descriptors/shelf.yml',
+      'descriptors/stubs/shelf.d.ts',
+    ]);
   });
 
   it('exits 2 when --dest does not exist', () => {

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Action sync (spec T1.5, §5.2, §6.11): stages the Action's files from this repo (action.yml,
-// README.md, smoke.yml, the built dist/action.mjs bundle, LICENSE), checks for a stray `.map` file
+// README.md, smoke.yml, the built dist/action.mjs bundle, descriptors/, LICENSE), checks for a stray `.map` file
 // (nothing published ever carries one), then runs the denylist and copy checks over the staged copy.
 // Without --dry-run it commits the staged files to an `action/v<version>` branch of --dest, a local
 // checkout of dashlint/action; pushing that branch and opening the sync PR is a separate step done
@@ -10,15 +10,7 @@
 //          [--denylist <file>] [--review <file>]
 // Exit: 0 CLEAN (dry run) or the branch was committed, 1 a check failed, 2 usage or I/O error.
 import { spawnSync } from 'node:child_process';
-import {
-  copyFileSync,
-  cpSync,
-  existsSync,
-  mkdirSync,
-  mkdtempSync,
-  readdirSync,
-  rmSync,
-} from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -34,6 +26,8 @@ const FILES = [
   { from: join(ROOT, 'action', 'README.md'), to: 'README.md' },
   { from: join(ROOT, 'action', 'smoke.yml'), to: join('.github', 'workflows', 'smoke.yml') },
   { from: join(ROOT, 'dist', 'action.mjs'), to: join('dist', 'action.mjs') },
+  // The bundle reads the descriptors and their stubs from ../descriptors/ (scripts/build.mjs).
+  { from: join(ROOT, 'descriptors'), to: 'descriptors' },
   { from: join(ROOT, 'LICENSE'), to: 'LICENSE' },
 ];
 
@@ -82,7 +76,7 @@ function stage(files, dir) {
       throw new Error(`missing source file ${f.from} (run npm run build first)`);
     const dest = join(dir, f.to);
     mkdirSync(dirname(dest), { recursive: true });
-    copyFileSync(f.from, dest);
+    cpSync(f.from, dest, { recursive: true });
     copied.push(f.to);
   }
   return copied;

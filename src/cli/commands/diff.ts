@@ -24,7 +24,7 @@ import { renderDiffText } from '../../report/diff-text.js';
 import { renderJson } from '../../report/json.js';
 import { renderComment, type CommentInput } from '../../report/markdown.js';
 import { cliMessages, reportText } from '../../report/messages.js';
-import { usageError, type ParsedArgs } from '../args.js';
+import { usageError, type FailOn, type ParsedArgs } from '../args.js';
 import type { Config } from '../config.js';
 import { checkModel, configCatalogs } from './check.js';
 import {
@@ -79,11 +79,17 @@ function headRequirements(config: Config, repo: string, head: string | null): Re
   return r.value;
 }
 
-export function diffCommand(flags: ParsedArgs['flags'], ctx: CommandContext): number {
-  const base = flags.base as string | undefined;
-  if (base === undefined) throw usageError(cliMessages.diffNeedsBase);
-  const headRef = flags.head as string | undefined;
-  const format = (flags.format as 'text' | 'json' | 'markdown' | undefined) ?? 'text';
+export interface DiffOptions {
+  base: string;
+  head?: string;
+  /** Replaces the config's failOn (the Action's `fail-on` input). */
+  failOn?: FailOn;
+}
+
+/** Runs the diff once; the CLI and the Action render it (T8.1). */
+export function diffRun(opts: DiffOptions, ctx: CommandContext): CommentInput {
+  const { base } = opts;
+  const headRef = opts.head;
   const config = readConfig(ctx, 'diff');
   if (config.sources.length === 0 && config.catalogs.length === 0)
     throw usageError(cliMessages.noSources);
@@ -95,7 +101,7 @@ export function diffCommand(flags: ParsedArgs['flags'], ctx: CommandContext): nu
   const now = new Date(ctx.now?.() ?? Date.now());
   const common = {
     contextFor,
-    failOn: config.failOn,
+    failOn: opts.failOn ?? config.failOn,
     ignore: config.ignore,
     now,
   };
@@ -163,14 +169,19 @@ export function diffCommand(flags: ParsedArgs['flags'], ctx: CommandContext): nu
     ignore: config.ignore,
     all,
   });
-  const input: CommentInput = {
-    diff,
-    head,
-    requirementsFile: slash(relative(config.dir, config.requirements)),
-  };
+  return { diff, head, requirementsFile: slash(relative(config.dir, config.requirements)) };
+}
+
+export function diffCommand(flags: ParsedArgs['flags'], ctx: CommandContext): number {
+  const base = flags.base as string | undefined;
+  if (base === undefined) throw usageError(cliMessages.diffNeedsBase);
+  const head = flags.head as string | undefined;
+  const format = (flags.format as 'text' | 'json' | 'markdown' | undefined) ?? 'text';
+  const input = diffRun({ base, ...(head === undefined ? {} : { head }) }, ctx);
+  const { diff } = input;
   if (format === 'text') print(ctx, renderDiffText(input));
   else {
-    print(ctx, format === 'json' ? renderJson(head) : renderComment(input));
+    print(ctx, format === 'json' ? renderJson(input.head) : renderComment(input));
     // The text output has them; the JSON and the comment do not (ADR-049).
     for (const w of diff.warnings)
       info(

@@ -29,8 +29,16 @@ import {
 } from './model.js';
 import { readStubSurface } from './stub.js';
 
+/** Set by the Action bundle build (scripts/build.mjs): the bundle sits one folder deeper. */
+declare const __DASHLINT_DESCRIPTORS__: string | undefined;
+
 /** The descriptors shipped with dashlint: `descriptors/` at the package root. */
-export const DESCRIPTORS_DIR = fileURLToPath(new URL('../../descriptors/', import.meta.url));
+export const DESCRIPTORS_DIR = fileURLToPath(
+  new URL(
+    typeof __DASHLINT_DESCRIPTORS__ === 'string' ? __DASHLINT_DESCRIPTORS__ : '../../descriptors/',
+    import.meta.url,
+  ),
+);
 
 export interface DescriptorError extends ValidationError {
   /** The file the error is in. */

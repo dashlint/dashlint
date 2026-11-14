@@ -463,6 +463,26 @@ export const commentText = {
     `<sub>dashlint ${tool} · ${CLOSING_SENTENCE.charAt(0).toLowerCase()}${CLOSING_SENTENCE.slice(1, -1)}</sub>`,
 };
 
+// The GitHub Action (src/action/, spec 6.10): notes under the job summary and lines in the log.
+export const actionText = {
+  readOnly:
+    '> dashlint wrote this job summary only: this pull request comes from a fork or Dependabot, where `GITHUB_TOKEN` is read-only, so it cannot comment.',
+  commentFailed: (why: string) =>
+    `> dashlint wrote this job summary only: the token could not write the pull request comment (${why}). The workflow needs \`permissions: pull-requests: write\`.`,
+  commentOff: '> dashlint wrote this job summary only: the `comment` input is false.',
+  notPullRequest: (event: string) =>
+    `dashlint checks pull requests: the \`${event}\` event has no base commit, so nothing was checked. Set the \`base\` input to check against a commit.`,
+  badFailOn: (value: string, choices: readonly string[]) =>
+    `the fail-on input "${value}" is not one of ${choices.join(', ')}`,
+  baseFetchFailed: (sha: string, detail: string) =>
+    `could not fetch the base commit ${sha.slice(0, 7)}: ${detail}`,
+  commented: (url: string) => `dashlint: commented on the pull request: ${url}`,
+  updated: (url: string) => `dashlint: updated its pull request comment: ${url}`,
+  unchanged: 'dashlint: its pull request comment is already up to date',
+  nothingToSay: 'dashlint: nothing got worse and there is no earlier comment, so no comment',
+  fails: (n: number) => `dashlint: ${n === 1 ? '1 tile is' : `${n} tiles are`} newly broken`,
+};
+
 // `dashlint diff --format text` (src/report/diff-text.ts): the comment's rows and sentences as text.
 export const diffText = {
   header: (tool: string, base: string | null, head: string | null) =>
