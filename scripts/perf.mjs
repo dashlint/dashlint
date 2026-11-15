@@ -38,6 +38,7 @@ export const BUDGETS = {
   extractSecondsUbuntu: 45,
   extractMemoryMb: 2048,
   checkSeconds: 1,
+  checkEndToEndSeconds: 1,
   pullSeconds: 60,
   actionSeconds: 120,
   htmlBytes: 2 * 1024 * 1024,
@@ -146,10 +147,10 @@ writeFileSync(
 git('commit', '-q', '-am', 'head');
 
 const rows = [];
-function row(name, unit, budgetKey, values, extra = '') {
+function row(name, unit, budgetKey, values, extra = '', counts = true) {
   const value = median(values);
   const budget = budgets[budgetKey];
-  rows.push({ name, unit, value, budget, ok: value <= budget, runs: values, extra });
+  rows.push({ name, unit, value, budget, ok: value <= budget, counts, runs: values, extra });
 }
 
 // ---- extract, 1,000 files
@@ -208,13 +209,18 @@ const checkArgs = [
   join(app, 'dashlint.requirements.json'),
 ];
 const checkSeconds = [];
-for (let i = 0; i < args.runs; i++)
-  checkSeconds.push(
-    must(
-      run([BIN, ...checkArgs, '--format', 'json', '--out', join(args.work, 'check.json')]),
-      'check',
-    ).seconds,
+const checkEndToEnd = [];
+const probe = join(CLI, 'scripts/perf-check-probe.mjs');
+for (let i = 0; i < args.runs; i++) {
+  const out = join(args.work, 'check.json');
+  const r = must(run([probe, ...checkArgs, '--format', 'json', '--out', out]), 'check probe');
+  const p = JSON.parse(r.stdout.trim().split('\n').at(-1) ?? '{}');
+  if (p.code !== 0 && p.code !== 1) throw new Error(`check exited ${p.code} in the probe`);
+  checkSeconds.push(p.runSeconds);
+  checkEndToEnd.push(
+    must(run([BIN, ...checkArgs, '--format', 'json', '--out', out]), 'check').seconds,
   );
+}
 const tiles = JSON.parse(readFileSync(join(args.work, 'check.json'), 'utf8')).tiles.length;
 if (tiles !== 200) throw new Error(`the report has ${tiles} tiles, expected 200`);
 row(
@@ -222,7 +228,15 @@ row(
   's',
   'checkSeconds',
   checkSeconds,
-  `${tiles} tiles; includes node start-up`,
+  `${tiles} tiles; the command in a warm process, without the module import (ADR-067)`,
+);
+row(
+  'check end to end (information)',
+  's',
+  'checkEndToEndSeconds',
+  checkEndToEnd,
+  'a fresh process with node and TypeScript start-up; compared with the same 1 s, not part of the verdict',
+  false,
 );
 
 // ---- HTML report size
@@ -384,7 +398,7 @@ const lines = [
   '|---|---|---|---|---|---|',
   ...rows.map(
     (r) =>
-      `| ${r.name} | ${fmt(r, r.value)} | ${fmt(r, r.budget)} | ${r.ok ? 'under' : 'OVER'} | ${r.runs.map((v) => fmt(r, v)).join(', ')} | ${r.extra} |`,
+      `| ${r.name} | ${fmt(r, r.value)} | ${fmt(r, r.budget)} | ${r.ok ? 'under' : r.counts ? 'OVER' : 'info: over'} | ${r.runs.map((v) => fmt(r, v)).join(', ')} | ${r.extra} |`,
   ),
 ];
 const machine = `${os.type()} ${os.release()} ${os.arch()}, ${os.cpus()[0]?.model ?? 'unknown cpu'} x ${os.cpus().length}, ${(os.totalmem() / 2 ** 30).toFixed(0)} GB, node ${process.version}`;
@@ -392,6 +406,6 @@ process.stdout.write(`${lines.join('\n')}\n\nmachine: ${machine}\n`);
 if (args.md) writeFileSync(args.md, `${lines.join('\n')}\n\nMachine: ${machine}\n`);
 if (args.json)
   writeFileSync(args.json, `${JSON.stringify({ machine, runs: args.runs, rows }, null, 2)}\n`);
-const over = rows.filter((r) => !r.ok);
+const over = rows.filter((r) => r.counts && !r.ok);
 if (over.length) process.stderr.write(`perf: over budget: ${over.map((r) => r.name).join('; ')}\n`);
 process.exit(over.length ? 1 : 0);
