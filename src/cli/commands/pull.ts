@@ -111,6 +111,15 @@ export function pullConfigOf(
   };
 }
 
+/**
+ * `DASHLINT_DEBUG` set to anything but empty or `0` prints the client's request lines on stderr
+ * (spec 6.13): the client redacts the key from every one of them first.
+ */
+export function debugOn(env: PullCommandContext['env']): boolean {
+  const v = env['DASHLINT_DEBUG'];
+  return v !== undefined && v !== '' && v !== '0';
+}
+
 /** Runs `pull`; returns the exit code (0 written, 2 usage or config, 3 a bug, 4 pull failed). */
 export async function pullCommand(
   args: readonly string[],
@@ -131,6 +140,7 @@ export async function pullCommand(
       ...settings,
       tool: ctx.tool,
       info: ctx.stderr,
+      ...(debugOn(ctx.env) ? { debug: (line: string) => ctx.stderr(`debug: ${line}`) } : {}),
       ...(ctx.now ? { now: ctx.now } : {}),
       ...(ctx.fetch ? { fetch: ctx.fetch } : {}),
       ...(ctx.sleep ? { sleep: ctx.sleep } : {}),
