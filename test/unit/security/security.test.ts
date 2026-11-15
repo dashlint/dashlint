@@ -259,14 +259,16 @@ describe('YAML custom tags are refused wherever YAML is read', { timeout: 30_000
       for (const m of text.matchAll(/import \{([^}]*)\} from 'yaml'/g))
         uses[f] = [
           ...(uses[f] ?? []),
-          ...m[1]!
+          ...(m[1] ?? '')
             .split(',')
             .map((n) => n.trim())
             .filter(Boolean),
         ];
     }
     const writeOnly = new Set(['stringify', 'type Document', 'type YAMLError']);
-    const readers = Object.keys(uses).filter((f) => uses[f]!.some((n) => !writeOnly.has(n)));
+    const readers = Object.entries(uses)
+      .filter(([, names]) => names.some((n) => !writeOnly.has(n)))
+      .map(([f]) => f);
     expect(readers).toEqual(['src/formats/yaml.ts']);
     // canonical.ts writes YAML and reads none.
     expect(uses['src/formats/canonical.ts']).toEqual(['stringify']);
