@@ -2,11 +2,11 @@
 // reaches any output stream even at debug level, YAML custom tags are refused wherever YAML is read,
 // no workflow or action file uses the risky trigger, and the npm tarball holds only what it should.
 import { execFileSync, spawn, spawnSync } from 'node:child_process';
-import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { dirname, join, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { debugOn } from '../../../src/cli/commands/pull.js';
@@ -242,9 +242,13 @@ platforms:
 
 describe('YAML custom tags are refused wherever YAML is read', { timeout: 30_000 }, () => {
   it('only src/formats/yaml.ts parses with the yaml package, so every read takes the safe path', () => {
-    const files = execFileSync('git', ['ls-files', 'src'], { cwd: ROOT, encoding: 'utf8' })
-      .split('\n')
+    // Listed from the filesystem, not `git ls-files`: Stryker runs the suite in an untracked
+    // sandbox where git lists nothing, and an untracked new source file must count too.
+    const files = readdirSync(join(ROOT, 'src'), { recursive: true, encoding: 'utf8' })
+      .map((f) => `src/${f.split(sep).join('/')}`)
       .filter((f) => f.endsWith('.ts'));
+    expect(files).toContain('src/formats/yaml.ts');
+    expect(files).toContain('src/formats/canonical.ts');
     const uses: Record<string, string[]> = {};
     for (const f of files) {
       const text = readFileSync(join(ROOT, f), 'utf8');
