@@ -76,7 +76,9 @@ describe('resolveBuiltins: the lifecycle builtin (spec 6.3.3, F10)', () => {
   it('option unresolvable: the lifecycle events are conditional, never "not sent"', () => {
     const scan = builtins('posthog-react-native/lifecycle-unresolvable');
     expect(lifecycleState(scan)).toBe('conditional');
-    expect(scan.off).toEqual([]);
+    // No option decides anything off; $screen_name is off because nothing calls screen() and no
+    // provider captures screens (ADR-047).
+    expect(scan.off).toEqual(['$screen_name']);
   });
 
   it('no init in the source: every option-conditioned builtin is conditional', () => {

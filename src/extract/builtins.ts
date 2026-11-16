@@ -14,13 +14,14 @@ import {
   moduleFunctionName,
   PackageResolver,
   packageName,
+  type AutoCaller,
   type BuiltinCondition,
   type Descriptor,
   type InitEntry,
 } from '../descriptors/index.js';
 import type { Builtins, JsonScalar } from '../formats/catalog.js';
 import type { SourceProgram } from './program.js';
-import { lineOf, skipOuter } from './sdk-calls.js';
+import { findSdkCalls, lineOf, skipOuter, type SdkCallScan } from './sdk-calls.js';
 
 /** How far `const` aliases of an options object are followed. */
 const MAX_ALIAS = 8;
@@ -62,6 +63,8 @@ export interface BuiltinScan {
   /** Builtin event and property names decided not sent (an option turns them off), sorted. */
   off: string[];
   inits: InitSite[];
+  /** Where the SDK may call a `call` condition's member by itself (ADR-047). */
+  autos: AutoSite[];
 }
 
 function sorted(names: Iterable<string>): string[] {
@@ -147,7 +150,7 @@ export class OptionReader {
 
 /** Whether one init site sends a builtin with this condition (ADR-003). */
 function stateFor(
-  when: Exclude<BuiltinCondition, 'always' | { unknown: string }>,
+  when: Exclude<BuiltinCondition, 'always' | { unknown: string } | CallCondition>,
   v: OptionValue,
 ): BuiltinState {
   if (v.kind === 'unknown') return 'conditional';
@@ -163,17 +166,25 @@ function stateFor(
   return v.kind === 'value' && v.value === when.is ? 'sent' : 'off';
 }
 
+/** A `call` condition (ADR-047). */
+export type CallCondition = Extract<BuiltinCondition, { call: string }>;
+
 /**
  * Whether a builtin is sent in a source with these init sites: sent when any init site sends it
- * (some code path does), otherwise conditional when any is undecided, otherwise off.
+ * (some code path does), otherwise conditional when any is undecided, otherwise off. A `call`
+ * condition is the reader's to decide (conditional when it cannot).
  */
 export function evaluateCondition(
   when: BuiltinCondition,
   inits: readonly InitSite[],
-  reader: { option(init: InitSite, option: string): OptionValue },
+  reader: {
+    option(init: InitSite, option: string): OptionValue;
+    call?(when: CallCondition): BuiltinState;
+  },
 ): BuiltinState {
   if (when === 'always') return 'sent';
   if ('unknown' in when) return 'conditional';
+  if ('call' in when) return reader.call ? reader.call(when) : 'conditional';
   if (inits.length === 0) return 'conditional';
   const states = inits.map((init) => stateFor(when, reader.option(init, when.option)));
   if (states.includes('sent')) return 'sent';
@@ -222,10 +233,46 @@ export function optionsArgument(
   return node ? { kind: 'expression', node } : { kind: 'none' };
 }
 
+/** A place where the SDK may call a member for the app by itself (an `auto` caller, ADR-047). */
+export interface AutoSite {
+  file: string;
+  line: number;
+  descriptor: Descriptor;
+  caller: AutoCaller;
+  /** `off` only when a literal turns the caller's option off. */
+  state: 'off' | 'conditional';
+}
+
+/** The `auto` callers of a descriptor's `call` conditions. */
+function autoCallers(d: Descriptor): AutoCaller[] {
+  const b = d.builtins;
+  return [...b.events, ...b.properties, ...b.personProperties].flatMap((row) =>
+    row.when !== 'always' && 'call' in row.when ? (row.when.auto ?? []) : [],
+  );
+}
+
+/** Whether a literal turns `option` off: the whole value `false`, or `{ [option]: false }`. */
+function turnsOff(reader: OptionReader, node: ts.Expression, option: string): boolean {
+  const whole = reader.read(node, []);
+  if (whole.kind === 'value') return whole.value === false;
+  const v = reader.read(node, [option]);
+  return v.kind === 'value' && v.value === false;
+}
+
 /** Init sites of the source's SDKs in its analysed files (descriptor `init` entries). */
 export function findInitSites(sp: SourceProgram): InitSite[] {
+  return scanInits(sp).inits;
+}
+
+/** Init sites and `auto` callers of the source's SDKs in its analysed files. */
+function scanInits(sp: SourceProgram): { inits: InitSite[]; autos: AutoSite[] } {
   const checker = sp.program.getTypeChecker();
-  const descriptors = sp.sdks.map((s) => s.descriptor).filter((d) => d.init !== undefined);
+  const reader = new OptionReader(checker);
+  const all = sp.sdks.map((s) => s.descriptor);
+  const descriptors = all.filter((d) => d.init !== undefined);
+  const callers = new Map(all.map((d) => [d, autoCallers(d)]));
+  const anyCallers = [...callers.values()].some((c) => c.length > 0);
+  const autos: AutoSite[] = [];
   const packages = new PackageResolver();
   const packageOf = (decl: ts.Node): string | undefined => {
     const ambient = ambientModule(decl);
@@ -233,10 +280,11 @@ export function findInitSites(sp: SourceProgram): InitSite[] {
     const sf = decl.getSourceFile();
     return sf.isDeclarationFile ? packages.packageOf(sf.fileName) : undefined;
   };
-  const owner = (decl: ts.Node): Descriptor[] => {
+  const ownerIn = (list: readonly Descriptor[], decl: ts.Node): Descriptor[] => {
     const pkg = packageOf(decl);
-    return pkg === undefined ? [] : descriptors.filter((d) => d.declaredIn.includes(pkg));
+    return pkg === undefined ? [] : list.filter((d) => d.declaredIn.includes(pkg));
   };
+  const owner = (decl: ts.Node): Descriptor[] => ownerIn(descriptors, decl);
   const sites: InitSite[] = [];
 
   for (const fileName of sp.files) {
@@ -247,6 +295,7 @@ export function findInitSites(sp: SourceProgram): InitSite[] {
       if (ts.isCallExpression(node) || ts.isNewExpression(node)) {
         const decl = checker.getResolvedSignature(node)?.declaration;
         const key = decl && !ts.isJSDocSignature(decl) ? declarationKey(decl) : undefined;
+        if (decl && key) memberCaller(node, decl, key, file);
         if (decl && key)
           for (const d of owner(decl)) {
             const entry = d.init?.find((e) => initMatches(e, key.container, key.member));
@@ -261,6 +310,7 @@ export function findInitSites(sp: SourceProgram): InitSite[] {
             }
           }
       } else if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) {
+        if (anyCallers) componentCaller(node, file);
         const site = componentSite(node, file);
         if (site) sites.push(site);
       }
@@ -268,7 +318,63 @@ export function findInitSites(sp: SourceProgram): InitSite[] {
     };
     visit(sf);
   }
-  return sites;
+  return { inits: sites, autos };
+
+  function memberCaller(
+    node: ts.CallExpression | ts.NewExpression,
+    decl: ts.Node,
+    key: { container: string; member: string },
+    file: string,
+  ): void {
+    if (!ts.isCallExpression(node)) return;
+    for (const d of ownerIn(all, decl))
+      for (const caller of callers.get(d) ?? []) {
+        if ('component' in caller) continue;
+        if (caller.member !== key.member || !caller.on.includes(key.container)) continue;
+        const options = optionsArgument(node.arguments, caller.options);
+        const off = options.kind === 'expression' && turnsOff(reader, options.node, caller.option);
+        autos.push({
+          file,
+          line: lineOf(node),
+          descriptor: d,
+          caller,
+          state: off ? 'off' : 'conditional',
+        });
+      }
+  }
+
+  function componentCaller(
+    node: ts.JsxOpeningElement | ts.JsxSelfClosingElement,
+    file: string,
+  ): void {
+    let symbol = checker.getSymbolAtLocation(node.tagName);
+    if (symbol && symbol.flags & ts.SymbolFlags.Alias) symbol = checker.getAliasedSymbol(symbol);
+    const decl = symbol?.declarations?.[0];
+    if (!decl || !symbol) return;
+    const attrs = node.attributes.properties;
+    for (const d of ownerIn(all, decl))
+      for (const caller of callers.get(d) ?? []) {
+        if (!('component' in caller) || caller.component !== symbol.name) continue;
+        const prop = attrs.find(
+          (a) => ts.isJsxAttribute(a) && ts.isIdentifier(a.name) && a.name.text === caller.prop,
+        );
+        // A spread may set the prop; a missing prop keeps the default; `prop` alone is `true`.
+        const init = prop && ts.isJsxAttribute(prop) ? prop.initializer : undefined;
+        const off =
+          !attrs.some((a) => ts.isJsxSpreadAttribute(a)) &&
+          init !== undefined &&
+          ts.isJsxExpression(init) &&
+          init.expression !== undefined &&
+          turnsOff(reader, init.expression, caller.option);
+        autos.push({
+          file,
+          line: lineOf(node),
+          descriptor: d,
+          caller,
+          state: off ? 'off' : 'conditional',
+        });
+      }
+  }
 
   function componentSite(
     node: ts.JsxOpeningElement | ts.JsxSelfClosingElement,
@@ -306,10 +412,42 @@ export function findInitSites(sp: SourceProgram): InitSite[] {
   }
 }
 
-/** Builtins of the source's SDKs with their conditions evaluated on the source's init sites. */
-export function resolveBuiltins(sp: SourceProgram): BuiltinScan {
+/**
+ * A `call` condition in one source (ADR-047): sent when a call site of the member resolves to the
+ * SDK; conditional when an open-world call may be one, or an `auto` caller is not turned off by a
+ * literal, or the source creates no client and has no `auto` caller (the app's client and provider
+ * are elsewhere); otherwise off.
+ */
+export function callState(
+  when: CallCondition,
+  descriptor: Descriptor,
+  calls: Pick<SdkCallScan, 'calls' | 'openCalls'>,
+  autos: readonly AutoSite[],
+  inits: readonly InitSite[],
+): BuiltinState {
+  const named = (c: { descriptor: Descriptor; member: string }) =>
+    c.descriptor === descriptor && c.member === when.call;
+  if (calls.calls.some((c) => named({ descriptor: c.descriptor, member: c.entry.member })))
+    return 'sent';
+  if (calls.openCalls.some(named)) return 'conditional';
+  const own = autos.filter((a) => a.descriptor === descriptor && when.auto?.includes(a.caller));
+  if (own.some((a) => a.state === 'conditional')) return 'conditional';
+  return own.length === 0 && inits.length === 0 ? 'conditional' : 'off';
+}
+
+/**
+ * Builtins of the source's SDKs with their conditions evaluated on the source's init sites, and
+ * `call` conditions on its SDK calls (found here when `calls` is not given).
+ */
+export function resolveBuiltins(
+  sp: SourceProgram,
+  calls: Pick<SdkCallScan, 'calls' | 'openCalls'> = findSdkCalls(
+    sp,
+    sp.sdks.map((s) => s.descriptor),
+  ),
+): BuiltinScan {
   const reader = new OptionReader(sp.program.getTypeChecker());
-  const inits = findInitSites(sp);
+  const { inits, autos } = scanInits(sp);
   const option = (init: InitSite, name: string): OptionValue => {
     if (init.options.kind === 'none') return { kind: 'absent' };
     if (init.options.kind === 'unknown') return init.options;
@@ -322,7 +460,8 @@ export function resolveBuiltins(sp: SourceProgram): BuiltinScan {
   const tables: string[] = [];
   for (const { descriptor, sdk } of sp.sdks) {
     const own = inits.filter((i) => i.descriptor === descriptor);
-    const evaluate = (when: BuiltinCondition) => evaluateCondition(when, own, { option });
+    const call = (when: CallCondition) => callState(when, descriptor, calls, autos, own);
+    const evaluate = (when: BuiltinCondition) => evaluateCondition(when, own, { option, call });
     const major = (sdk.version ?? descriptor.verified).split('.')[0];
     tables.push(`${descriptor.sdk}@${major}`);
     for (const b of descriptor.builtins.events) {
@@ -352,5 +491,6 @@ export function resolveBuiltins(sp: SourceProgram): BuiltinScan {
     properties: properties.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0)),
     off: sorted(off.filter((n) => !sent.has(n) && !undecided.has(n))),
     inits,
+    autos,
   };
 }

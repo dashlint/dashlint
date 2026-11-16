@@ -689,7 +689,9 @@ export const descriptorErrors = {
   verifiedOutsideRange: (verified: string, range: string) =>
     `verified version ${verified} is outside versions ${range}`,
   conditionShape:
-    'a condition is always, { option, not }, { option, is } or { unknown }, with nothing else',
+    'a condition is always, { option, not }, { option, is }, { unknown } or { call, auto }, with nothing else',
+  callNotDescribed: (member: string) =>
+    `the condition's call ${member} is not a member the descriptor's calls describe`,
   duplicateName: (name: string) => `"${name}" is listed twice`,
   sdkMismatch: (found: string, expected: string) =>
     `sdk is ${found} but the descriptor is ${expected}`,

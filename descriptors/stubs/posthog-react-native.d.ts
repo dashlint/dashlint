@@ -95,6 +95,7 @@ declare module 'posthog-react-native' {
       userPropertiesToSetOnce?: { [key: string]: JsonType },
       reloadFeatureFlags?: boolean,
     ): void;
+    initReactNativeNavigation(options: { [option: string]: unknown }): boolean;
   }
 
   export const usePostHog: () => PostHog;

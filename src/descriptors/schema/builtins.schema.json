@@ -56,7 +56,7 @@
   "$defs": {
     "name": { "type": "string", "pattern": "\\S" },
     "condition": {
-      "description": "`always`; `{ option, not }`: sent unless the init option is that literal; `{ option, is: true }`: sent only when the option is a truthy literal (ADR-003); `{ unknown }`: not decidable from code, so the builtin is conditional.",
+      "description": "`always`; `{ option, not }`: sent unless the init option is that literal; `{ option, is: true }`: sent only when the option is a truthy literal (ADR-003); `{ unknown }`: not decidable from code, so the builtin is conditional; `{ call, auto }`: sent when the source calls that described member, otherwise conditional when an `auto` caller (a provider component or an SDK method) may call it for the app (ADR-047).",
       "anyOf": [
         { "const": "always" },
         {
@@ -69,7 +69,35 @@
             },
             "not": { "type": ["string", "boolean", "number"] },
             "is": { "type": ["string", "boolean", "number"] },
-            "unknown": { "type": "string", "pattern": "\\S" }
+            "unknown": { "type": "string", "pattern": "\\S" },
+            "call": { "$ref": "#/$defs/identifier" },
+            "auto": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/autoCaller" } }
+          }
+        }
+      ]
+    },
+    "identifier": { "type": "string", "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*$" },
+    "autoCaller": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["component", "prop", "option"],
+          "properties": {
+            "component": { "$ref": "#/$defs/identifier" },
+            "prop": { "$ref": "#/$defs/identifier" },
+            "option": { "$ref": "#/$defs/identifier" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["member", "on", "options", "option"],
+          "properties": {
+            "member": { "$ref": "#/$defs/identifier" },
+            "on": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/identifier" } },
+            "options": { "type": "string", "pattern": "^args\\[\\d+\\]$" },
+            "option": { "$ref": "#/$defs/identifier" }
           }
         }
       ]

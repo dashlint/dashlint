@@ -36,7 +36,31 @@ events:
         },
     }
 properties:
-  - { name: '$screen_name', events: ['$screen'], presence: always, when: always }
+  # screen(name) runs `this.registerForSession({ $screen_name: name })` before capturing `$screen`
+  # (dist/posthog-rn.js:1), so every later event of the session carries $screen_name (ADR-047). The
+  # provider calls screen() on navigation unless autocapture is false or autocapture.captureScreens
+  # is false (dist/PostHogProvider.js:1, `captureScreens ?? true`); so does
+  # initReactNativeNavigation unless its captureScreens is false (dist/frameworks/wix-navigation.js:1).
+  # On `$screen` itself the screen() site adds $screen_name always.
+  - {
+      name: '$screen_name',
+      events: '*',
+      presence: sometimes,
+      when:
+        {
+          call: screen,
+          auto:
+            [
+              { component: PostHogProvider, prop: autocapture, option: captureScreens },
+              {
+                member: initReactNativeNavigation,
+                on: [PostHog],
+                options: 'args[0]',
+                option: captureScreens,
+              },
+            ],
+        },
+    }
   - { name: '$os_name', events: '*', presence: always, when: always }
   - { name: '$os_version', events: '*', presence: sometimes, when: always }
   - {

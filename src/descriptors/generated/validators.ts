@@ -5,12 +5,605 @@
 /* eslint-disable */
 "use strict";
 export const builtins = validate20;
-const schema31 = {"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://github.com/dashlint/dashlint/schema/builtins.schema.json","title":"dashlint SDK builtins","description":"Events and properties an SDK sends by itself (spec 6.3.3, ADR-003), each with the condition under which it is sent. Rules the schema cannot express (one test per condition, unique names) are checked by src/descriptors/loader.ts.","type":"object","additionalProperties":false,"required":["sdk","events","properties","personProperties"],"properties":{"sdk":{"type":"string","pattern":"^[a-z0-9][a-z0-9._-]*$"},"events":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["name","when"],"properties":{"name":{"$ref":"#/$defs/name"},"when":{"$ref":"#/$defs/condition"}}}},"properties":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["name","events","presence","when"],"properties":{"name":{"$ref":"#/$defs/name"},"events":{"anyOf":[{"const":"*"},{"type":"array","minItems":1,"items":{"$ref":"#/$defs/name"}}],"description":"The events the property rides on; `*` is every event the SDK sends."},"presence":{"enum":["always","sometimes"]},"when":{"$ref":"#/$defs/condition"}}}},"personProperties":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["name","when"],"properties":{"name":{"$ref":"#/$defs/name"},"when":{"$ref":"#/$defs/condition"}}}}},"$defs":{"name":{"type":"string","pattern":"\\S"},"condition":{"description":"`always`; `{ option, not }`: sent unless the init option is that literal; `{ option, is: true }`: sent only when the option is a truthy literal (ADR-003); `{ unknown }`: not decidable from code, so the builtin is conditional.","anyOf":[{"const":"always"},{"type":"object","additionalProperties":false,"properties":{"option":{"type":"string","pattern":"^[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"},"not":{"type":["string","boolean","number"]},"is":{"type":["string","boolean","number"]},"unknown":{"type":"string","pattern":"\\S"}}}]}}};
+const schema31 = {"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://github.com/dashlint/dashlint/schema/builtins.schema.json","title":"dashlint SDK builtins","description":"Events and properties an SDK sends by itself (spec 6.3.3, ADR-003), each with the condition under which it is sent. Rules the schema cannot express (one test per condition, unique names) are checked by src/descriptors/loader.ts.","type":"object","additionalProperties":false,"required":["sdk","events","properties","personProperties"],"properties":{"sdk":{"type":"string","pattern":"^[a-z0-9][a-z0-9._-]*$"},"events":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["name","when"],"properties":{"name":{"$ref":"#/$defs/name"},"when":{"$ref":"#/$defs/condition"}}}},"properties":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["name","events","presence","when"],"properties":{"name":{"$ref":"#/$defs/name"},"events":{"anyOf":[{"const":"*"},{"type":"array","minItems":1,"items":{"$ref":"#/$defs/name"}}],"description":"The events the property rides on; `*` is every event the SDK sends."},"presence":{"enum":["always","sometimes"]},"when":{"$ref":"#/$defs/condition"}}}},"personProperties":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["name","when"],"properties":{"name":{"$ref":"#/$defs/name"},"when":{"$ref":"#/$defs/condition"}}}}},"$defs":{"name":{"type":"string","pattern":"\\S"},"condition":{"description":"`always`; `{ option, not }`: sent unless the init option is that literal; `{ option, is: true }`: sent only when the option is a truthy literal (ADR-003); `{ unknown }`: not decidable from code, so the builtin is conditional; `{ call, auto }`: sent when the source calls that described member, otherwise conditional when an `auto` caller (a provider component or an SDK method) may call it for the app (ADR-047).","anyOf":[{"const":"always"},{"type":"object","additionalProperties":false,"properties":{"option":{"type":"string","pattern":"^[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"},"not":{"type":["string","boolean","number"]},"is":{"type":["string","boolean","number"]},"unknown":{"type":"string","pattern":"\\S"},"call":{"$ref":"#/$defs/identifier"},"auto":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/autoCaller"}}}}]},"identifier":{"type":"string","pattern":"^[A-Za-z_$][A-Za-z0-9_$]*$"},"autoCaller":{"anyOf":[{"type":"object","additionalProperties":false,"required":["component","prop","option"],"properties":{"component":{"$ref":"#/$defs/identifier"},"prop":{"$ref":"#/$defs/identifier"},"option":{"$ref":"#/$defs/identifier"}}},{"type":"object","additionalProperties":false,"required":["member","on","options","option"],"properties":{"member":{"$ref":"#/$defs/identifier"},"on":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/identifier"}},"options":{"type":"string","pattern":"^args\\[\\d+\\]$"},"option":{"$ref":"#/$defs/identifier"}}}]}}};
 const schema32 = {"type":"string","pattern":"\\S"};
-const schema33 = {"description":"`always`; `{ option, not }`: sent unless the init option is that literal; `{ option, is: true }`: sent only when the option is a truthy literal (ADR-003); `{ unknown }`: not decidable from code, so the builtin is conditional.","anyOf":[{"const":"always"},{"type":"object","additionalProperties":false,"properties":{"option":{"type":"string","pattern":"^[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"},"not":{"type":["string","boolean","number"]},"is":{"type":["string","boolean","number"]},"unknown":{"type":"string","pattern":"\\S"}}}]};
 const pattern4 = new RegExp("^[a-z0-9][a-z0-9._-]*$", "u");
 const pattern5 = new RegExp("\\S", "u");
+const schema33 = {"description":"`always`; `{ option, not }`: sent unless the init option is that literal; `{ option, is: true }`: sent only when the option is a truthy literal (ADR-003); `{ unknown }`: not decidable from code, so the builtin is conditional; `{ call, auto }`: sent when the source calls that described member, otherwise conditional when an `auto` caller (a provider component or an SDK method) may call it for the app (ADR-047).","anyOf":[{"const":"always"},{"type":"object","additionalProperties":false,"properties":{"option":{"type":"string","pattern":"^[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"},"not":{"type":["string","boolean","number"]},"is":{"type":["string","boolean","number"]},"unknown":{"type":"string","pattern":"\\S"},"call":{"$ref":"#/$defs/identifier"},"auto":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/autoCaller"}}}}]};
+const schema34 = {"type":"string","pattern":"^[A-Za-z_$][A-Za-z0-9_$]*$"};
 const pattern6 = new RegExp("^[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$", "u");
+const pattern8 = new RegExp("^[A-Za-z_$][A-Za-z0-9_$]*$", "u");
+const schema35 = {"anyOf":[{"type":"object","additionalProperties":false,"required":["component","prop","option"],"properties":{"component":{"$ref":"#/$defs/identifier"},"prop":{"$ref":"#/$defs/identifier"},"option":{"$ref":"#/$defs/identifier"}}},{"type":"object","additionalProperties":false,"required":["member","on","options","option"],"properties":{"member":{"$ref":"#/$defs/identifier"},"on":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/identifier"}},"options":{"type":"string","pattern":"^args\\[\\d+\\]$"},"option":{"$ref":"#/$defs/identifier"}}}]};
+const pattern14 = new RegExp("^args\\[\\d+\\]$", "u");
+
+function validate22(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate22.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+const _errs0 = errors;
+let valid0 = false;
+const _errs1 = errors;
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.component === undefined){
+const err0 = {instancePath,schemaPath:"#/anyOf/0/required",keyword:"required",params:{missingProperty: "component"},message:"must have required property '"+"component"+"'"};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+if(data.prop === undefined){
+const err1 = {instancePath,schemaPath:"#/anyOf/0/required",keyword:"required",params:{missingProperty: "prop"},message:"must have required property '"+"prop"+"'"};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+if(data.option === undefined){
+const err2 = {instancePath,schemaPath:"#/anyOf/0/required",keyword:"required",params:{missingProperty: "option"},message:"must have required property '"+"option"+"'"};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+for(const key0 in data){
+if(!(((key0 === "component") || (key0 === "prop")) || (key0 === "option"))){
+const err3 = {instancePath,schemaPath:"#/anyOf/0/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err3];
+}
+else {
+vErrors.push(err3);
+}
+errors++;
+}
+}
+if(data.component !== undefined){
+let data0 = data.component;
+if(typeof data0 === "string"){
+if(!pattern8.test(data0)){
+const err4 = {instancePath:instancePath+"/component",schemaPath:"#/$defs/identifier/pattern",keyword:"pattern",params:{pattern: "^[A-Za-z_$][A-Za-z0-9_$]*$"},message:"must match pattern \""+"^[A-Za-z_$][A-Za-z0-9_$]*$"+"\""};
+if(vErrors === null){
+vErrors = [err4];
+}
+else {
+vErrors.push(err4);
+}
+errors++;
+}
+}
+else {
+const err5 = {instancePath:instancePath+"/component",schemaPath:"#/$defs/identifier/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err5];
+}
+else {
+vErrors.push(err5);
+}
+errors++;
+}
+}
+if(data.prop !== undefined){
+let data1 = data.prop;
+if(typeof data1 === "string"){
+if(!pattern8.test(data1)){
+const err6 = {instancePath:instancePath+"/prop",schemaPath:"#/$defs/identifier/pattern",keyword:"pattern",params:{pattern: "^[A-Za-z_$][A-Za-z0-9_$]*$"},message:"must match pattern \""+"^[A-Za-z_$][A-Za-z0-9_$]*$"+"\""};
+if(vErrors === null){
+vErrors = [err6];
+}
+else {
+vErrors.push(err6);
+}
+errors++;
+}
+}
+else {
+const err7 = {instancePath:instancePath+"/prop",schemaPath:"#/$defs/identifier/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err7];
+}
+else {
+vErrors.push(err7);
+}
+errors++;
+}
+}
+if(data.option !== undefined){
+let data2 = data.option;
+if(typeof data2 === "string"){
+if(!pattern8.test(data2)){
+const err8 = {instancePath:instancePath+"/option",schemaPath:"#/$defs/identifier/pattern",keyword:"pattern",params:{pattern: "^[A-Za-z_$][A-Za-z0-9_$]*$"},message:"must match pattern \""+"^[A-Za-z_$][A-Za-z0-9_$]*$"+"\""};
+if(vErrors === null){
+vErrors = [err8];
+}
+else {
+vErrors.push(err8);
+}
+errors++;
+}
+}
+else {
+const err9 = {instancePath:instancePath+"/option",schemaPath:"#/$defs/identifier/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err9];
+}
+else {
+vErrors.push(err9);
+}
+errors++;
+}
+}
+}
+else {
+const err10 = {instancePath,schemaPath:"#/anyOf/0/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err10];
+}
+else {
+vErrors.push(err10);
+}
+errors++;
+}
+var _valid0 = _errs1 === errors;
+valid0 = valid0 || _valid0;
+if(_valid0){
+var props0 = true;
+}
+const _errs13 = errors;
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.member === undefined){
+const err11 = {instancePath,schemaPath:"#/anyOf/1/required",keyword:"required",params:{missingProperty: "member"},message:"must have required property '"+"member"+"'"};
+if(vErrors === null){
+vErrors = [err11];
+}
+else {
+vErrors.push(err11);
+}
+errors++;
+}
+if(data.on === undefined){
+const err12 = {instancePath,schemaPath:"#/anyOf/1/required",keyword:"required",params:{missingProperty: "on"},message:"must have required property '"+"on"+"'"};
+if(vErrors === null){
+vErrors = [err12];
+}
+else {
+vErrors.push(err12);
+}
+errors++;
+}
+if(data.options === undefined){
+const err13 = {instancePath,schemaPath:"#/anyOf/1/required",keyword:"required",params:{missingProperty: "options"},message:"must have required property '"+"options"+"'"};
+if(vErrors === null){
+vErrors = [err13];
+}
+else {
+vErrors.push(err13);
+}
+errors++;
+}
+if(data.option === undefined){
+const err14 = {instancePath,schemaPath:"#/anyOf/1/required",keyword:"required",params:{missingProperty: "option"},message:"must have required property '"+"option"+"'"};
+if(vErrors === null){
+vErrors = [err14];
+}
+else {
+vErrors.push(err14);
+}
+errors++;
+}
+for(const key1 in data){
+if(!((((key1 === "member") || (key1 === "on")) || (key1 === "options")) || (key1 === "option"))){
+const err15 = {instancePath,schemaPath:"#/anyOf/1/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key1},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err15];
+}
+else {
+vErrors.push(err15);
+}
+errors++;
+}
+}
+if(data.member !== undefined){
+let data3 = data.member;
+if(typeof data3 === "string"){
+if(!pattern8.test(data3)){
+const err16 = {instancePath:instancePath+"/member",schemaPath:"#/$defs/identifier/pattern",keyword:"pattern",params:{pattern: "^[A-Za-z_$][A-Za-z0-9_$]*$"},message:"must match pattern \""+"^[A-Za-z_$][A-Za-z0-9_$]*$"+"\""};
+if(vErrors === null){
+vErrors = [err16];
+}
+else {
+vErrors.push(err16);
+}
+errors++;
+}
+}
+else {
+const err17 = {instancePath:instancePath+"/member",schemaPath:"#/$defs/identifier/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err17];
+}
+else {
+vErrors.push(err17);
+}
+errors++;
+}
+}
+if(data.on !== undefined){
+let data4 = data.on;
+if(Array.isArray(data4)){
+if(data4.length < 1){
+const err18 = {instancePath:instancePath+"/on",schemaPath:"#/anyOf/1/properties/on/minItems",keyword:"minItems",params:{limit: 1},message:"must NOT have fewer than 1 items"};
+if(vErrors === null){
+vErrors = [err18];
+}
+else {
+vErrors.push(err18);
+}
+errors++;
+}
+const len0 = data4.length;
+for(let i0=0; i0<len0; i0++){
+let data5 = data4[i0];
+if(typeof data5 === "string"){
+if(!pattern8.test(data5)){
+const err19 = {instancePath:instancePath+"/on/" + i0,schemaPath:"#/$defs/identifier/pattern",keyword:"pattern",params:{pattern: "^[A-Za-z_$][A-Za-z0-9_$]*$"},message:"must match pattern \""+"^[A-Za-z_$][A-Za-z0-9_$]*$"+"\""};
+if(vErrors === null){
+vErrors = [err19];
+}
+else {
+vErrors.push(err19);
+}
+errors++;
+}
+}
+else {
+const err20 = {instancePath:instancePath+"/on/" + i0,schemaPath:"#/$defs/identifier/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err20];
+}
+else {
+vErrors.push(err20);
+}
+errors++;
+}
+}
+}
+else {
+const err21 = {instancePath:instancePath+"/on",schemaPath:"#/anyOf/1/properties/on/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err21];
+}
+else {
+vErrors.push(err21);
+}
+errors++;
+}
+}
+if(data.options !== undefined){
+let data6 = data.options;
+if(typeof data6 === "string"){
+if(!pattern14.test(data6)){
+const err22 = {instancePath:instancePath+"/options",schemaPath:"#/anyOf/1/properties/options/pattern",keyword:"pattern",params:{pattern: "^args\\[\\d+\\]$"},message:"must match pattern \""+"^args\\[\\d+\\]$"+"\""};
+if(vErrors === null){
+vErrors = [err22];
+}
+else {
+vErrors.push(err22);
+}
+errors++;
+}
+}
+else {
+const err23 = {instancePath:instancePath+"/options",schemaPath:"#/anyOf/1/properties/options/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err23];
+}
+else {
+vErrors.push(err23);
+}
+errors++;
+}
+}
+if(data.option !== undefined){
+let data7 = data.option;
+if(typeof data7 === "string"){
+if(!pattern8.test(data7)){
+const err24 = {instancePath:instancePath+"/option",schemaPath:"#/$defs/identifier/pattern",keyword:"pattern",params:{pattern: "^[A-Za-z_$][A-Za-z0-9_$]*$"},message:"must match pattern \""+"^[A-Za-z_$][A-Za-z0-9_$]*$"+"\""};
+if(vErrors === null){
+vErrors = [err24];
+}
+else {
+vErrors.push(err24);
+}
+errors++;
+}
+}
+else {
+const err25 = {instancePath:instancePath+"/option",schemaPath:"#/$defs/identifier/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err25];
+}
+else {
+vErrors.push(err25);
+}
+errors++;
+}
+}
+}
+else {
+const err26 = {instancePath,schemaPath:"#/anyOf/1/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err26];
+}
+else {
+vErrors.push(err26);
+}
+errors++;
+}
+var _valid0 = _errs13 === errors;
+valid0 = valid0 || _valid0;
+if(_valid0){
+if(props0 !== true){
+props0 = true;
+}
+}
+if(!valid0){
+const err27 = {instancePath,schemaPath:"#/anyOf",keyword:"anyOf",params:{},message:"must match a schema in anyOf"};
+if(vErrors === null){
+vErrors = [err27];
+}
+else {
+vErrors.push(err27);
+}
+errors++;
+}
+else {
+errors = _errs0;
+if(vErrors !== null){
+if(_errs0){
+vErrors.length = _errs0;
+}
+else {
+vErrors = null;
+}
+}
+}
+validate22.errors = vErrors;
+evaluated0.props = props0;
+return errors === 0;
+}
+validate22.evaluated = {"dynamicProps":true,"dynamicItems":false};
+
+
+function validate21(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate21.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+const _errs0 = errors;
+let valid0 = false;
+const _errs1 = errors;
+if("always" !== data){
+const err0 = {instancePath,schemaPath:"#/anyOf/0/const",keyword:"const",params:{allowedValue: "always"},message:"must be equal to constant"};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+var _valid0 = _errs1 === errors;
+valid0 = valid0 || _valid0;
+const _errs2 = errors;
+if(data && typeof data == "object" && !Array.isArray(data)){
+for(const key0 in data){
+if(!((((((key0 === "option") || (key0 === "not")) || (key0 === "is")) || (key0 === "unknown")) || (key0 === "call")) || (key0 === "auto"))){
+const err1 = {instancePath,schemaPath:"#/anyOf/1/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+}
+if(data.option !== undefined){
+let data0 = data.option;
+if(typeof data0 === "string"){
+if(!pattern6.test(data0)){
+const err2 = {instancePath:instancePath+"/option",schemaPath:"#/anyOf/1/properties/option/pattern",keyword:"pattern",params:{pattern: "^[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"},message:"must match pattern \""+"^[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"+"\""};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+}
+else {
+const err3 = {instancePath:instancePath+"/option",schemaPath:"#/anyOf/1/properties/option/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err3];
+}
+else {
+vErrors.push(err3);
+}
+errors++;
+}
+}
+if(data.not !== undefined){
+let data1 = data.not;
+if(((typeof data1 !== "string") && (typeof data1 !== "boolean")) && (!((typeof data1 == "number") && (isFinite(data1))))){
+const err4 = {instancePath:instancePath+"/not",schemaPath:"#/anyOf/1/properties/not/type",keyword:"type",params:{type: schema33.anyOf[1].properties.not.type},message:"must be string,boolean,number"};
+if(vErrors === null){
+vErrors = [err4];
+}
+else {
+vErrors.push(err4);
+}
+errors++;
+}
+}
+if(data.is !== undefined){
+let data2 = data.is;
+if(((typeof data2 !== "string") && (typeof data2 !== "boolean")) && (!((typeof data2 == "number") && (isFinite(data2))))){
+const err5 = {instancePath:instancePath+"/is",schemaPath:"#/anyOf/1/properties/is/type",keyword:"type",params:{type: schema33.anyOf[1].properties.is.type},message:"must be string,boolean,number"};
+if(vErrors === null){
+vErrors = [err5];
+}
+else {
+vErrors.push(err5);
+}
+errors++;
+}
+}
+if(data.unknown !== undefined){
+let data3 = data.unknown;
+if(typeof data3 === "string"){
+if(!pattern5.test(data3)){
+const err6 = {instancePath:instancePath+"/unknown",schemaPath:"#/anyOf/1/properties/unknown/pattern",keyword:"pattern",params:{pattern: "\\S"},message:"must match pattern \""+"\\S"+"\""};
+if(vErrors === null){
+vErrors = [err6];
+}
+else {
+vErrors.push(err6);
+}
+errors++;
+}
+}
+else {
+const err7 = {instancePath:instancePath+"/unknown",schemaPath:"#/anyOf/1/properties/unknown/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err7];
+}
+else {
+vErrors.push(err7);
+}
+errors++;
+}
+}
+if(data.call !== undefined){
+let data4 = data.call;
+if(typeof data4 === "string"){
+if(!pattern8.test(data4)){
+const err8 = {instancePath:instancePath+"/call",schemaPath:"#/$defs/identifier/pattern",keyword:"pattern",params:{pattern: "^[A-Za-z_$][A-Za-z0-9_$]*$"},message:"must match pattern \""+"^[A-Za-z_$][A-Za-z0-9_$]*$"+"\""};
+if(vErrors === null){
+vErrors = [err8];
+}
+else {
+vErrors.push(err8);
+}
+errors++;
+}
+}
+else {
+const err9 = {instancePath:instancePath+"/call",schemaPath:"#/$defs/identifier/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err9];
+}
+else {
+vErrors.push(err9);
+}
+errors++;
+}
+}
+if(data.auto !== undefined){
+let data5 = data.auto;
+if(Array.isArray(data5)){
+if(data5.length < 1){
+const err10 = {instancePath:instancePath+"/auto",schemaPath:"#/anyOf/1/properties/auto/minItems",keyword:"minItems",params:{limit: 1},message:"must NOT have fewer than 1 items"};
+if(vErrors === null){
+vErrors = [err10];
+}
+else {
+vErrors.push(err10);
+}
+errors++;
+}
+const len0 = data5.length;
+for(let i0=0; i0<len0; i0++){
+if(!(validate22(data5[i0], {instancePath:instancePath+"/auto/" + i0,parentData:data5,parentDataProperty:i0,rootData,dynamicAnchors}))){
+vErrors = vErrors === null ? validate22.errors : vErrors.concat(validate22.errors);
+errors = vErrors.length;
+}
+}
+}
+else {
+const err11 = {instancePath:instancePath+"/auto",schemaPath:"#/anyOf/1/properties/auto/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err11];
+}
+else {
+vErrors.push(err11);
+}
+errors++;
+}
+}
+}
+else {
+const err12 = {instancePath,schemaPath:"#/anyOf/1/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err12];
+}
+else {
+vErrors.push(err12);
+}
+errors++;
+}
+var _valid0 = _errs2 === errors;
+valid0 = valid0 || _valid0;
+if(_valid0){
+var props1 = true;
+}
+if(!valid0){
+const err13 = {instancePath,schemaPath:"#/anyOf",keyword:"anyOf",params:{},message:"must match a schema in anyOf"};
+if(vErrors === null){
+vErrors = [err13];
+}
+else {
+vErrors.push(err13);
+}
+errors++;
+}
+else {
+errors = _errs0;
+if(vErrors !== null){
+if(_errs0){
+vErrors.length = _errs0;
+}
+else {
+vErrors = null;
+}
+}
+}
+validate21.errors = vErrors;
+evaluated0.props = props1;
+return errors === 0;
+}
+validate21.evaluated = {"dynamicProps":true,"dynamicItems":false};
+
 
 function validate20(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="https://github.com/dashlint/dashlint/schema/builtins.schema.json" */;
@@ -166,12 +759,14 @@ errors++;
 }
 }
 if(data2.when !== undefined){
-let data4 = data2.when;
-const _errs14 = errors;
-let valid6 = false;
-const _errs15 = errors;
-if("always" !== data4){
-const err12 = {instancePath:instancePath+"/events/" + i0+"/when",schemaPath:"#/$defs/condition/anyOf/0/const",keyword:"const",params:{allowedValue: "always"},message:"must be equal to constant"};
+if(!(validate21(data2.when, {instancePath:instancePath+"/events/" + i0+"/when",parentData:data2,parentDataProperty:"when",rootData,dynamicAnchors}))){
+vErrors = vErrors === null ? validate21.errors : vErrors.concat(validate21.errors);
+errors = vErrors.length;
+}
+}
+}
+else {
+const err12 = {instancePath:instancePath+"/events/" + i0,schemaPath:"#/properties/events/items/type",keyword:"type",params:{type: "object"},message:"must be object"};
 if(vErrors === null){
 vErrors = [err12];
 }
@@ -180,13 +775,10 @@ vErrors.push(err12);
 }
 errors++;
 }
-var _valid0 = _errs15 === errors;
-valid6 = valid6 || _valid0;
-const _errs16 = errors;
-if(data4 && typeof data4 == "object" && !Array.isArray(data4)){
-for(const key2 in data4){
-if(!((((key2 === "option") || (key2 === "not")) || (key2 === "is")) || (key2 === "unknown"))){
-const err13 = {instancePath:instancePath+"/events/" + i0+"/when",schemaPath:"#/$defs/condition/anyOf/1/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key2},message:"must NOT have additional properties"};
+}
+}
+else {
+const err13 = {instancePath:instancePath+"/events",schemaPath:"#/properties/events/type",keyword:"type",params:{type: "array"},message:"must be array"};
 if(vErrors === null){
 vErrors = [err13];
 }
@@ -196,11 +788,15 @@ vErrors.push(err13);
 errors++;
 }
 }
-if(data4.option !== undefined){
-let data5 = data4.option;
-if(typeof data5 === "string"){
-if(!pattern6.test(data5)){
-const err14 = {instancePath:instancePath+"/events/" + i0+"/when/option",schemaPath:"#/$defs/condition/anyOf/1/properties/option/pattern",keyword:"pattern",params:{pattern: "^[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"},message:"must match pattern \""+"^[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"+"\""};
+if(data.properties !== undefined){
+let data5 = data.properties;
+if(Array.isArray(data5)){
+const len1 = data5.length;
+for(let i1=0; i1<len1; i1++){
+let data6 = data5[i1];
+if(data6 && typeof data6 == "object" && !Array.isArray(data6)){
+if(data6.name === undefined){
+const err14 = {instancePath:instancePath+"/properties/" + i1,schemaPath:"#/properties/properties/items/required",keyword:"required",params:{missingProperty: "name"},message:"must have required property '"+"name"+"'"};
 if(vErrors === null){
 vErrors = [err14];
 }
@@ -209,9 +805,8 @@ vErrors.push(err14);
 }
 errors++;
 }
-}
-else {
-const err15 = {instancePath:instancePath+"/events/" + i0+"/when/option",schemaPath:"#/$defs/condition/anyOf/1/properties/option/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(data6.events === undefined){
+const err15 = {instancePath:instancePath+"/properties/" + i1,schemaPath:"#/properties/properties/items/required",keyword:"required",params:{missingProperty: "events"},message:"must have required property '"+"events"+"'"};
 if(vErrors === null){
 vErrors = [err15];
 }
@@ -220,11 +815,8 @@ vErrors.push(err15);
 }
 errors++;
 }
-}
-if(data4.not !== undefined){
-let data6 = data4.not;
-if(((typeof data6 !== "string") && (typeof data6 !== "boolean")) && (!((typeof data6 == "number") && (isFinite(data6))))){
-const err16 = {instancePath:instancePath+"/events/" + i0+"/when/not",schemaPath:"#/$defs/condition/anyOf/1/properties/not/type",keyword:"type",params:{type: schema33.anyOf[1].properties.not.type},message:"must be string,boolean,number"};
+if(data6.presence === undefined){
+const err16 = {instancePath:instancePath+"/properties/" + i1,schemaPath:"#/properties/properties/items/required",keyword:"required",params:{missingProperty: "presence"},message:"must have required property '"+"presence"+"'"};
 if(vErrors === null){
 vErrors = [err16];
 }
@@ -233,11 +825,8 @@ vErrors.push(err16);
 }
 errors++;
 }
-}
-if(data4.is !== undefined){
-let data7 = data4.is;
-if(((typeof data7 !== "string") && (typeof data7 !== "boolean")) && (!((typeof data7 == "number") && (isFinite(data7))))){
-const err17 = {instancePath:instancePath+"/events/" + i0+"/when/is",schemaPath:"#/$defs/condition/anyOf/1/properties/is/type",keyword:"type",params:{type: schema33.anyOf[1].properties.is.type},message:"must be string,boolean,number"};
+if(data6.when === undefined){
+const err17 = {instancePath:instancePath+"/properties/" + i1,schemaPath:"#/properties/properties/items/required",keyword:"required",params:{missingProperty: "when"},message:"must have required property '"+"when"+"'"};
 if(vErrors === null){
 vErrors = [err17];
 }
@@ -246,12 +835,9 @@ vErrors.push(err17);
 }
 errors++;
 }
-}
-if(data4.unknown !== undefined){
-let data8 = data4.unknown;
-if(typeof data8 === "string"){
-if(!pattern5.test(data8)){
-const err18 = {instancePath:instancePath+"/events/" + i0+"/when/unknown",schemaPath:"#/$defs/condition/anyOf/1/properties/unknown/pattern",keyword:"pattern",params:{pattern: "\\S"},message:"must match pattern \""+"\\S"+"\""};
+for(const key2 in data6){
+if(!((((key2 === "name") || (key2 === "events")) || (key2 === "presence")) || (key2 === "when"))){
+const err18 = {instancePath:instancePath+"/properties/" + i1,schemaPath:"#/properties/properties/items/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key2},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err18];
 }
@@ -261,8 +847,11 @@ vErrors.push(err18);
 errors++;
 }
 }
-else {
-const err19 = {instancePath:instancePath+"/events/" + i0+"/when/unknown",schemaPath:"#/$defs/condition/anyOf/1/properties/unknown/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(data6.name !== undefined){
+let data7 = data6.name;
+if(typeof data7 === "string"){
+if(!pattern5.test(data7)){
+const err19 = {instancePath:instancePath+"/properties/" + i1+"/name",schemaPath:"#/$defs/name/pattern",keyword:"pattern",params:{pattern: "\\S"},message:"must match pattern \""+"\\S"+"\""};
 if(vErrors === null){
 vErrors = [err19];
 }
@@ -272,9 +861,8 @@ vErrors.push(err19);
 errors++;
 }
 }
-}
 else {
-const err20 = {instancePath:instancePath+"/events/" + i0+"/when",schemaPath:"#/$defs/condition/anyOf/1/type",keyword:"type",params:{type: "object"},message:"must be object"};
+const err20 = {instancePath:instancePath+"/properties/" + i1+"/name",schemaPath:"#/$defs/name/type",keyword:"type",params:{type: "string"},message:"must be string"};
 if(vErrors === null){
 vErrors = [err20];
 }
@@ -283,10 +871,14 @@ vErrors.push(err20);
 }
 errors++;
 }
-var _valid0 = _errs16 === errors;
-valid6 = valid6 || _valid0;
-if(!valid6){
-const err21 = {instancePath:instancePath+"/events/" + i0+"/when",schemaPath:"#/$defs/condition/anyOf",keyword:"anyOf",params:{},message:"must match a schema in anyOf"};
+}
+if(data6.events !== undefined){
+let data8 = data6.events;
+const _errs22 = errors;
+let valid9 = false;
+const _errs23 = errors;
+if("*" !== data8){
+const err21 = {instancePath:instancePath+"/properties/" + i1+"/events",schemaPath:"#/properties/properties/items/properties/events/anyOf/0/const",keyword:"const",params:{allowedValue: "*"},message:"must be equal to constant"};
 if(vErrors === null){
 vErrors = [err21];
 }
@@ -295,21 +887,12 @@ vErrors.push(err21);
 }
 errors++;
 }
-else {
-errors = _errs14;
-if(vErrors !== null){
-if(_errs14){
-vErrors.length = _errs14;
-}
-else {
-vErrors = null;
-}
-}
-}
-}
-}
-else {
-const err22 = {instancePath:instancePath+"/events/" + i0,schemaPath:"#/properties/events/items/type",keyword:"type",params:{type: "object"},message:"must be object"};
+var _valid0 = _errs23 === errors;
+valid9 = valid9 || _valid0;
+const _errs24 = errors;
+if(Array.isArray(data8)){
+if(data8.length < 1){
+const err22 = {instancePath:instancePath+"/properties/" + i1+"/events",schemaPath:"#/properties/properties/items/properties/events/anyOf/1/minItems",keyword:"minItems",params:{limit: 1},message:"must NOT have fewer than 1 items"};
 if(vErrors === null){
 vErrors = [err22];
 }
@@ -318,10 +901,12 @@ vErrors.push(err22);
 }
 errors++;
 }
-}
-}
-else {
-const err23 = {instancePath:instancePath+"/events",schemaPath:"#/properties/events/type",keyword:"type",params:{type: "array"},message:"must be array"};
+const len2 = data8.length;
+for(let i2=0; i2<len2; i2++){
+let data9 = data8[i2];
+if(typeof data9 === "string"){
+if(!pattern5.test(data9)){
+const err23 = {instancePath:instancePath+"/properties/" + i1+"/events/" + i2,schemaPath:"#/$defs/name/pattern",keyword:"pattern",params:{pattern: "\\S"},message:"must match pattern \""+"\\S"+"\""};
 if(vErrors === null){
 vErrors = [err23];
 }
@@ -331,15 +916,8 @@ vErrors.push(err23);
 errors++;
 }
 }
-if(data.properties !== undefined){
-let data9 = data.properties;
-if(Array.isArray(data9)){
-const len1 = data9.length;
-for(let i1=0; i1<len1; i1++){
-let data10 = data9[i1];
-if(data10 && typeof data10 == "object" && !Array.isArray(data10)){
-if(data10.name === undefined){
-const err24 = {instancePath:instancePath+"/properties/" + i1,schemaPath:"#/properties/properties/items/required",keyword:"required",params:{missingProperty: "name"},message:"must have required property '"+"name"+"'"};
+else {
+const err24 = {instancePath:instancePath+"/properties/" + i1+"/events/" + i2,schemaPath:"#/$defs/name/type",keyword:"type",params:{type: "string"},message:"must be string"};
 if(vErrors === null){
 vErrors = [err24];
 }
@@ -348,8 +926,10 @@ vErrors.push(err24);
 }
 errors++;
 }
-if(data10.events === undefined){
-const err25 = {instancePath:instancePath+"/properties/" + i1,schemaPath:"#/properties/properties/items/required",keyword:"required",params:{missingProperty: "events"},message:"must have required property '"+"events"+"'"};
+}
+}
+else {
+const err25 = {instancePath:instancePath+"/properties/" + i1+"/events",schemaPath:"#/properties/properties/items/properties/events/anyOf/1/type",keyword:"type",params:{type: "array"},message:"must be array"};
 if(vErrors === null){
 vErrors = [err25];
 }
@@ -358,8 +938,10 @@ vErrors.push(err25);
 }
 errors++;
 }
-if(data10.presence === undefined){
-const err26 = {instancePath:instancePath+"/properties/" + i1,schemaPath:"#/properties/properties/items/required",keyword:"required",params:{missingProperty: "presence"},message:"must have required property '"+"presence"+"'"};
+var _valid0 = _errs24 === errors;
+valid9 = valid9 || _valid0;
+if(!valid9){
+const err26 = {instancePath:instancePath+"/properties/" + i1+"/events",schemaPath:"#/properties/properties/items/properties/events/anyOf",keyword:"anyOf",params:{},message:"must match a schema in anyOf"};
 if(vErrors === null){
 vErrors = [err26];
 }
@@ -368,8 +950,22 @@ vErrors.push(err26);
 }
 errors++;
 }
-if(data10.when === undefined){
-const err27 = {instancePath:instancePath+"/properties/" + i1,schemaPath:"#/properties/properties/items/required",keyword:"required",params:{missingProperty: "when"},message:"must have required property '"+"when"+"'"};
+else {
+errors = _errs22;
+if(vErrors !== null){
+if(_errs22){
+vErrors.length = _errs22;
+}
+else {
+vErrors = null;
+}
+}
+}
+}
+if(data6.presence !== undefined){
+let data10 = data6.presence;
+if(!((data10 === "always") || (data10 === "sometimes"))){
+const err27 = {instancePath:instancePath+"/properties/" + i1+"/presence",schemaPath:"#/properties/properties/items/properties/presence/enum",keyword:"enum",params:{allowedValues: schema31.properties.properties.items.properties.presence.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err27];
 }
@@ -378,9 +974,16 @@ vErrors.push(err27);
 }
 errors++;
 }
-for(const key3 in data10){
-if(!((((key3 === "name") || (key3 === "events")) || (key3 === "presence")) || (key3 === "when"))){
-const err28 = {instancePath:instancePath+"/properties/" + i1,schemaPath:"#/properties/properties/items/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key3},message:"must NOT have additional properties"};
+}
+if(data6.when !== undefined){
+if(!(validate21(data6.when, {instancePath:instancePath+"/properties/" + i1+"/when",parentData:data6,parentDataProperty:"when",rootData,dynamicAnchors}))){
+vErrors = vErrors === null ? validate21.errors : vErrors.concat(validate21.errors);
+errors = vErrors.length;
+}
+}
+}
+else {
+const err28 = {instancePath:instancePath+"/properties/" + i1,schemaPath:"#/properties/properties/items/type",keyword:"type",params:{type: "object"},message:"must be object"};
 if(vErrors === null){
 vErrors = [err28];
 }
@@ -390,11 +993,9 @@ vErrors.push(err28);
 errors++;
 }
 }
-if(data10.name !== undefined){
-let data11 = data10.name;
-if(typeof data11 === "string"){
-if(!pattern5.test(data11)){
-const err29 = {instancePath:instancePath+"/properties/" + i1+"/name",schemaPath:"#/$defs/name/pattern",keyword:"pattern",params:{pattern: "\\S"},message:"must match pattern \""+"\\S"+"\""};
+}
+else {
+const err29 = {instancePath:instancePath+"/properties",schemaPath:"#/properties/properties/type",keyword:"type",params:{type: "array"},message:"must be array"};
 if(vErrors === null){
 vErrors = [err29];
 }
@@ -404,8 +1005,15 @@ vErrors.push(err29);
 errors++;
 }
 }
-else {
-const err30 = {instancePath:instancePath+"/properties/" + i1+"/name",schemaPath:"#/$defs/name/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(data.personProperties !== undefined){
+let data12 = data.personProperties;
+if(Array.isArray(data12)){
+const len3 = data12.length;
+for(let i3=0; i3<len3; i3++){
+let data13 = data12[i3];
+if(data13 && typeof data13 == "object" && !Array.isArray(data13)){
+if(data13.name === undefined){
+const err30 = {instancePath:instancePath+"/personProperties/" + i3,schemaPath:"#/properties/personProperties/items/required",keyword:"required",params:{missingProperty: "name"},message:"must have required property '"+"name"+"'"};
 if(vErrors === null){
 vErrors = [err30];
 }
@@ -414,14 +1022,8 @@ vErrors.push(err30);
 }
 errors++;
 }
-}
-if(data10.events !== undefined){
-let data12 = data10.events;
-const _errs36 = errors;
-let valid12 = false;
-const _errs37 = errors;
-if("*" !== data12){
-const err31 = {instancePath:instancePath+"/properties/" + i1+"/events",schemaPath:"#/properties/properties/items/properties/events/anyOf/0/const",keyword:"const",params:{allowedValue: "*"},message:"must be equal to constant"};
+if(data13.when === undefined){
+const err31 = {instancePath:instancePath+"/personProperties/" + i3,schemaPath:"#/properties/personProperties/items/required",keyword:"required",params:{missingProperty: "when"},message:"must have required property '"+"when"+"'"};
 if(vErrors === null){
 vErrors = [err31];
 }
@@ -430,12 +1032,9 @@ vErrors.push(err31);
 }
 errors++;
 }
-var _valid1 = _errs37 === errors;
-valid12 = valid12 || _valid1;
-const _errs38 = errors;
-if(Array.isArray(data12)){
-if(data12.length < 1){
-const err32 = {instancePath:instancePath+"/properties/" + i1+"/events",schemaPath:"#/properties/properties/items/properties/events/anyOf/1/minItems",keyword:"minItems",params:{limit: 1},message:"must NOT have fewer than 1 items"};
+for(const key3 in data13){
+if(!((key3 === "name") || (key3 === "when"))){
+const err32 = {instancePath:instancePath+"/personProperties/" + i3,schemaPath:"#/properties/personProperties/items/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key3},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err32];
 }
@@ -444,12 +1043,12 @@ vErrors.push(err32);
 }
 errors++;
 }
-const len2 = data12.length;
-for(let i2=0; i2<len2; i2++){
-let data13 = data12[i2];
-if(typeof data13 === "string"){
-if(!pattern5.test(data13)){
-const err33 = {instancePath:instancePath+"/properties/" + i1+"/events/" + i2,schemaPath:"#/$defs/name/pattern",keyword:"pattern",params:{pattern: "\\S"},message:"must match pattern \""+"\\S"+"\""};
+}
+if(data13.name !== undefined){
+let data14 = data13.name;
+if(typeof data14 === "string"){
+if(!pattern5.test(data14)){
+const err33 = {instancePath:instancePath+"/personProperties/" + i3+"/name",schemaPath:"#/$defs/name/pattern",keyword:"pattern",params:{pattern: "\\S"},message:"must match pattern \""+"\\S"+"\""};
 if(vErrors === null){
 vErrors = [err33];
 }
@@ -460,7 +1059,7 @@ errors++;
 }
 }
 else {
-const err34 = {instancePath:instancePath+"/properties/" + i1+"/events/" + i2,schemaPath:"#/$defs/name/type",keyword:"type",params:{type: "string"},message:"must be string"};
+const err34 = {instancePath:instancePath+"/personProperties/" + i3+"/name",schemaPath:"#/$defs/name/type",keyword:"type",params:{type: "string"},message:"must be string"};
 if(vErrors === null){
 vErrors = [err34];
 }
@@ -470,9 +1069,15 @@ vErrors.push(err34);
 errors++;
 }
 }
+if(data13.when !== undefined){
+if(!(validate21(data13.when, {instancePath:instancePath+"/personProperties/" + i3+"/when",parentData:data13,parentDataProperty:"when",rootData,dynamicAnchors}))){
+vErrors = vErrors === null ? validate21.errors : vErrors.concat(validate21.errors);
+errors = vErrors.length;
+}
+}
 }
 else {
-const err35 = {instancePath:instancePath+"/properties/" + i1+"/events",schemaPath:"#/properties/properties/items/properties/events/anyOf/1/type",keyword:"type",params:{type: "array"},message:"must be array"};
+const err35 = {instancePath:instancePath+"/personProperties/" + i3,schemaPath:"#/properties/personProperties/items/type",keyword:"type",params:{type: "object"},message:"must be object"};
 if(vErrors === null){
 vErrors = [err35];
 }
@@ -481,10 +1086,10 @@ vErrors.push(err35);
 }
 errors++;
 }
-var _valid1 = _errs38 === errors;
-valid12 = valid12 || _valid1;
-if(!valid12){
-const err36 = {instancePath:instancePath+"/properties/" + i1+"/events",schemaPath:"#/properties/properties/items/properties/events/anyOf",keyword:"anyOf",params:{},message:"must match a schema in anyOf"};
+}
+}
+else {
+const err36 = {instancePath:instancePath+"/personProperties",schemaPath:"#/properties/personProperties/type",keyword:"type",params:{type: "array"},message:"must be array"};
 if(vErrors === null){
 vErrors = [err36];
 }
@@ -493,22 +1098,10 @@ vErrors.push(err36);
 }
 errors++;
 }
-else {
-errors = _errs36;
-if(vErrors !== null){
-if(_errs36){
-vErrors.length = _errs36;
+}
 }
 else {
-vErrors = null;
-}
-}
-}
-}
-if(data10.presence !== undefined){
-let data14 = data10.presence;
-if(!((data14 === "always") || (data14 === "sometimes"))){
-const err37 = {instancePath:instancePath+"/properties/" + i1+"/presence",schemaPath:"#/properties/properties/items/properties/presence/enum",keyword:"enum",params:{allowedValues: schema31.properties.properties.items.properties.presence.enum},message:"must be equal to one of the allowed values"};
+const err37 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
 if(vErrors === null){
 vErrors = [err37];
 }
@@ -517,443 +1110,34 @@ vErrors.push(err37);
 }
 errors++;
 }
-}
-if(data10.when !== undefined){
-let data15 = data10.when;
-const _errs46 = errors;
-let valid17 = false;
-const _errs47 = errors;
-if("always" !== data15){
-const err38 = {instancePath:instancePath+"/properties/" + i1+"/when",schemaPath:"#/$defs/condition/anyOf/0/const",keyword:"const",params:{allowedValue: "always"},message:"must be equal to constant"};
-if(vErrors === null){
-vErrors = [err38];
-}
-else {
-vErrors.push(err38);
-}
-errors++;
-}
-var _valid2 = _errs47 === errors;
-valid17 = valid17 || _valid2;
-const _errs48 = errors;
-if(data15 && typeof data15 == "object" && !Array.isArray(data15)){
-for(const key4 in data15){
-if(!((((key4 === "option") || (key4 === "not")) || (key4 === "is")) || (key4 === "unknown"))){
-const err39 = {instancePath:instancePath+"/properties/" + i1+"/when",schemaPath:"#/$defs/condition/anyOf/1/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key4},message:"must NOT have additional properties"};
-if(vErrors === null){
-vErrors = [err39];
-}
-else {
-vErrors.push(err39);
-}
-errors++;
-}
-}
-if(data15.option !== undefined){
-let data16 = data15.option;
-if(typeof data16 === "string"){
-if(!pattern6.test(data16)){
-const err40 = {instancePath:instancePath+"/properties/" + i1+"/when/option",schemaPath:"#/$defs/condition/anyOf/1/properties/option/pattern",keyword:"pattern",params:{pattern: "^[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"},message:"must match pattern \""+"^[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"+"\""};
-if(vErrors === null){
-vErrors = [err40];
-}
-else {
-vErrors.push(err40);
-}
-errors++;
-}
-}
-else {
-const err41 = {instancePath:instancePath+"/properties/" + i1+"/when/option",schemaPath:"#/$defs/condition/anyOf/1/properties/option/type",keyword:"type",params:{type: "string"},message:"must be string"};
-if(vErrors === null){
-vErrors = [err41];
-}
-else {
-vErrors.push(err41);
-}
-errors++;
-}
-}
-if(data15.not !== undefined){
-let data17 = data15.not;
-if(((typeof data17 !== "string") && (typeof data17 !== "boolean")) && (!((typeof data17 == "number") && (isFinite(data17))))){
-const err42 = {instancePath:instancePath+"/properties/" + i1+"/when/not",schemaPath:"#/$defs/condition/anyOf/1/properties/not/type",keyword:"type",params:{type: schema33.anyOf[1].properties.not.type},message:"must be string,boolean,number"};
-if(vErrors === null){
-vErrors = [err42];
-}
-else {
-vErrors.push(err42);
-}
-errors++;
-}
-}
-if(data15.is !== undefined){
-let data18 = data15.is;
-if(((typeof data18 !== "string") && (typeof data18 !== "boolean")) && (!((typeof data18 == "number") && (isFinite(data18))))){
-const err43 = {instancePath:instancePath+"/properties/" + i1+"/when/is",schemaPath:"#/$defs/condition/anyOf/1/properties/is/type",keyword:"type",params:{type: schema33.anyOf[1].properties.is.type},message:"must be string,boolean,number"};
-if(vErrors === null){
-vErrors = [err43];
-}
-else {
-vErrors.push(err43);
-}
-errors++;
-}
-}
-if(data15.unknown !== undefined){
-let data19 = data15.unknown;
-if(typeof data19 === "string"){
-if(!pattern5.test(data19)){
-const err44 = {instancePath:instancePath+"/properties/" + i1+"/when/unknown",schemaPath:"#/$defs/condition/anyOf/1/properties/unknown/pattern",keyword:"pattern",params:{pattern: "\\S"},message:"must match pattern \""+"\\S"+"\""};
-if(vErrors === null){
-vErrors = [err44];
-}
-else {
-vErrors.push(err44);
-}
-errors++;
-}
-}
-else {
-const err45 = {instancePath:instancePath+"/properties/" + i1+"/when/unknown",schemaPath:"#/$defs/condition/anyOf/1/properties/unknown/type",keyword:"type",params:{type: "string"},message:"must be string"};
-if(vErrors === null){
-vErrors = [err45];
-}
-else {
-vErrors.push(err45);
-}
-errors++;
-}
-}
-}
-else {
-const err46 = {instancePath:instancePath+"/properties/" + i1+"/when",schemaPath:"#/$defs/condition/anyOf/1/type",keyword:"type",params:{type: "object"},message:"must be object"};
-if(vErrors === null){
-vErrors = [err46];
-}
-else {
-vErrors.push(err46);
-}
-errors++;
-}
-var _valid2 = _errs48 === errors;
-valid17 = valid17 || _valid2;
-if(!valid17){
-const err47 = {instancePath:instancePath+"/properties/" + i1+"/when",schemaPath:"#/$defs/condition/anyOf",keyword:"anyOf",params:{},message:"must match a schema in anyOf"};
-if(vErrors === null){
-vErrors = [err47];
-}
-else {
-vErrors.push(err47);
-}
-errors++;
-}
-else {
-errors = _errs46;
-if(vErrors !== null){
-if(_errs46){
-vErrors.length = _errs46;
-}
-else {
-vErrors = null;
-}
-}
-}
-}
-}
-else {
-const err48 = {instancePath:instancePath+"/properties/" + i1,schemaPath:"#/properties/properties/items/type",keyword:"type",params:{type: "object"},message:"must be object"};
-if(vErrors === null){
-vErrors = [err48];
-}
-else {
-vErrors.push(err48);
-}
-errors++;
-}
-}
-}
-else {
-const err49 = {instancePath:instancePath+"/properties",schemaPath:"#/properties/properties/type",keyword:"type",params:{type: "array"},message:"must be array"};
-if(vErrors === null){
-vErrors = [err49];
-}
-else {
-vErrors.push(err49);
-}
-errors++;
-}
-}
-if(data.personProperties !== undefined){
-let data20 = data.personProperties;
-if(Array.isArray(data20)){
-const len3 = data20.length;
-for(let i3=0; i3<len3; i3++){
-let data21 = data20[i3];
-if(data21 && typeof data21 == "object" && !Array.isArray(data21)){
-if(data21.name === undefined){
-const err50 = {instancePath:instancePath+"/personProperties/" + i3,schemaPath:"#/properties/personProperties/items/required",keyword:"required",params:{missingProperty: "name"},message:"must have required property '"+"name"+"'"};
-if(vErrors === null){
-vErrors = [err50];
-}
-else {
-vErrors.push(err50);
-}
-errors++;
-}
-if(data21.when === undefined){
-const err51 = {instancePath:instancePath+"/personProperties/" + i3,schemaPath:"#/properties/personProperties/items/required",keyword:"required",params:{missingProperty: "when"},message:"must have required property '"+"when"+"'"};
-if(vErrors === null){
-vErrors = [err51];
-}
-else {
-vErrors.push(err51);
-}
-errors++;
-}
-for(const key5 in data21){
-if(!((key5 === "name") || (key5 === "when"))){
-const err52 = {instancePath:instancePath+"/personProperties/" + i3,schemaPath:"#/properties/personProperties/items/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key5},message:"must NOT have additional properties"};
-if(vErrors === null){
-vErrors = [err52];
-}
-else {
-vErrors.push(err52);
-}
-errors++;
-}
-}
-if(data21.name !== undefined){
-let data22 = data21.name;
-if(typeof data22 === "string"){
-if(!pattern5.test(data22)){
-const err53 = {instancePath:instancePath+"/personProperties/" + i3+"/name",schemaPath:"#/$defs/name/pattern",keyword:"pattern",params:{pattern: "\\S"},message:"must match pattern \""+"\\S"+"\""};
-if(vErrors === null){
-vErrors = [err53];
-}
-else {
-vErrors.push(err53);
-}
-errors++;
-}
-}
-else {
-const err54 = {instancePath:instancePath+"/personProperties/" + i3+"/name",schemaPath:"#/$defs/name/type",keyword:"type",params:{type: "string"},message:"must be string"};
-if(vErrors === null){
-vErrors = [err54];
-}
-else {
-vErrors.push(err54);
-}
-errors++;
-}
-}
-if(data21.when !== undefined){
-let data23 = data21.when;
-const _errs69 = errors;
-let valid24 = false;
-const _errs70 = errors;
-if("always" !== data23){
-const err55 = {instancePath:instancePath+"/personProperties/" + i3+"/when",schemaPath:"#/$defs/condition/anyOf/0/const",keyword:"const",params:{allowedValue: "always"},message:"must be equal to constant"};
-if(vErrors === null){
-vErrors = [err55];
-}
-else {
-vErrors.push(err55);
-}
-errors++;
-}
-var _valid3 = _errs70 === errors;
-valid24 = valid24 || _valid3;
-const _errs71 = errors;
-if(data23 && typeof data23 == "object" && !Array.isArray(data23)){
-for(const key6 in data23){
-if(!((((key6 === "option") || (key6 === "not")) || (key6 === "is")) || (key6 === "unknown"))){
-const err56 = {instancePath:instancePath+"/personProperties/" + i3+"/when",schemaPath:"#/$defs/condition/anyOf/1/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key6},message:"must NOT have additional properties"};
-if(vErrors === null){
-vErrors = [err56];
-}
-else {
-vErrors.push(err56);
-}
-errors++;
-}
-}
-if(data23.option !== undefined){
-let data24 = data23.option;
-if(typeof data24 === "string"){
-if(!pattern6.test(data24)){
-const err57 = {instancePath:instancePath+"/personProperties/" + i3+"/when/option",schemaPath:"#/$defs/condition/anyOf/1/properties/option/pattern",keyword:"pattern",params:{pattern: "^[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"},message:"must match pattern \""+"^[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"+"\""};
-if(vErrors === null){
-vErrors = [err57];
-}
-else {
-vErrors.push(err57);
-}
-errors++;
-}
-}
-else {
-const err58 = {instancePath:instancePath+"/personProperties/" + i3+"/when/option",schemaPath:"#/$defs/condition/anyOf/1/properties/option/type",keyword:"type",params:{type: "string"},message:"must be string"};
-if(vErrors === null){
-vErrors = [err58];
-}
-else {
-vErrors.push(err58);
-}
-errors++;
-}
-}
-if(data23.not !== undefined){
-let data25 = data23.not;
-if(((typeof data25 !== "string") && (typeof data25 !== "boolean")) && (!((typeof data25 == "number") && (isFinite(data25))))){
-const err59 = {instancePath:instancePath+"/personProperties/" + i3+"/when/not",schemaPath:"#/$defs/condition/anyOf/1/properties/not/type",keyword:"type",params:{type: schema33.anyOf[1].properties.not.type},message:"must be string,boolean,number"};
-if(vErrors === null){
-vErrors = [err59];
-}
-else {
-vErrors.push(err59);
-}
-errors++;
-}
-}
-if(data23.is !== undefined){
-let data26 = data23.is;
-if(((typeof data26 !== "string") && (typeof data26 !== "boolean")) && (!((typeof data26 == "number") && (isFinite(data26))))){
-const err60 = {instancePath:instancePath+"/personProperties/" + i3+"/when/is",schemaPath:"#/$defs/condition/anyOf/1/properties/is/type",keyword:"type",params:{type: schema33.anyOf[1].properties.is.type},message:"must be string,boolean,number"};
-if(vErrors === null){
-vErrors = [err60];
-}
-else {
-vErrors.push(err60);
-}
-errors++;
-}
-}
-if(data23.unknown !== undefined){
-let data27 = data23.unknown;
-if(typeof data27 === "string"){
-if(!pattern5.test(data27)){
-const err61 = {instancePath:instancePath+"/personProperties/" + i3+"/when/unknown",schemaPath:"#/$defs/condition/anyOf/1/properties/unknown/pattern",keyword:"pattern",params:{pattern: "\\S"},message:"must match pattern \""+"\\S"+"\""};
-if(vErrors === null){
-vErrors = [err61];
-}
-else {
-vErrors.push(err61);
-}
-errors++;
-}
-}
-else {
-const err62 = {instancePath:instancePath+"/personProperties/" + i3+"/when/unknown",schemaPath:"#/$defs/condition/anyOf/1/properties/unknown/type",keyword:"type",params:{type: "string"},message:"must be string"};
-if(vErrors === null){
-vErrors = [err62];
-}
-else {
-vErrors.push(err62);
-}
-errors++;
-}
-}
-}
-else {
-const err63 = {instancePath:instancePath+"/personProperties/" + i3+"/when",schemaPath:"#/$defs/condition/anyOf/1/type",keyword:"type",params:{type: "object"},message:"must be object"};
-if(vErrors === null){
-vErrors = [err63];
-}
-else {
-vErrors.push(err63);
-}
-errors++;
-}
-var _valid3 = _errs71 === errors;
-valid24 = valid24 || _valid3;
-if(!valid24){
-const err64 = {instancePath:instancePath+"/personProperties/" + i3+"/when",schemaPath:"#/$defs/condition/anyOf",keyword:"anyOf",params:{},message:"must match a schema in anyOf"};
-if(vErrors === null){
-vErrors = [err64];
-}
-else {
-vErrors.push(err64);
-}
-errors++;
-}
-else {
-errors = _errs69;
-if(vErrors !== null){
-if(_errs69){
-vErrors.length = _errs69;
-}
-else {
-vErrors = null;
-}
-}
-}
-}
-}
-else {
-const err65 = {instancePath:instancePath+"/personProperties/" + i3,schemaPath:"#/properties/personProperties/items/type",keyword:"type",params:{type: "object"},message:"must be object"};
-if(vErrors === null){
-vErrors = [err65];
-}
-else {
-vErrors.push(err65);
-}
-errors++;
-}
-}
-}
-else {
-const err66 = {instancePath:instancePath+"/personProperties",schemaPath:"#/properties/personProperties/type",keyword:"type",params:{type: "array"},message:"must be array"};
-if(vErrors === null){
-vErrors = [err66];
-}
-else {
-vErrors.push(err66);
-}
-errors++;
-}
-}
-}
-else {
-const err67 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
-if(vErrors === null){
-vErrors = [err67];
-}
-else {
-vErrors.push(err67);
-}
-errors++;
-}
 validate20.errors = vErrors;
 return errors === 0;
 }
 validate20.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
-export const descriptor = validate21;
-const schema39 = {"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://github.com/dashlint/dashlint/schema/descriptor.schema.json","title":"dashlint SDK descriptor","description":"What one analytics SDK's calls mean, as data (spec 6.3.3): the members that send events, super properties, person properties and identity, matched by their resolved declaration (spec 6.4 item 3). Rules the schema cannot express (one role per call, members present in the stub) are checked by src/descriptors/loader.ts.","type":"object","additionalProperties":false,"required":["sdk","package","versions","verified","declaredIn","platforms","calls","builtins","stub"],"properties":{"sdk":{"$ref":"#/$defs/name","description":"The descriptor id, used in catalogs."},"package":{"$ref":"#/$defs/packageName","description":"The npm package an app imports."},"versions":{"type":"string","pattern":"^(?:(?:>=|<=|>|<|=)?\\d+\\.\\d+\\.\\d+)(?: (?:>=|<=|>|<|=)?\\d+\\.\\d+\\.\\d+)*$","description":"The version range this descriptor applies to: space-separated comparators, all of which must hold."},"verified":{"type":"string","pattern":"^\\d+\\.\\d+\\.\\d+$","description":"The version whose published types and source every member and builtin was checked against (V1, V2)."},"declaredIn":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/packageName"},"description":"Packages whose declaration files may declare the matched members."},"platforms":{"type":"array","minItems":1,"items":{"enum":["web","ios","android"]},"description":"Default platforms of a source using this SDK."},"calls":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/call"}},"init":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/init"},"description":"Where the app creates the client and passes the init options that builtin conditions read (spec 6.4 item 8)."},"builtins":{"$ref":"#/$defs/relativeFile","description":"The builtins file, relative to this descriptor."},"ingestion":{"$ref":"#/$defs/relativeFile","description":"Properties the vendor adds on ingestion, whatever the SDK sends (ADR-029): a builtins file, relative to this descriptor, whose conditions are always or unknown. Its rows join the SDK's builtins."},"stub":{"$ref":"#/$defs/relativeFile","description":"The type stub used when the package is not installed, relative to this descriptor."},"unknownNames":{"type":"object","additionalProperties":false,"description":"Name prefixes the SDK or the platform may send that cannot be cited as builtins (ADR-003): a requirement on such a name is not checked, never dead.","properties":{"events":{"$ref":"#/$defs/prefixes"},"properties":{"$ref":"#/$defs/prefixes"},"personProperties":{"$ref":"#/$defs/prefixes"}}}},"$defs":{"name":{"type":"string","pattern":"^[a-z0-9][a-z0-9._-]*$"},"packageName":{"type":"string","pattern":"^(?:@[a-z0-9][a-z0-9._-]*/)?[a-z0-9][a-z0-9._-]*$"},"identifier":{"type":"string","pattern":"^[A-Za-z_$][A-Za-z0-9_$]*$"},"container":{"type":"string","pattern":"^(?:\\(module\\)|[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*)$","description":"A class or interface name, optionally followed by property names whose type is an object type (`PostHog.people`), or `(module)` for a function (or a `const` of a function type) declared at module level."},"relativeFile":{"type":"string","pattern":"^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$"},"argPath":{"type":"string","pattern":"^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$","description":"A call argument by position, optionally followed by object keys: `args[0]`, `args[1].$set`."},"prefixes":{"type":"array","minItems":1,"items":{"type":"string","pattern":"\\S"}},"init":{"anyOf":[{"type":"object","additionalProperties":false,"required":["member","on","options"],"properties":{"member":{"$ref":"#/$defs/identifier","description":"The method, or `constructor` for `new`, matched by its resolved declaration."},"on":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/container"}},"options":{"anyOf":[{"$ref":"#/$defs/argPath"},{"type":"array","minItems":2,"items":{"$ref":"#/$defs/argPath"}}],"description":"The options argument, or several positions of which the last one the call passes holds them (`init(key, options)` and `init(key, userId, options)`)."}}},{"type":"object","additionalProperties":false,"required":["component","options"],"properties":{"component":{"$ref":"#/$defs/identifier","description":"A component that creates the client; one given a `client` prop is not an init."},"options":{"$ref":"#/$defs/identifier","description":"The prop that holds the init options."}}}]},"call":{"type":"object","additionalProperties":false,"properties":{"member":{"$ref":"#/$defs/identifier","description":"The method or property name, matched by its resolved declaration."},"on":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/container"},"description":"Containers that declare the member."},"hook":{"$ref":"#/$defs/identifier","description":"A function returning the client; members called on its result are matched as above."},"event":{"anyOf":[{"$ref":"#/$defs/argPath"},{"type":"object","additionalProperties":false,"required":["literal"],"properties":{"literal":{"type":"string","pattern":"\\S"}}}],"description":"Where the event name comes from: an argument, or a fixed name."},"properties":{"anyOf":[{"$ref":"#/$defs/argPath"},{"type":"array","minItems":2,"items":{"$ref":"#/$defs/argPath"}}],"description":"The properties argument, or several merged in order (a later key overwrites an earlier one)."},"objectForm":{"type":"object","additionalProperties":false,"minProperties":1,"description":"The same member called with an event object instead of a name (Amplitude's `track({ event_type })`), or with the traits in place of the id (Segment's `identify(traits)`): used when the argument `event` (or `personSet`) reads from has an object type.","properties":{"personSet":{"$ref":"#/$defs/argPath","description":"Where the person properties are when that argument is an object: `args[0]`."},"event":{"type":"string","pattern":"^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)+$","description":"The key of the event object that holds the name: `args[0].event_type`."},"properties":{"anyOf":[{"$ref":"#/$defs/argPath"},{"type":"array","minItems":2,"items":{"$ref":"#/$defs/argPath"}}]}}},"addProperties":{"type":"object","minProperties":1,"additionalProperties":{"$ref":"#/$defs/argPath"},"description":"Properties the SDK adds to the event from other arguments."},"superProperties":{"$ref":"#/$defs/argPath"},"identity":{"enum":["identify","reset"]},"personSet":{"$ref":"#/$defs/argPath"},"personSetOnce":{"$ref":"#/$defs/argPath"},"personSetFallback":{"type":"object","additionalProperties":false,"required":["from","omit"],"description":"When the object at `personSet` is absent, the SDK sets the keys of `from` (less `omit`) instead.","properties":{"from":{"$ref":"#/$defs/argPath"},"omit":{"type":"array","items":{"type":"string","pattern":"\\S"}}}}}}}};
-const schema40 = {"type":"string","pattern":"^[a-z0-9][a-z0-9._-]*$"};
-const schema41 = {"type":"string","pattern":"^(?:@[a-z0-9][a-z0-9._-]*/)?[a-z0-9][a-z0-9._-]*$"};
-const schema65 = {"type":"string","pattern":"^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$"};
-const schema68 = {"type":"array","minItems":1,"items":{"type":"string","pattern":"\\S"}};
+export const descriptor = validate27;
+const schema45 = {"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://github.com/dashlint/dashlint/schema/descriptor.schema.json","title":"dashlint SDK descriptor","description":"What one analytics SDK's calls mean, as data (spec 6.3.3): the members that send events, super properties, person properties and identity, matched by their resolved declaration (spec 6.4 item 3). Rules the schema cannot express (one role per call, members present in the stub) are checked by src/descriptors/loader.ts.","type":"object","additionalProperties":false,"required":["sdk","package","versions","verified","declaredIn","platforms","calls","builtins","stub"],"properties":{"sdk":{"$ref":"#/$defs/name","description":"The descriptor id, used in catalogs."},"package":{"$ref":"#/$defs/packageName","description":"The npm package an app imports."},"versions":{"type":"string","pattern":"^(?:(?:>=|<=|>|<|=)?\\d+\\.\\d+\\.\\d+)(?: (?:>=|<=|>|<|=)?\\d+\\.\\d+\\.\\d+)*$","description":"The version range this descriptor applies to: space-separated comparators, all of which must hold."},"verified":{"type":"string","pattern":"^\\d+\\.\\d+\\.\\d+$","description":"The version whose published types and source every member and builtin was checked against (V1, V2)."},"declaredIn":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/packageName"},"description":"Packages whose declaration files may declare the matched members."},"platforms":{"type":"array","minItems":1,"items":{"enum":["web","ios","android"]},"description":"Default platforms of a source using this SDK."},"calls":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/call"}},"init":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/init"},"description":"Where the app creates the client and passes the init options that builtin conditions read (spec 6.4 item 8)."},"builtins":{"$ref":"#/$defs/relativeFile","description":"The builtins file, relative to this descriptor."},"ingestion":{"$ref":"#/$defs/relativeFile","description":"Properties the vendor adds on ingestion, whatever the SDK sends (ADR-029): a builtins file, relative to this descriptor, whose conditions are always or unknown. Its rows join the SDK's builtins."},"stub":{"$ref":"#/$defs/relativeFile","description":"The type stub used when the package is not installed, relative to this descriptor."},"unknownNames":{"type":"object","additionalProperties":false,"description":"Name prefixes the SDK or the platform may send that cannot be cited as builtins (ADR-003): a requirement on such a name is not checked, never dead.","properties":{"events":{"$ref":"#/$defs/prefixes"},"properties":{"$ref":"#/$defs/prefixes"},"personProperties":{"$ref":"#/$defs/prefixes"}}}},"$defs":{"name":{"type":"string","pattern":"^[a-z0-9][a-z0-9._-]*$"},"packageName":{"type":"string","pattern":"^(?:@[a-z0-9][a-z0-9._-]*/)?[a-z0-9][a-z0-9._-]*$"},"identifier":{"type":"string","pattern":"^[A-Za-z_$][A-Za-z0-9_$]*$"},"container":{"type":"string","pattern":"^(?:\\(module\\)|[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*)$","description":"A class or interface name, optionally followed by property names whose type is an object type (`PostHog.people`), or `(module)` for a function (or a `const` of a function type) declared at module level."},"relativeFile":{"type":"string","pattern":"^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$"},"argPath":{"type":"string","pattern":"^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$","description":"A call argument by position, optionally followed by object keys: `args[0]`, `args[1].$set`."},"prefixes":{"type":"array","minItems":1,"items":{"type":"string","pattern":"\\S"}},"init":{"anyOf":[{"type":"object","additionalProperties":false,"required":["member","on","options"],"properties":{"member":{"$ref":"#/$defs/identifier","description":"The method, or `constructor` for `new`, matched by its resolved declaration."},"on":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/container"}},"options":{"anyOf":[{"$ref":"#/$defs/argPath"},{"type":"array","minItems":2,"items":{"$ref":"#/$defs/argPath"}}],"description":"The options argument, or several positions of which the last one the call passes holds them (`init(key, options)` and `init(key, userId, options)`)."}}},{"type":"object","additionalProperties":false,"required":["component","options"],"properties":{"component":{"$ref":"#/$defs/identifier","description":"A component that creates the client; one given a `client` prop is not an init."},"options":{"$ref":"#/$defs/identifier","description":"The prop that holds the init options."}}}]},"call":{"type":"object","additionalProperties":false,"properties":{"member":{"$ref":"#/$defs/identifier","description":"The method or property name, matched by its resolved declaration."},"on":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/container"},"description":"Containers that declare the member."},"hook":{"$ref":"#/$defs/identifier","description":"A function returning the client; members called on its result are matched as above."},"event":{"anyOf":[{"$ref":"#/$defs/argPath"},{"type":"object","additionalProperties":false,"required":["literal"],"properties":{"literal":{"type":"string","pattern":"\\S"}}}],"description":"Where the event name comes from: an argument, or a fixed name."},"properties":{"anyOf":[{"$ref":"#/$defs/argPath"},{"type":"array","minItems":2,"items":{"$ref":"#/$defs/argPath"}}],"description":"The properties argument, or several merged in order (a later key overwrites an earlier one)."},"objectForm":{"type":"object","additionalProperties":false,"minProperties":1,"description":"The same member called with an event object instead of a name (Amplitude's `track({ event_type })`), or with the traits in place of the id (Segment's `identify(traits)`): used when the argument `event` (or `personSet`) reads from has an object type.","properties":{"personSet":{"$ref":"#/$defs/argPath","description":"Where the person properties are when that argument is an object: `args[0]`."},"event":{"type":"string","pattern":"^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)+$","description":"The key of the event object that holds the name: `args[0].event_type`."},"properties":{"anyOf":[{"$ref":"#/$defs/argPath"},{"type":"array","minItems":2,"items":{"$ref":"#/$defs/argPath"}}]}}},"addProperties":{"type":"object","minProperties":1,"additionalProperties":{"$ref":"#/$defs/argPath"},"description":"Properties the SDK adds to the event from other arguments."},"superProperties":{"$ref":"#/$defs/argPath"},"identity":{"enum":["identify","reset"]},"personSet":{"$ref":"#/$defs/argPath"},"personSetOnce":{"$ref":"#/$defs/argPath"},"personSetFallback":{"type":"object","additionalProperties":false,"required":["from","omit"],"description":"When the object at `personSet` is absent, the SDK sets the keys of `from` (less `omit`) instead.","properties":{"from":{"$ref":"#/$defs/argPath"},"omit":{"type":"array","items":{"type":"string","pattern":"\\S"}}}}}}}};
+const schema46 = {"type":"string","pattern":"^[a-z0-9][a-z0-9._-]*$"};
+const schema47 = {"type":"string","pattern":"^(?:@[a-z0-9][a-z0-9._-]*/)?[a-z0-9][a-z0-9._-]*$"};
+const schema71 = {"type":"string","pattern":"^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$"};
+const schema74 = {"type":"array","minItems":1,"items":{"type":"string","pattern":"\\S"}};
 const func1 = Object.prototype.hasOwnProperty;
-const pattern16 = new RegExp("^(?:@[a-z0-9][a-z0-9._-]*/)?[a-z0-9][a-z0-9._-]*$", "u");
-const pattern17 = new RegExp("^(?:(?:>=|<=|>|<|=)?\\d+\\.\\d+\\.\\d+)(?: (?:>=|<=|>|<|=)?\\d+\\.\\d+\\.\\d+)*$", "u");
-const pattern18 = new RegExp("^\\d+\\.\\d+\\.\\d+$", "u");
-const pattern43 = new RegExp("^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$", "u");
-const schema43 = {"type":"object","additionalProperties":false,"properties":{"member":{"$ref":"#/$defs/identifier","description":"The method or property name, matched by its resolved declaration."},"on":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/container"},"description":"Containers that declare the member."},"hook":{"$ref":"#/$defs/identifier","description":"A function returning the client; members called on its result are matched as above."},"event":{"anyOf":[{"$ref":"#/$defs/argPath"},{"type":"object","additionalProperties":false,"required":["literal"],"properties":{"literal":{"type":"string","pattern":"\\S"}}}],"description":"Where the event name comes from: an argument, or a fixed name."},"properties":{"anyOf":[{"$ref":"#/$defs/argPath"},{"type":"array","minItems":2,"items":{"$ref":"#/$defs/argPath"}}],"description":"The properties argument, or several merged in order (a later key overwrites an earlier one)."},"objectForm":{"type":"object","additionalProperties":false,"minProperties":1,"description":"The same member called with an event object instead of a name (Amplitude's `track({ event_type })`), or with the traits in place of the id (Segment's `identify(traits)`): used when the argument `event` (or `personSet`) reads from has an object type.","properties":{"personSet":{"$ref":"#/$defs/argPath","description":"Where the person properties are when that argument is an object: `args[0]`."},"event":{"type":"string","pattern":"^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)+$","description":"The key of the event object that holds the name: `args[0].event_type`."},"properties":{"anyOf":[{"$ref":"#/$defs/argPath"},{"type":"array","minItems":2,"items":{"$ref":"#/$defs/argPath"}}]}}},"addProperties":{"type":"object","minProperties":1,"additionalProperties":{"$ref":"#/$defs/argPath"},"description":"Properties the SDK adds to the event from other arguments."},"superProperties":{"$ref":"#/$defs/argPath"},"identity":{"enum":["identify","reset"]},"personSet":{"$ref":"#/$defs/argPath"},"personSetOnce":{"$ref":"#/$defs/argPath"},"personSetFallback":{"type":"object","additionalProperties":false,"required":["from","omit"],"description":"When the object at `personSet` is absent, the SDK sets the keys of `from` (less `omit`) instead.","properties":{"from":{"$ref":"#/$defs/argPath"},"omit":{"type":"array","items":{"type":"string","pattern":"\\S"}}}}}};
-const schema44 = {"type":"string","pattern":"^[A-Za-z_$][A-Za-z0-9_$]*$"};
-const schema45 = {"type":"string","pattern":"^(?:\\(module\\)|[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*)$","description":"A class or interface name, optionally followed by property names whose type is an object type (`PostHog.people`), or `(module)` for a function (or a `const` of a function type) declared at module level."};
-const schema47 = {"type":"string","pattern":"^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$","description":"A call argument by position, optionally followed by object keys: `args[0]`, `args[1].$set`."};
-const pattern20 = new RegExp("^[A-Za-z_$][A-Za-z0-9_$]*$", "u");
-const pattern21 = new RegExp("^(?:\\(module\\)|[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*)$", "u");
-const pattern23 = new RegExp("^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$", "u");
-const pattern28 = new RegExp("^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)+$", "u");
+const pattern20 = new RegExp("^(?:@[a-z0-9][a-z0-9._-]*/)?[a-z0-9][a-z0-9._-]*$", "u");
+const pattern21 = new RegExp("^(?:(?:>=|<=|>|<|=)?\\d+\\.\\d+\\.\\d+)(?: (?:>=|<=|>|<|=)?\\d+\\.\\d+\\.\\d+)*$", "u");
+const pattern22 = new RegExp("^\\d+\\.\\d+\\.\\d+$", "u");
+const pattern47 = new RegExp("^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$", "u");
+const schema49 = {"type":"object","additionalProperties":false,"properties":{"member":{"$ref":"#/$defs/identifier","description":"The method or property name, matched by its resolved declaration."},"on":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/container"},"description":"Containers that declare the member."},"hook":{"$ref":"#/$defs/identifier","description":"A function returning the client; members called on its result are matched as above."},"event":{"anyOf":[{"$ref":"#/$defs/argPath"},{"type":"object","additionalProperties":false,"required":["literal"],"properties":{"literal":{"type":"string","pattern":"\\S"}}}],"description":"Where the event name comes from: an argument, or a fixed name."},"properties":{"anyOf":[{"$ref":"#/$defs/argPath"},{"type":"array","minItems":2,"items":{"$ref":"#/$defs/argPath"}}],"description":"The properties argument, or several merged in order (a later key overwrites an earlier one)."},"objectForm":{"type":"object","additionalProperties":false,"minProperties":1,"description":"The same member called with an event object instead of a name (Amplitude's `track({ event_type })`), or with the traits in place of the id (Segment's `identify(traits)`): used when the argument `event` (or `personSet`) reads from has an object type.","properties":{"personSet":{"$ref":"#/$defs/argPath","description":"Where the person properties are when that argument is an object: `args[0]`."},"event":{"type":"string","pattern":"^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)+$","description":"The key of the event object that holds the name: `args[0].event_type`."},"properties":{"anyOf":[{"$ref":"#/$defs/argPath"},{"type":"array","minItems":2,"items":{"$ref":"#/$defs/argPath"}}]}}},"addProperties":{"type":"object","minProperties":1,"additionalProperties":{"$ref":"#/$defs/argPath"},"description":"Properties the SDK adds to the event from other arguments."},"superProperties":{"$ref":"#/$defs/argPath"},"identity":{"enum":["identify","reset"]},"personSet":{"$ref":"#/$defs/argPath"},"personSetOnce":{"$ref":"#/$defs/argPath"},"personSetFallback":{"type":"object","additionalProperties":false,"required":["from","omit"],"description":"When the object at `personSet` is absent, the SDK sets the keys of `from` (less `omit`) instead.","properties":{"from":{"$ref":"#/$defs/argPath"},"omit":{"type":"array","items":{"type":"string","pattern":"\\S"}}}}}};
+const schema50 = {"type":"string","pattern":"^[A-Za-z_$][A-Za-z0-9_$]*$"};
+const schema51 = {"type":"string","pattern":"^(?:\\(module\\)|[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*)$","description":"A class or interface name, optionally followed by property names whose type is an object type (`PostHog.people`), or `(module)` for a function (or a `const` of a function type) declared at module level."};
+const schema53 = {"type":"string","pattern":"^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$","description":"A call argument by position, optionally followed by object keys: `args[0]`, `args[1].$set`."};
+const pattern25 = new RegExp("^(?:\\(module\\)|[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*)$", "u");
+const pattern27 = new RegExp("^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$", "u");
+const pattern32 = new RegExp("^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)+$", "u");
 
-function validate22(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate28(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate22.evaluated;
+const evaluated0 = validate28.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -962,7 +1146,7 @@ evaluated0.items = undefined;
 }
 if(data && typeof data == "object" && !Array.isArray(data)){
 for(const key0 in data){
-if(!(func1.call(schema43.properties, key0))){
+if(!(func1.call(schema49.properties, key0))){
 const err0 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err0];
@@ -976,7 +1160,7 @@ errors++;
 if(data.member !== undefined){
 let data0 = data.member;
 if(typeof data0 === "string"){
-if(!pattern20.test(data0)){
+if(!pattern8.test(data0)){
 const err1 = {instancePath:instancePath+"/member",schemaPath:"#/$defs/identifier/pattern",keyword:"pattern",params:{pattern: "^[A-Za-z_$][A-Za-z0-9_$]*$"},message:"must match pattern \""+"^[A-Za-z_$][A-Za-z0-9_$]*$"+"\""};
 if(vErrors === null){
 vErrors = [err1];
@@ -1015,7 +1199,7 @@ const len0 = data1.length;
 for(let i0=0; i0<len0; i0++){
 let data2 = data1[i0];
 if(typeof data2 === "string"){
-if(!pattern21.test(data2)){
+if(!pattern25.test(data2)){
 const err4 = {instancePath:instancePath+"/on/" + i0,schemaPath:"#/$defs/container/pattern",keyword:"pattern",params:{pattern: "^(?:\\(module\\)|[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*)$"},message:"must match pattern \""+"^(?:\\(module\\)|[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*)$"+"\""};
 if(vErrors === null){
 vErrors = [err4];
@@ -1052,7 +1236,7 @@ errors++;
 if(data.hook !== undefined){
 let data3 = data.hook;
 if(typeof data3 === "string"){
-if(!pattern20.test(data3)){
+if(!pattern8.test(data3)){
 const err7 = {instancePath:instancePath+"/hook",schemaPath:"#/$defs/identifier/pattern",keyword:"pattern",params:{pattern: "^[A-Za-z_$][A-Za-z0-9_$]*$"},message:"must match pattern \""+"^[A-Za-z_$][A-Za-z0-9_$]*$"+"\""};
 if(vErrors === null){
 vErrors = [err7];
@@ -1080,7 +1264,7 @@ const _errs14 = errors;
 let valid6 = false;
 const _errs15 = errors;
 if(typeof data4 === "string"){
-if(!pattern23.test(data4)){
+if(!pattern27.test(data4)){
 const err9 = {instancePath:instancePath+"/event",schemaPath:"#/$defs/argPath/pattern",keyword:"pattern",params:{pattern: "^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"},message:"must match pattern \""+"^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"+"\""};
 if(vErrors === null){
 vErrors = [err9];
@@ -1193,7 +1377,7 @@ const _errs24 = errors;
 let valid9 = false;
 const _errs25 = errors;
 if(typeof data6 === "string"){
-if(!pattern23.test(data6)){
+if(!pattern27.test(data6)){
 const err17 = {instancePath:instancePath+"/properties",schemaPath:"#/$defs/argPath/pattern",keyword:"pattern",params:{pattern: "^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"},message:"must match pattern \""+"^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"+"\""};
 if(vErrors === null){
 vErrors = [err17];
@@ -1232,7 +1416,7 @@ const len1 = data6.length;
 for(let i1=0; i1<len1; i1++){
 let data7 = data6[i1];
 if(typeof data7 === "string"){
-if(!pattern23.test(data7)){
+if(!pattern27.test(data7)){
 const err20 = {instancePath:instancePath+"/properties/" + i1,schemaPath:"#/$defs/argPath/pattern",keyword:"pattern",params:{pattern: "^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"},message:"must match pattern \""+"^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"+"\""};
 if(vErrors === null){
 vErrors = [err20];
@@ -1317,7 +1501,7 @@ errors++;
 if(data8.personSet !== undefined){
 let data9 = data8.personSet;
 if(typeof data9 === "string"){
-if(!pattern23.test(data9)){
+if(!pattern27.test(data9)){
 const err26 = {instancePath:instancePath+"/objectForm/personSet",schemaPath:"#/$defs/argPath/pattern",keyword:"pattern",params:{pattern: "^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"},message:"must match pattern \""+"^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"+"\""};
 if(vErrors === null){
 vErrors = [err26];
@@ -1342,7 +1526,7 @@ errors++;
 if(data8.event !== undefined){
 let data10 = data8.event;
 if(typeof data10 === "string"){
-if(!pattern28.test(data10)){
+if(!pattern32.test(data10)){
 const err28 = {instancePath:instancePath+"/objectForm/event",schemaPath:"#/properties/objectForm/properties/event/pattern",keyword:"pattern",params:{pattern: "^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)+$"},message:"must match pattern \""+"^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)+$"+"\""};
 if(vErrors === null){
 vErrors = [err28];
@@ -1370,7 +1554,7 @@ const _errs42 = errors;
 let valid16 = false;
 const _errs43 = errors;
 if(typeof data11 === "string"){
-if(!pattern23.test(data11)){
+if(!pattern27.test(data11)){
 const err30 = {instancePath:instancePath+"/objectForm/properties",schemaPath:"#/$defs/argPath/pattern",keyword:"pattern",params:{pattern: "^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"},message:"must match pattern \""+"^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"+"\""};
 if(vErrors === null){
 vErrors = [err30];
@@ -1409,7 +1593,7 @@ const len2 = data11.length;
 for(let i2=0; i2<len2; i2++){
 let data12 = data11[i2];
 if(typeof data12 === "string"){
-if(!pattern23.test(data12)){
+if(!pattern27.test(data12)){
 const err33 = {instancePath:instancePath+"/objectForm/properties/" + i2,schemaPath:"#/$defs/argPath/pattern",keyword:"pattern",params:{pattern: "^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"},message:"must match pattern \""+"^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"+"\""};
 if(vErrors === null){
 vErrors = [err33];
@@ -1494,7 +1678,7 @@ errors++;
 for(const key3 in data13){
 let data14 = data13[key3];
 if(typeof data14 === "string"){
-if(!pattern23.test(data14)){
+if(!pattern27.test(data14)){
 const err39 = {instancePath:instancePath+"/addProperties/" + key3.replace(/~/g, "~0").replace(/\//g, "~1"),schemaPath:"#/$defs/argPath/pattern",keyword:"pattern",params:{pattern: "^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"},message:"must match pattern \""+"^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"+"\""};
 if(vErrors === null){
 vErrors = [err39];
@@ -1531,7 +1715,7 @@ errors++;
 if(data.superProperties !== undefined){
 let data15 = data.superProperties;
 if(typeof data15 === "string"){
-if(!pattern23.test(data15)){
+if(!pattern27.test(data15)){
 const err42 = {instancePath:instancePath+"/superProperties",schemaPath:"#/$defs/argPath/pattern",keyword:"pattern",params:{pattern: "^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"},message:"must match pattern \""+"^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"+"\""};
 if(vErrors === null){
 vErrors = [err42];
@@ -1556,7 +1740,7 @@ errors++;
 if(data.identity !== undefined){
 let data16 = data.identity;
 if(!((data16 === "identify") || (data16 === "reset"))){
-const err44 = {instancePath:instancePath+"/identity",schemaPath:"#/properties/identity/enum",keyword:"enum",params:{allowedValues: schema43.properties.identity.enum},message:"must be equal to one of the allowed values"};
+const err44 = {instancePath:instancePath+"/identity",schemaPath:"#/properties/identity/enum",keyword:"enum",params:{allowedValues: schema49.properties.identity.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err44];
 }
@@ -1569,7 +1753,7 @@ errors++;
 if(data.personSet !== undefined){
 let data17 = data.personSet;
 if(typeof data17 === "string"){
-if(!pattern23.test(data17)){
+if(!pattern27.test(data17)){
 const err45 = {instancePath:instancePath+"/personSet",schemaPath:"#/$defs/argPath/pattern",keyword:"pattern",params:{pattern: "^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"},message:"must match pattern \""+"^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"+"\""};
 if(vErrors === null){
 vErrors = [err45];
@@ -1594,7 +1778,7 @@ errors++;
 if(data.personSetOnce !== undefined){
 let data18 = data.personSetOnce;
 if(typeof data18 === "string"){
-if(!pattern23.test(data18)){
+if(!pattern27.test(data18)){
 const err47 = {instancePath:instancePath+"/personSetOnce",schemaPath:"#/$defs/argPath/pattern",keyword:"pattern",params:{pattern: "^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"},message:"must match pattern \""+"^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"+"\""};
 if(vErrors === null){
 vErrors = [err47];
@@ -1654,7 +1838,7 @@ errors++;
 if(data19.from !== undefined){
 let data20 = data19.from;
 if(typeof data20 === "string"){
-if(!pattern23.test(data20)){
+if(!pattern27.test(data20)){
 const err52 = {instancePath:instancePath+"/personSetFallback/from",schemaPath:"#/$defs/argPath/pattern",keyword:"pattern",params:{pattern: "^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"},message:"must match pattern \""+"^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"+"\""};
 if(vErrors === null){
 vErrors = [err52];
@@ -1740,17 +1924,17 @@ vErrors.push(err58);
 }
 errors++;
 }
-validate22.errors = vErrors;
+validate28.errors = vErrors;
 return errors === 0;
 }
-validate22.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate28.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
-const schema58 = {"anyOf":[{"type":"object","additionalProperties":false,"required":["member","on","options"],"properties":{"member":{"$ref":"#/$defs/identifier","description":"The method, or `constructor` for `new`, matched by its resolved declaration."},"on":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/container"}},"options":{"anyOf":[{"$ref":"#/$defs/argPath"},{"type":"array","minItems":2,"items":{"$ref":"#/$defs/argPath"}}],"description":"The options argument, or several positions of which the last one the call passes holds them (`init(key, options)` and `init(key, userId, options)`)."}}},{"type":"object","additionalProperties":false,"required":["component","options"],"properties":{"component":{"$ref":"#/$defs/identifier","description":"A component that creates the client; one given a `client` prop is not an init."},"options":{"$ref":"#/$defs/identifier","description":"The prop that holds the init options."}}}]};
+const schema64 = {"anyOf":[{"type":"object","additionalProperties":false,"required":["member","on","options"],"properties":{"member":{"$ref":"#/$defs/identifier","description":"The method, or `constructor` for `new`, matched by its resolved declaration."},"on":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/container"}},"options":{"anyOf":[{"$ref":"#/$defs/argPath"},{"type":"array","minItems":2,"items":{"$ref":"#/$defs/argPath"}}],"description":"The options argument, or several positions of which the last one the call passes holds them (`init(key, options)` and `init(key, userId, options)`)."}}},{"type":"object","additionalProperties":false,"required":["component","options"],"properties":{"component":{"$ref":"#/$defs/identifier","description":"A component that creates the client; one given a `client` prop is not an init."},"options":{"$ref":"#/$defs/identifier","description":"The prop that holds the init options."}}}]};
 
-function validate24(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate30(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate24.evaluated;
+const evaluated0 = validate30.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -1806,7 +1990,7 @@ errors++;
 if(data.member !== undefined){
 let data0 = data.member;
 if(typeof data0 === "string"){
-if(!pattern20.test(data0)){
+if(!pattern8.test(data0)){
 const err4 = {instancePath:instancePath+"/member",schemaPath:"#/$defs/identifier/pattern",keyword:"pattern",params:{pattern: "^[A-Za-z_$][A-Za-z0-9_$]*$"},message:"must match pattern \""+"^[A-Za-z_$][A-Za-z0-9_$]*$"+"\""};
 if(vErrors === null){
 vErrors = [err4];
@@ -1845,7 +2029,7 @@ const len0 = data1.length;
 for(let i0=0; i0<len0; i0++){
 let data2 = data1[i0];
 if(typeof data2 === "string"){
-if(!pattern21.test(data2)){
+if(!pattern25.test(data2)){
 const err7 = {instancePath:instancePath+"/on/" + i0,schemaPath:"#/$defs/container/pattern",keyword:"pattern",params:{pattern: "^(?:\\(module\\)|[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*)$"},message:"must match pattern \""+"^(?:\\(module\\)|[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*)$"+"\""};
 if(vErrors === null){
 vErrors = [err7];
@@ -1885,7 +2069,7 @@ const _errs13 = errors;
 let valid6 = false;
 const _errs14 = errors;
 if(typeof data3 === "string"){
-if(!pattern23.test(data3)){
+if(!pattern27.test(data3)){
 const err10 = {instancePath:instancePath+"/options",schemaPath:"#/$defs/argPath/pattern",keyword:"pattern",params:{pattern: "^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"},message:"must match pattern \""+"^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"+"\""};
 if(vErrors === null){
 vErrors = [err10];
@@ -1924,7 +2108,7 @@ const len1 = data3.length;
 for(let i1=0; i1<len1; i1++){
 let data4 = data3[i1];
 if(typeof data4 === "string"){
-if(!pattern23.test(data4)){
+if(!pattern27.test(data4)){
 const err13 = {instancePath:instancePath+"/options/" + i1,schemaPath:"#/$defs/argPath/pattern",keyword:"pattern",params:{pattern: "^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"},message:"must match pattern \""+"^args\\[\\d+\\](?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*$"+"\""};
 if(vErrors === null){
 vErrors = [err13];
@@ -2034,7 +2218,7 @@ errors++;
 if(data.component !== undefined){
 let data5 = data.component;
 if(typeof data5 === "string"){
-if(!pattern20.test(data5)){
+if(!pattern8.test(data5)){
 const err21 = {instancePath:instancePath+"/component",schemaPath:"#/$defs/identifier/pattern",keyword:"pattern",params:{pattern: "^[A-Za-z_$][A-Za-z0-9_$]*$"},message:"must match pattern \""+"^[A-Za-z_$][A-Za-z0-9_$]*$"+"\""};
 if(vErrors === null){
 vErrors = [err21];
@@ -2059,7 +2243,7 @@ errors++;
 if(data.options !== undefined){
 let data6 = data.options;
 if(typeof data6 === "string"){
-if(!pattern20.test(data6)){
+if(!pattern8.test(data6)){
 const err23 = {instancePath:instancePath+"/options",schemaPath:"#/$defs/identifier/pattern",keyword:"pattern",params:{pattern: "^[A-Za-z_$][A-Za-z0-9_$]*$"},message:"must match pattern \""+"^[A-Za-z_$][A-Za-z0-9_$]*$"+"\""};
 if(vErrors === null){
 vErrors = [err23];
@@ -2120,18 +2304,18 @@ vErrors = null;
 }
 }
 }
-validate24.errors = vErrors;
+validate30.errors = vErrors;
 evaluated0.props = props0;
 return errors === 0;
 }
-validate24.evaluated = {"dynamicProps":true,"dynamicItems":false};
+validate30.evaluated = {"dynamicProps":true,"dynamicItems":false};
 
 
-function validate21(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate27(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="https://github.com/dashlint/dashlint/schema/descriptor.schema.json" */;
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate21.evaluated;
+const evaluated0 = validate27.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -2230,7 +2414,7 @@ vErrors.push(err8);
 errors++;
 }
 for(const key0 in data){
-if(!(func1.call(schema39.properties, key0))){
+if(!(func1.call(schema45.properties, key0))){
 const err9 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err9];
@@ -2269,7 +2453,7 @@ errors++;
 if(data.package !== undefined){
 let data1 = data.package;
 if(typeof data1 === "string"){
-if(!pattern16.test(data1)){
+if(!pattern20.test(data1)){
 const err12 = {instancePath:instancePath+"/package",schemaPath:"#/$defs/packageName/pattern",keyword:"pattern",params:{pattern: "^(?:@[a-z0-9][a-z0-9._-]*/)?[a-z0-9][a-z0-9._-]*$"},message:"must match pattern \""+"^(?:@[a-z0-9][a-z0-9._-]*/)?[a-z0-9][a-z0-9._-]*$"+"\""};
 if(vErrors === null){
 vErrors = [err12];
@@ -2294,7 +2478,7 @@ errors++;
 if(data.versions !== undefined){
 let data2 = data.versions;
 if(typeof data2 === "string"){
-if(!pattern17.test(data2)){
+if(!pattern21.test(data2)){
 const err14 = {instancePath:instancePath+"/versions",schemaPath:"#/properties/versions/pattern",keyword:"pattern",params:{pattern: "^(?:(?:>=|<=|>|<|=)?\\d+\\.\\d+\\.\\d+)(?: (?:>=|<=|>|<|=)?\\d+\\.\\d+\\.\\d+)*$"},message:"must match pattern \""+"^(?:(?:>=|<=|>|<|=)?\\d+\\.\\d+\\.\\d+)(?: (?:>=|<=|>|<|=)?\\d+\\.\\d+\\.\\d+)*$"+"\""};
 if(vErrors === null){
 vErrors = [err14];
@@ -2319,7 +2503,7 @@ errors++;
 if(data.verified !== undefined){
 let data3 = data.verified;
 if(typeof data3 === "string"){
-if(!pattern18.test(data3)){
+if(!pattern22.test(data3)){
 const err16 = {instancePath:instancePath+"/verified",schemaPath:"#/properties/verified/pattern",keyword:"pattern",params:{pattern: "^\\d+\\.\\d+\\.\\d+$"},message:"must match pattern \""+"^\\d+\\.\\d+\\.\\d+$"+"\""};
 if(vErrors === null){
 vErrors = [err16];
@@ -2358,7 +2542,7 @@ const len0 = data4.length;
 for(let i0=0; i0<len0; i0++){
 let data5 = data4[i0];
 if(typeof data5 === "string"){
-if(!pattern16.test(data5)){
+if(!pattern20.test(data5)){
 const err19 = {instancePath:instancePath+"/declaredIn/" + i0,schemaPath:"#/$defs/packageName/pattern",keyword:"pattern",params:{pattern: "^(?:@[a-z0-9][a-z0-9._-]*/)?[a-z0-9][a-z0-9._-]*$"},message:"must match pattern \""+"^(?:@[a-z0-9][a-z0-9._-]*/)?[a-z0-9][a-z0-9._-]*$"+"\""};
 if(vErrors === null){
 vErrors = [err19];
@@ -2409,7 +2593,7 @@ const len1 = data6.length;
 for(let i1=0; i1<len1; i1++){
 let data7 = data6[i1];
 if(!(((data7 === "web") || (data7 === "ios")) || (data7 === "android"))){
-const err23 = {instancePath:instancePath+"/platforms/" + i1,schemaPath:"#/properties/platforms/items/enum",keyword:"enum",params:{allowedValues: schema39.properties.platforms.items.enum},message:"must be equal to one of the allowed values"};
+const err23 = {instancePath:instancePath+"/platforms/" + i1,schemaPath:"#/properties/platforms/items/enum",keyword:"enum",params:{allowedValues: schema45.properties.platforms.items.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err23];
 }
@@ -2446,8 +2630,8 @@ errors++;
 }
 const len2 = data8.length;
 for(let i2=0; i2<len2; i2++){
-if(!(validate22(data8[i2], {instancePath:instancePath+"/calls/" + i2,parentData:data8,parentDataProperty:i2,rootData,dynamicAnchors}))){
-vErrors = vErrors === null ? validate22.errors : vErrors.concat(validate22.errors);
+if(!(validate28(data8[i2], {instancePath:instancePath+"/calls/" + i2,parentData:data8,parentDataProperty:i2,rootData,dynamicAnchors}))){
+vErrors = vErrors === null ? validate28.errors : vErrors.concat(validate28.errors);
 errors = vErrors.length;
 }
 }
@@ -2478,8 +2662,8 @@ errors++;
 }
 const len3 = data10.length;
 for(let i3=0; i3<len3; i3++){
-if(!(validate24(data10[i3], {instancePath:instancePath+"/init/" + i3,parentData:data10,parentDataProperty:i3,rootData,dynamicAnchors}))){
-vErrors = vErrors === null ? validate24.errors : vErrors.concat(validate24.errors);
+if(!(validate30(data10[i3], {instancePath:instancePath+"/init/" + i3,parentData:data10,parentDataProperty:i3,rootData,dynamicAnchors}))){
+vErrors = vErrors === null ? validate30.errors : vErrors.concat(validate30.errors);
 errors = vErrors.length;
 }
 }
@@ -2498,7 +2682,7 @@ errors++;
 if(data.builtins !== undefined){
 let data12 = data.builtins;
 if(typeof data12 === "string"){
-if(!pattern43.test(data12)){
+if(!pattern47.test(data12)){
 const err29 = {instancePath:instancePath+"/builtins",schemaPath:"#/$defs/relativeFile/pattern",keyword:"pattern",params:{pattern: "^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$"},message:"must match pattern \""+"^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$"+"\""};
 if(vErrors === null){
 vErrors = [err29];
@@ -2523,7 +2707,7 @@ errors++;
 if(data.ingestion !== undefined){
 let data13 = data.ingestion;
 if(typeof data13 === "string"){
-if(!pattern43.test(data13)){
+if(!pattern47.test(data13)){
 const err31 = {instancePath:instancePath+"/ingestion",schemaPath:"#/$defs/relativeFile/pattern",keyword:"pattern",params:{pattern: "^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$"},message:"must match pattern \""+"^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$"+"\""};
 if(vErrors === null){
 vErrors = [err31];
@@ -2548,7 +2732,7 @@ errors++;
 if(data.stub !== undefined){
 let data14 = data.stub;
 if(typeof data14 === "string"){
-if(!pattern43.test(data14)){
+if(!pattern47.test(data14)){
 const err33 = {instancePath:instancePath+"/stub",schemaPath:"#/$defs/relativeFile/pattern",keyword:"pattern",params:{pattern: "^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$"},message:"must match pattern \""+"^(?:[a-z0-9_-][a-z0-9._-]*/)*[a-z0-9_-][a-z0-9._-]*$"+"\""};
 if(vErrors === null){
 vErrors = [err33];
@@ -2761,7 +2945,7 @@ vErrors.push(err49);
 }
 errors++;
 }
-validate21.errors = vErrors;
+validate27.errors = vErrors;
 return errors === 0;
 }
-validate21.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate27.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};

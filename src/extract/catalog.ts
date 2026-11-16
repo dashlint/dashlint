@@ -145,7 +145,7 @@ function runStages(sp: SourceProgram, descriptors: readonly Descriptor[]): Stage
   const properties = resolveProperties(sp, names);
   const supers = resolveSuperProperties(sp, wrappers.sdkCalls.calls);
   const identity = findIdentityCalls(wrappers.sdkCalls.calls);
-  const builtins = resolveBuiltins(sp);
+  const builtins = resolveBuiltins(sp, wrappers.sdkCalls);
   return { properties, names, supers, identity, builtins };
 }
 

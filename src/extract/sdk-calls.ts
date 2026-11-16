@@ -36,6 +36,8 @@ export interface SdkCallScan {
   /** In file order, then by position. */
   calls: SdkCall[];
   openWorld: OpenWorldSite[];
+  /** The member each open-world call names and the SDK it may belong to (ADR-047). */
+  openCalls: { descriptor: Descriptor; member: string }[];
 }
 
 /** How far a callee is followed back to the import it comes from. */
@@ -199,6 +201,7 @@ export function findSdkCalls(sp: SourceProgram, descriptors: readonly Descriptor
   const tracer = new ImportTracer(checker);
   const calls: SdkCall[] = [];
   const openWorld: OpenWorldSite[] = [];
+  const openCalls: SdkCallScan['openCalls'] = [];
 
   const packageOf = (decl: ts.Node): string | undefined => {
     const ambient = ambientModule(decl);
@@ -248,6 +251,8 @@ export function findSdkCalls(sp: SourceProgram, descriptors: readonly Descriptor
               ? untypedClients.receiverOf(node.expression)
               : undefined;
           const viaUntyped = untyped ? described(untyped.pkg) : undefined;
+          const open = sdk ?? viaUntyped;
+          if (open && name !== undefined) openCalls.push({ descriptor: open, member: name });
           if (sdk)
             openWorld.push({
               file,
@@ -268,5 +273,5 @@ export function findSdkCalls(sp: SourceProgram, descriptors: readonly Descriptor
     };
     visit(sf);
   }
-  return { calls, openWorld };
+  return { calls, openWorld, openCalls };
 }

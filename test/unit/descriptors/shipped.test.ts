@@ -182,7 +182,10 @@ describe('shipped descriptors', () => {
         const ok =
           b.when === 'always' ||
           ('option' in b.when && ('not' in b.when || 'is' in b.when)) ||
-          ('unknown' in b.when && b.when.unknown.trim() !== '');
+          ('unknown' in b.when && b.when.unknown.trim() !== '') ||
+          // A call condition names a described member (ADR-047).
+          ('call' in b.when &&
+            d.calls.some((c) => 'member' in c && c.member === (b.when as { call: string }).call));
         expect(ok, b.name).toBe(true);
       }
     });

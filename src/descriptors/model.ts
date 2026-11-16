@@ -127,14 +127,26 @@ export interface DescriptorFile {
 }
 
 /**
+ * Code the SDK runs for the app that may call a member by itself (ADR-047): a provider component
+ * whose `prop` is not a literal turning `option` off (`prop={false}` or `prop={{ option: false }}`),
+ * or a member call on `on` whose `options` argument does not set `option` to the literal `false`.
+ */
+export type AutoCaller =
+  | { component: string; prop: string; option: string }
+  | { member: string; on: string[]; options: string; option: string };
+
+/**
  * When a builtin is sent (ADR-003): `always`; `not`: unless the init option is that literal; `is`:
- * only when the option is a truthy literal; `unknown`: not decidable from code (conditional).
+ * only when the option is a truthy literal; `unknown`: not decidable from code (conditional);
+ * `call`: when the source calls that described member of the SDK, otherwise conditional when an
+ * `auto` caller may call it (ADR-047).
  */
 export type BuiltinCondition =
   | 'always'
   | { option: string; not: string | boolean | number }
   | { option: string; is: string | boolean | number }
-  | { unknown: string };
+  | { unknown: string }
+  | { call: string; auto?: AutoCaller[] };
 
 export interface BuiltinEvent {
   name: string;

@@ -580,13 +580,15 @@ describe('builtins rules', () => {
       '{ option: x }',
       '{ option: x, not: false, is: true }',
       '{ unknown: r, option: x }',
+      '{ call: track, unknown: r }',
+      '{ auto: [{ component: ShelfProvider, prop: auto, option: pages }] }',
       '{}',
     ]) {
       const errors = builtinsErrors(BUILTINS.replace('{ unknown: remote config }', when));
       expect(errors[0]).toMatchObject({
         path: '/events/2/when',
         message:
-          'a condition is always, { option, not }, { option, is } or { unknown }, with nothing else',
+          'a condition is always, { option, not }, { option, is }, { unknown } or { call, auto }, with nothing else',
       });
     }
   });
@@ -604,6 +606,86 @@ describe('builtins rules', () => {
       path: '/events/1/name',
       message: '"$pageview" is listed twice',
     });
+  });
+});
+
+// ADR-047: a `call` condition names a described member; its `auto` callers are in the stub.
+describe('builtins rules: call conditions', () => {
+  const STUB_WITH_PROVIDER = STUB.replace(
+    '  export const useShelf: () => Shelf;\n',
+    '  export const useShelf: () => Shelf;\n  export const ShelfProvider: (props: { auto?: unknown }) => unknown;\n',
+  );
+  const withCondition = (when: string) =>
+    BUILTINS.replace('{ unknown: state }', when).replace('events: [$pageview]', "events: '*'");
+  const VALID =
+    '{ call: track, auto: [{ component: ShelfProvider, prop: auto, option: pages }, { member: reset, on: [Shelf], options: "args[0]", option: pages }] }';
+
+  it('loads a call condition with a provider and a member caller', () => {
+    const dir = writeSet({ builtins: withCondition(VALID), stub: STUB_WITH_PROVIDER });
+    const r = loadDescriptor(join(dir, 'shelf-sdk.yml'));
+    if (!r.ok) throw new Error(formatDescriptorErrors(r.errors).join('\n'));
+    expect(r.value.builtins.properties[1]?.when).toEqual({
+      call: 'track',
+      auto: [
+        { component: 'ShelfProvider', prop: 'auto', option: 'pages' },
+        { member: 'reset', on: ['Shelf'], options: 'args[0]', option: 'pages' },
+      ],
+    });
+    // `auto` is optional.
+    expect(
+      loadDescriptor(
+        join(writeSet({ builtins: withCondition('{ call: track }') }), 'shelf-sdk.yml'),
+      ).ok,
+    ).toBe(true);
+  });
+
+  it('refuses a call no described call names (negative control)', () => {
+    const errors = errorsOf(writeSet({ builtins: withCondition('{ call: screen }') }));
+    expect(errors).toEqual([
+      expect.objectContaining({
+        path: '/properties/1/when/call',
+        message: "the condition's call screen is not a member the descriptor's calls describe",
+        file: expect.stringContaining('builtins'),
+      }),
+    ]);
+    // A hook is not a member.
+    expect(errorsOf(writeSet({ builtins: withCondition('{ call: useShelf }') }))).toHaveLength(1);
+  });
+
+  it('refuses auto callers the stub does not declare (negative control)', () => {
+    const errors = errorsOf(
+      writeSet({
+        builtins: withCondition(
+          '{ call: track, auto: [{ component: PagesProvider, prop: auto, option: pages }, { member: follow, on: [Shelf, ShelfCore], options: "args[0]", option: pages }] }',
+        ),
+        stub: STUB_WITH_PROVIDER,
+      }),
+    );
+    expect(errors.map((e) => [e.path, e.message])).toEqual([
+      ['/properties/1/when/auto/0/component', expect.stringContaining('PagesProvider')],
+      ['/properties/1/when/auto/1/member', expect.stringMatching(/follow.*Shelf\b/)],
+      ['/properties/1/when/auto/1/member', expect.stringMatching(/follow.*ShelfCore/)],
+    ]);
+  });
+
+  it('refuses a malformed auto caller', () => {
+    for (const auto of [
+      '[]',
+      '[{ component: ShelfProvider, prop: auto }]',
+      '[{ member: reset, on: [Shelf], options: "args[0]" }]',
+      '[{ member: reset, on: [Shelf], options: options, option: pages }]',
+      '[{ component: ShelfProvider, member: reset, prop: auto, option: pages }]',
+    ])
+      expect(builtinsErrors(withCondition(`{ call: track, auto: ${auto} }`))[0]?.path).toMatch(
+        /^\/properties\/1\/when/,
+      );
+  });
+
+  it('refuses a call that is not a member name', () => {
+    for (const call of ['1', '"Shelf.track"'])
+      expect(builtinsErrors(withCondition(`{ call: ${call} }`))[0]?.path).toMatch(
+        /^\/properties\/1\/when/,
+      );
   });
 });
 

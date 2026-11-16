@@ -153,7 +153,13 @@ function descriptorRules(d: DescriptorFile): ValidationError[] {
 function conditionOk(when: BuiltinCondition): boolean {
   if (typeof when === 'string') return true;
   const keys = Object.keys(when).sort().join(',');
-  return keys === 'not,option' || keys === 'is,option' || keys === 'unknown';
+  return (
+    keys === 'not,option' ||
+    keys === 'is,option' ||
+    keys === 'unknown' ||
+    keys === 'call' ||
+    keys === 'auto,call'
+  );
 }
 
 function builtinsRules(b: Builtins): ValidationError[] {
@@ -270,6 +276,46 @@ function stubRules(d: DescriptorFile, surface: StubSurface): ValidationError[] {
   return errors;
 }
 
+/**
+ * A `call` condition names a member the descriptor's calls describe, and each `auto` caller is in
+ * the stub (ADR-047): an undeclared one would never resolve, and its builtin would read "not sent".
+ */
+function callConditionRules(
+  b: Builtins,
+  d: DescriptorFile,
+  surface: StubSurface,
+): ValidationError[] {
+  const errors: ValidationError[] = [];
+  const described = new Set(d.calls.flatMap((c) => (isHook(c) ? [] : [c.member])));
+  for (const list of ['events', 'properties', 'personProperties'] as const) {
+    b[list].forEach((entry, i) => {
+      const when = entry.when;
+      if (when === 'always' || !('call' in when)) return;
+      const at = `/${list}/${i}/when`;
+      if (!described.has(when.call))
+        errors.push({ path: `${at}/call`, message: msg.callNotDescribed(when.call) });
+      (when.auto ?? []).forEach((a, j) => {
+        if ('component' in a) {
+          if (!surface.functions.has(a.component))
+            errors.push({
+              path: `${at}/auto/${j}/component`,
+              message: msg.componentNotInStub(a.component, d.stub),
+            });
+          return;
+        }
+        a.on.forEach((container) => {
+          if (!surface.containers.get(container)?.has(a.member))
+            errors.push({
+              path: `${at}/auto/${j}/member`,
+              message: msg.memberNotInStub(a.member, container, d.stub),
+            });
+        });
+      });
+    });
+  }
+  return errors;
+}
+
 /** Loads one descriptor file with its builtins and stub; every error names its file. */
 export function loadDescriptor(file: string): DescriptorResult<Descriptor> {
   const source = readText(file);
@@ -318,6 +364,7 @@ export function loadDescriptor(file: string): DescriptorResult<Descriptor> {
     const surface = readStubSurface(stubText.text, stubFile);
     modules = surface.modules;
     errors.push(...inFile(file, withLines(stubRules(d, surface), text)));
+    if (builtins) errors.push(...inFile(builtinsFile, callConditionRules(builtins, d, surface)));
   }
 
   if (errors.length || !builtins) return { ok: false, errors };
