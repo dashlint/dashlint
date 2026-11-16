@@ -6,7 +6,12 @@
 import ts from 'typescript';
 import type { MemberCall } from '../descriptors/index.js';
 import type { CallSite, OpenWorldSite, PersonProperty, SuperProperty } from '../formats/catalog.js';
-import { readObjectAt, unionDomains, type ObjectRead } from './properties.js';
+import {
+  isGlobalObjectType,
+  readObjectAt,
+  unionDomains,
+  type ObjectRead,
+} from './properties.js';
 import type { SdkCall } from './sdk-calls.js';
 import { valueAt } from './wrappers.js';
 
@@ -50,7 +55,11 @@ function personLabel(call: SdkCall, which: 'personSet' | 'personSetOnce'): strin
 }
 
 class SuperReader {
-  constructor(private readonly checker: ts.TypeChecker) {}
+  private readonly checker: ts.TypeChecker;
+
+  constructor(private readonly program: ts.Program) {
+    this.checker = program.getTypeChecker();
+  }
 
   /**
    * Whether the value certainly has no `keys` (`identify(id, { email })` has no `$set_once`): its
@@ -62,6 +71,8 @@ class SuperReader {
       type = this.checker.getNonNullableType(type);
       if (type.flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown) || type.isUnion()) return false;
       if (this.checker.getIndexInfosOfType(type).length > 0) return false;
+      // The global `Object` type accepts any object (ADR-070).
+      if (isGlobalObjectType(this.program, type)) return false;
       const prop = this.checker.getPropertyOfType(type, key);
       // As in T3.6: `{}` and `object` written as types accept any object.
       if (!prop) {
@@ -78,7 +89,7 @@ class SuperReader {
   at(call: ts.CallExpression, path: string): ObjectRead | undefined {
     const v = valueAt(call, path, undefined);
     if (v && this.lacksKey(v.node, v.keys)) return undefined;
-    if (v) return readObjectAt(this.checker, v.node, v.keys);
+    if (v) return readObjectAt(this.program, v.node, v.keys);
     return call.arguments.some((a) => ts.isSpreadElement(a))
       ? { properties: {}, open: 'the properties are in a spread argument' }
       : undefined;
@@ -142,7 +153,7 @@ export function resolveSuperProperties(
   sp: { program: ts.Program },
   calls: readonly SdkCall[],
 ): SuperScan {
-  const reader = new SuperReader(sp.program.getTypeChecker());
+  const reader = new SuperReader(sp.program);
   const supers = new Map<string, SuperProperty>();
   const persons = new Map<string, PersonProperty>();
   const openWorld: OpenWorldSite[] = [];

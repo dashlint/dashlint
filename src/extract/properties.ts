@@ -5,7 +5,9 @@
 // set of JSON values (string, number, boolean and null literals, `boolean`, enums; at most
 // MAX_VALUES) or open with a primitive type. An index signature, `any`, `unknown`, a type
 // parameter or a spread of such a value makes the site's properties open (G15): the properties it
-// lists are still sent, but "no" facts about its event stay unknown.
+// lists are still sent, but "no" facts about its event stay unknown. So does the global `Object`
+// type (JSDoc `{Object}`), and a parameter with no declared type and a `null` default holds an
+// open value (ADR-070).
 import ts from 'typescript';
 import type {
   CatalogEvent,
@@ -161,8 +163,25 @@ function alternatives(reads: readonly Read[]): Read {
   return open === undefined ? { bag } : { bag, open };
 }
 
+/**
+ * The global `Object` interface (JSDoc `{Object}`, or `Object` written as a type): it accepts any
+ * object, so it says nothing about which keys a value has (ADR-070).
+ */
+export function isGlobalObjectType(program: ts.Program, t: ts.Type): boolean {
+  const decls = t.symbol?.declarations ?? [];
+  return (
+    t.symbol?.getName() === 'Object' &&
+    decls.length > 0 &&
+    decls.every((d) => program.isSourceFileDefaultLibrary(d.getSourceFile()))
+  );
+}
+
 class PropertyReader {
-  constructor(private readonly checker: ts.TypeChecker) {}
+  private readonly checker: ts.TypeChecker;
+
+  constructor(private readonly program: ts.Program) {
+    this.checker = program.getTypeChecker();
+  }
 
   private text(type: ts.Type, at: ts.Node): string {
     return this.checker.typeToString(type, at);
@@ -229,6 +248,66 @@ class PropertyReader {
     return { domain: { kind: 'open', type: only ?? 'unknown' }, maybeMissing };
   }
 
+  /**
+   * A parameter (or a part destructured from one) with no declared type whose default is `null` or
+   * `undefined`: the checker takes its type from the default, but callers may pass any value
+   * (ADR-070), so the value is open. A declared type (annotation or JSDoc) is read as usual.
+   */
+  private defaultOnly(symbol: ts.Symbol | undefined): Value | undefined {
+    const decl = symbol?.valueDeclaration;
+    if (!decl || !(ts.isParameter(decl) || ts.isBindingElement(decl)) || !decl.initializer)
+      return undefined;
+    const init = decl.initializer;
+    const isNull = init.kind === ts.SyntaxKind.NullKeyword;
+    const isUndefined = ts.isIdentifier(init) && init.text === 'undefined';
+    if (!isNull && !isUndefined) return undefined;
+    let param: ts.Node = decl;
+    while (ts.isBindingElement(param)) param = param.parent.parent;
+    if (!ts.isParameter(param) || param.type || ts.getJSDocType(param)) return undefined;
+    return { domain: { kind: 'open', type: 'unknown' }, maybeMissing: isUndefined };
+  }
+
+  /** The values of an expression written as a property's value. */
+  private valueOfNode(node: ts.Expression): Value {
+    let e = node;
+    while (ts.isParenthesizedExpression(e)) e = e.expression;
+    const fromDefault = ts.isIdentifier(e)
+      ? this.defaultOnly(this.checker.getSymbolAtLocation(e))
+      : undefined;
+    return fromDefault ?? this.value(this.checker.getTypeAtLocation(node));
+  }
+
+  /**
+   * A member a spread or the SDK never sends as a key: one inherited from `Object.prototype` or
+   * `Function.prototype` (declared by the default library), or a class method or accessor, which
+   * lives on the prototype and is not enumerable (ADR-070).
+   */
+  private notOwnKey(prop: ts.Symbol): boolean {
+    const decls = prop.declarations ?? [];
+    return (
+      decls.length > 0 &&
+      decls.every(
+        (d) =>
+          this.isLibInterfaceMember(d) ||
+          ((ts.isMethodDeclaration(d) || ts.isGetAccessor(d) || ts.isSetAccessor(d)) &&
+            ts.isClassLike(d.parent)),
+      )
+    );
+  }
+
+  private isLibInterfaceMember(d: ts.Declaration): boolean {
+    const parent = d.parent;
+    return (
+      ts.isInterfaceDeclaration(parent) &&
+      (parent.name.text === 'Object' || parent.name.text === 'Function') &&
+      this.program.isSourceFileDefaultLibrary(d.getSourceFile())
+    );
+  }
+
+  private isGlobalObject(t: ts.Type): boolean {
+    return isGlobalObjectType(this.program, t);
+  }
+
   private draft(v: Value, optional = false): Draft {
     return {
       written: optional ? 'sometimes' : 'always',
@@ -263,6 +342,11 @@ class PropertyReader {
         bag: new Map(),
         open: `the properties have type \`${this.text(t, at)}\`, not an object`,
       };
+    if (this.isGlobalObject(t))
+      return {
+        bag: new Map(),
+        open: `the properties have type \`${this.text(t, at)}\`, which accepts any object`,
+      };
     if (this.checker.getIndexInfosOfType(t).length > 0)
       return {
         bag: new Map(),
@@ -279,7 +363,7 @@ class PropertyReader {
     for (const prop of props) {
       const name = prop.getName();
       // Symbol and private keys are never sent.
-      if (name.startsWith('__@') || name.startsWith('__#')) continue;
+      if (name.startsWith('__@') || name.startsWith('__#') || this.notOwnKey(prop)) continue;
       const v = this.value(this.checker.getTypeOfSymbolAtLocation(prop, at));
       bag.set(name, this.draft(v, (prop.flags & ts.SymbolFlags.Optional) !== 0));
     }
@@ -333,15 +417,14 @@ class PropertyReader {
     } else if (ts.isPrivateIdentifier(e.name)) return;
     else keys = [e.name.text];
     let draft: Draft;
-    if (ts.isPropertyAssignment(e))
-      draft = this.draft(this.value(this.checker.getTypeAtLocation(e.initializer)));
+    if (ts.isPropertyAssignment(e)) draft = this.draft(this.valueOfNode(e.initializer));
     else if (ts.isShorthandPropertyAssignment(e)) {
       // The name's own type is the object literal's widened one; the variable keeps its literals.
       const symbol = this.checker.getShorthandAssignmentValueSymbol(e);
       const type = symbol
         ? this.checker.getTypeOfSymbolAtLocation(symbol, e.name)
         : this.checker.getTypeAtLocation(e.name);
-      draft = this.draft(this.value(type));
+      draft = this.draft(this.defaultOnly(symbol) ?? this.value(type));
     }
     // A method is a function value; an accessor's value is whatever the getter returns.
     else if (ts.isMethodDeclaration(e))
@@ -397,6 +480,7 @@ class PropertyReader {
   private added(call: ts.CallExpression, ref: ValueRef, site: NamedSite): Draft | undefined {
     const v = 'arg' in ref ? valueAt(call, ref.arg, site.event.callee) : ref;
     if (!v) return undefined;
+    if (v.keys.length === 0) return this.draft(this.valueOfNode(v.node));
     const type = this.typeAt(v.node, v.keys);
     return type
       ? this.draft(this.value(type))
@@ -464,11 +548,11 @@ export interface ObjectRead {
 
 /** Reads the object at `node` and then `keys` (a `register` or `$set` argument, T3.7). */
 export function readObjectAt(
-  checker: ts.TypeChecker,
+  program: ts.Program,
   node: ts.Expression,
   keys: readonly string[],
 ): ObjectRead {
-  const read = new PropertyReader(checker).ofValue(node, keys);
+  const read = new PropertyReader(program).ofValue(node, keys);
   const properties = facts(read.bag);
   return read.open === undefined ? { properties } : { properties, open: read.open };
 }
@@ -481,7 +565,7 @@ export function resolveProperties(
   sp: { program: ts.Program },
   names: Pick<NameScan, 'sites' | 'openWorld'>,
 ): PropertyScan {
-  const reader = new PropertyReader(sp.program.getTypeChecker());
+  const reader = new PropertyReader(sp.program);
   const sites: PropertySite[] = [];
   const open: OpenWorldSite[] = [];
   for (const site of names.sites) {
