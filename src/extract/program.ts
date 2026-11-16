@@ -105,6 +105,11 @@ export interface SourceProgram {
   crashed: CrashedFile[];
   /** The SDKs the source imports, sorted by id. */
   sdks: SdkTypes[];
+  /**
+   * The loaded descriptors' packages that the source's own package.json (the nearest one at or
+   * above the source folder, inside the repository) declares as a dependency; sorted (ADR-069).
+   */
+  declaredPackages?: string[];
   /** Non-fatal tsconfig problems; the program uses what could be read. */
   warnings: string[];
   coverage: Pick<Coverage, 'files' | 'excludedFiles' | 'oversizeFiles'>;
@@ -313,6 +318,44 @@ function packageVersion(pkg: string, file: string): string | null {
   return null;
 }
 
+const DEPENDENCY_FIELDS = [
+  'dependencies',
+  'devDependencies',
+  'peerDependencies',
+  'optionalDependencies',
+] as const;
+
+/**
+ * The packages of `wanted` that the nearest package.json at or above `sourceDir` (not above the
+ * repository root) declares in any dependency field; sorted. An unreadable manifest declares none.
+ */
+export function declaredPackages(
+  sourceDir: string,
+  repoRoot: string,
+  wanted: readonly string[],
+): string[] {
+  for (let dir = sourceDir; isInside(dir, repoRoot); dir = dirname(dir)) {
+    const manifest = join(dir, 'package.json');
+    if (existsSync(manifest)) {
+      let json: unknown;
+      try {
+        json = JSON.parse(readFileSync(manifest, 'utf8'));
+      } catch {
+        return [];
+      }
+      const declared = new Set<string>();
+      for (const field of DEPENDENCY_FIELDS) {
+        const deps = (json as Record<string, unknown> | null)?.[field];
+        if (typeof deps !== 'object' || deps === null) continue;
+        for (const pkg of wanted) if (Object.hasOwn(deps, pkg)) declared.add(pkg);
+      }
+      return [...declared].sort();
+    }
+    if (dir === dirname(dir)) break;
+  }
+  return [];
+}
+
 export function createSourceProgram(input: ProgramInput): ProgramResult {
   const repoRoot = resolve(input.repoRoot);
   const { source } = input;
@@ -465,6 +508,9 @@ export function createSourceProgram(input: ProgramInput): ProgramResult {
       unreadable,
       crashed,
       sdks,
+      declaredPackages: declaredPackages(sourceDir, repoRoot, [
+        ...new Set(input.descriptors.map((d) => d.package)),
+      ]),
       warnings,
       coverage: { files: analysed.length, excludedFiles, oversizeFiles: skipped.oversize.length },
     },

@@ -1,0 +1,7 @@
+{
+  "name": "bookshop-web",
+  "private": true,
+  "dependencies": {
+    "@segment/analytics-next": "^1.81.0"
+  }
+}

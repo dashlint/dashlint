@@ -24,6 +24,7 @@ export function checkContext(
     property: (e, k) => propertyFact(m, e, k),
     personProperty: (k) => personPropertyFact(m, k),
     nameResolutionRates: m.sources.map((s) => s.catalog.coverage.nameResolutionRate),
+    uncalledSdks: m.sources.flatMap((s) => s.catalog.source.uncalledSdks ?? []),
   };
   const merged = (e: string) => (Object.hasOwn(m.events, e) ? m.events[e] : undefined);
   const index: CodeIndex = {

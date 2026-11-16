@@ -1,0 +1,30 @@
+{
+  "schema": "dashlint.catalog/1",
+  "tool": "0.1.0",
+  "source": {
+    "name": "web",
+    "root": "web",
+    "commit": null,
+    "platforms": ["web"],
+    "sdks": [],
+    "uncalledSdks": ["posthog-js", "posthog-js"]
+  },
+  "coverage": {
+    "files": 12,
+    "excludedFiles": 0,
+    "callSites": 0,
+    "literalNameSites": 0,
+    "openSites": 0,
+    "nameResolutionRate": 1
+  },
+  "openWorld": [],
+  "events": {},
+  "superProperties": {},
+  "personProperties": {},
+  "builtins": {
+    "events": [],
+    "properties": null,
+    "conditional": []
+  },
+  "identity": []
+}

@@ -32,7 +32,7 @@ import {
   type SourceProgram,
 } from './program.js';
 import { mergeSiteProperties, resolveProperties, type PropertySite } from './properties.js';
-import { lineOf } from './sdk-calls.js';
+import { lineOf, type SdkCallScan } from './sdk-calls.js';
 import { resolveSuperProperties } from './super.js';
 import { followWrappers } from './wrappers.js';
 
@@ -137,6 +137,20 @@ interface Stages {
   supers: ReturnType<typeof resolveSuperProperties>;
   identity: ReturnType<typeof findIdentityCalls>;
   builtins: ReturnType<typeof resolveBuiltins>;
+  /** Declared SDK packages with no call in the source, sorted (ADR-069). */
+  uncalled: string[];
+}
+
+/**
+ * The declared packages no call of the source belongs to (ADR-069): no resolved SDK call and no
+ * open-world call that may be one. Calls in wrapper files outside the source do not count.
+ */
+function uncalledPackages(sp: SourceProgram, scan: SdkCallScan): string[] {
+  const called = new Set([
+    ...scan.calls.map((c) => c.descriptor.package),
+    ...scan.openCalls.map((c) => c.descriptor.package),
+  ]);
+  return (sp.declaredPackages ?? []).filter((p) => !called.has(p));
 }
 
 function runStages(sp: SourceProgram, descriptors: readonly Descriptor[]): Stages {
@@ -146,7 +160,8 @@ function runStages(sp: SourceProgram, descriptors: readonly Descriptor[]): Stage
   const supers = resolveSuperProperties(sp, wrappers.sdkCalls.calls);
   const identity = findIdentityCalls(wrappers.sdkCalls.calls);
   const builtins = resolveBuiltins(sp, wrappers.sdkCalls);
-  return { properties, names, supers, identity, builtins };
+  const uncalled = uncalledPackages(sp, wrappers.sdkCalls);
+  return { properties, names, supers, identity, builtins, uncalled };
 }
 
 function gitCommit(repoRoot: string): string | null {
@@ -222,6 +237,7 @@ function buildCatalog(
       commit: input.commit === undefined ? gitCommit(sp.repoRoot) : input.commit,
       platforms: [...input.platforms],
       sdks: sp.sdks.map((s) => ({ ...s.sdk })),
+      ...(stages.uncalled.length > 0 ? { uncalledSdks: [...stages.uncalled] } : {}),
     },
     coverage: {
       files: sp.coverage.files,
@@ -374,6 +390,7 @@ export function writeCatalog(c: Catalog): string {
         new Map<string, unknown>([
           ...fields(c.source, ['name', 'root', 'commit', 'platforms']),
           ['sdks', c.source.sdks.map((s) => fields(s, ['id', 'version', 'types']))],
+          ...fields(c.source, ['uncalledSdks']),
         ]),
       ],
       [

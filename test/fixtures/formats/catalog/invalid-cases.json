@@ -107,6 +107,10 @@
     "path": "/sourceText",
     "rule": "no unknown fields; no source text is ever stored"
   },
+  "uncalled-sdks-duplicate.json": {
+    "path": "/source/uncalledSdks",
+    "rule": "uncalled SDK packages are listed once each (ADR-069)"
+  },
   "values-unknown-kind.json": {
     "path": "/events/wishlist_shared/properties/genre_id/values/kind",
     "rule": "values.kind is finite or open"

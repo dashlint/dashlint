@@ -6,6 +6,7 @@
 import type { Descriptor, UnknownNames } from '../descriptors/index.js';
 import {
   MIN_NAME_RESOLUTION_RATE,
+  NO_CALL_SITE,
   type CallSite,
   type Catalog,
   type EventSite,
@@ -96,6 +97,7 @@ export type UnknownReason =
   | 'no-catalog'
   | 'open-event-name'
   | 'low-name-resolution'
+  | `${typeof NO_CALL_SITE}${string}`
   | 'conditional-builtin'
   | 'unknown-builtin-table'
   | 'uncitable-name'
@@ -366,7 +368,8 @@ function unknown(reasons: Iterable<UnknownReason>): UnknownReason[] {
 /**
  * Whether the code sends an event (spec 6.3.1): "yes" with a site or as a sent builtin in any
  * catalog; "no" only when every catalog is closed (no open event-name site that may send it, no
- * crashed file, at least 70% of names resolved, D9) and no builtin of any catalog may send it;
+ * crashed file, at least 70% of names resolved, D9, no declared SDK package without a call,
+ * ADR-069) and no builtin of any catalog may send it;
  * otherwise "unknown". An open template site may send only names with its fixed head and tail
  * (ADR-061).
  */
@@ -380,6 +383,7 @@ export function eventFact(m: MergedCatalogs, name: string): EventCodeFact {
     if ((c.coverage.crashedFiles ?? 0) > 0) reasons.push('crashed-file');
     if (c.coverage.nameResolutionRate < MIN_NAME_RESOLUTION_RATE)
       reasons.push('low-name-resolution');
+    for (const pkg of c.source.uncalledSdks ?? []) reasons.push(`${NO_CALL_SITE}${pkg}`);
     if (c.builtins.conditional.includes(name)) reasons.push('conditional-builtin');
     if (unknownTables.length > 0) reasons.push('unknown-builtin-table');
     if (hasPrefix(name, unknownNames.events)) reasons.push('uncitable-name');

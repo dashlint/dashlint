@@ -1,0 +1,7 @@
+{
+  "name": "bookshop-server",
+  "private": true,
+  "dependencies": {
+    "yaml": "^2.0.0"
+  }
+}

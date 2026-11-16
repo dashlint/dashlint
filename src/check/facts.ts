@@ -3,7 +3,7 @@
 // gives an event-level dead from code alone (D9). The code facts come from the merged catalogs
 // (extract's `eventFact`, `propertyFact`, `personPropertyFact`); `check` depends on `formats`
 // only (spec 6.1), so the caller passes them in (ADR-037).
-import { MIN_NAME_RESOLUTION_RATE, type PropertyFact } from '../formats/catalog.js';
+import { MIN_NAME_RESOLUTION_RATE, NO_CALL_SITE, type PropertyFact } from '../formats/catalog.js';
 import { observedEvent } from '../formats/observed.js';
 import type {
   Observed,
@@ -34,6 +34,8 @@ export interface CodeFacts {
   personProperty(key: string): CodeFact;
   /** Each source's `coverage.nameResolutionRate`. */
   nameResolutionRates: readonly number[];
+  /** Every source's `source.uncalledSdks` (ADR-069). */
+  uncalledSdks?: readonly string[];
 }
 
 export interface FactInputs {
@@ -122,10 +124,16 @@ function lowestLowRate(rates: readonly number[]): number | undefined {
   return low.length > 0 ? Math.min(...low) : undefined;
 }
 
-// D9 is applied by the merge; it is applied again here so no provider of code facts can turn a
-// low-resolution source into an event-level "no".
+// D9 and ADR-069 are applied by the merge; they are applied again here so no provider of code facts
+// can turn a low-resolution source, or one with a declared SDK and no call of it, into an
+// event-level "no".
 function codeEvent(code: CodeFacts, name: string): { fact: CodeFact; rate?: number } {
-  const fact = code.event(name);
+  const uncalled = code.uncalledSdks ?? [];
+  const given = code.event(name);
+  const fact: CodeFact =
+    given.fact === 'no' && uncalled.length > 0
+      ? { fact: 'unknown', unknown: sorted(uncalled.map((p) => `${NO_CALL_SITE}${p}`)) }
+      : given;
   const rate = lowestLowRate(code.nameResolutionRates);
   if (rate === undefined) return { fact };
   if (fact.fact === 'no')

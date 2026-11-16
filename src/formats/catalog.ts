@@ -32,7 +32,19 @@ export interface CatalogSource {
   commit: string | null;
   platforms: string[];
   sdks: CatalogSdk[];
+  /**
+   * SDK packages the source's package.json declares (a loaded descriptor describes them) with no
+   * call of them found: no event of the source is "no" from code alone (ADR-069). Sorted; absent
+   * when empty.
+   */
+  uncalledSdks?: string[];
 }
+
+/**
+ * The head of the reason a source gives when its package.json declares an SDK package and no call
+ * of it was found (ADR-069); the package name follows.
+ */
+export const NO_CALL_SITE = 'no-call-site:';
 
 /** D9: below this name-resolution rate a source gives no event-level "no" from code alone. */
 export const MIN_NAME_RESOLUTION_RATE = 0.7;

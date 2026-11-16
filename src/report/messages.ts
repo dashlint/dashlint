@@ -1,7 +1,7 @@
 // Every user-facing string lives here (spec §6.9.7); scripts/copy-check.mjs checks this file.
 import type { AlertFinding } from '../check/alerts.js';
 import type { CheckFinding } from '../check/checks/types.js';
-import type { JsonScalar } from '../formats/catalog.js';
+import { NO_CALL_SITE, type JsonScalar } from '../formats/catalog.js';
 import type { AlertResult, Location, TileKind, Verdict } from '../formats/report.js';
 
 // G11: every report ends with this sentence.
@@ -241,7 +241,10 @@ const REASONS: Record<string, string> = {
   'alert-condition-unknown': 'a condition dashlint does not know',
 };
 
-export const reasonText = (reason: string): string => REASONS[reason] ?? reason;
+export const reasonText = (reason: string): string =>
+  reason.startsWith(NO_CALL_SITE) && reason.length > NO_CALL_SITE.length
+    ? `the source depends on ${reason.slice(NO_CALL_SITE.length)}, but no call site of it was found`
+    : (REASONS[reason] ?? reason);
 
 const PLATFORM_NAME: Record<string, string> = {
   posthog: 'PostHog',

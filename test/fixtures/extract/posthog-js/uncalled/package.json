@@ -1,0 +1,8 @@
+{
+  "name": "bookshop-web",
+  "private": true,
+  "dependencies": {
+    "posthog-js": "^1.447.0",
+    "react": "^19.0.0"
+  }
+}
