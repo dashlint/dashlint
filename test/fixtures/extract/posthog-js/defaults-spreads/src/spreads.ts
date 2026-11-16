@@ -1,7 +1,9 @@
 // ADR-070 B in TypeScript: what a spread sends by its type.
 import posthog from 'posthog-js';
 
-// The global `Object` type accepts any object: open, no prototype names.
+// The global `Object` type accepts any object: open, no prototype names. The fixture needs the
+// wrapper type itself, so the lint rule against it is off for this line.
+// eslint-disable-next-line @typescript-eslint/no-wrapper-object-types
 export function genreBrowsed(extra: Object): void {
   posthog.capture('genre_browsed', { genre: 'poetry', ...extra });
 }

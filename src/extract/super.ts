@@ -6,12 +6,7 @@
 import ts from 'typescript';
 import type { MemberCall } from '../descriptors/index.js';
 import type { CallSite, OpenWorldSite, PersonProperty, SuperProperty } from '../formats/catalog.js';
-import {
-  isGlobalObjectType,
-  readObjectAt,
-  unionDomains,
-  type ObjectRead,
-} from './properties.js';
+import { isGlobalObjectType, readObjectAt, unionDomains, type ObjectRead } from './properties.js';
 import type { SdkCall } from './sdk-calls.js';
 import { valueAt } from './wrappers.js';
 
