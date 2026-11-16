@@ -46,4 +46,20 @@ pull requests); on fork and Dependabot pull requests, where `GITHUB_TOKEN` is re
 the summary only and says so. It never uses `pull_request_target`, never needs an analytics key, and
 never reads secrets.
 
+Only tiles newly broken at or above the failing level fail the job; tiles that were already dead
+on the base commit are mentioned and never block a merge.
+
+## Outputs
+
+| Name           | Meaning                                                           |
+| -------------- | ----------------------------------------------------------------- |
+| `newly-broken` | How many tiles the change newly breaks at or above the fail level |
+| `report-json`  | Path to the JSON report                                           |
+
+## More
+
+The snapshot (`dashlint.requirements.json`) is written by `dashlint pull` and committed. Setup,
+forks, monorepos and refreshing the snapshot on a schedule are in the
+[CI guide](https://github.com/dashlint/dashlint/blob/main/docs/ci.md).
+
 A clean result means nothing dashlint can see is broken, not that every number is right.
