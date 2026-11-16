@@ -82,8 +82,9 @@ function reasons(model: ReportModel, tile: ReportTile): string[] {
   const out = (model.notes[tile.id] ?? []).map((n) => `<li>${rich(n)}</li>`);
   for (const f of tile.findings) if (f.effect !== 'info') out.push(`<li>${rich(f.message)}</li>`);
   if (tile.verdict === 'one-platform') {
-    const missing = model.platforms.filter((p) => !tile.platforms.includes(p));
-    out.push(`<li>${rich(reportText.onePlatform(tile.platforms, missing))}</li>`);
+    const fed = model.fedFrom[tile.id] ?? tile.platforms;
+    const missing = model.platforms.filter((p) => !fed.includes(p));
+    out.push(`<li>${rich(reportText.onePlatform(fed, missing))}</li>`);
   }
   if (tile.verdict === 'not-checked')
     for (const p of tile.unknownParts)

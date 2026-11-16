@@ -69,6 +69,11 @@ export interface TileResult {
   reasons?: string[];
   /** Partly dead funnels: the first step (1-based) that is always zero. */
   deadFrom?: number;
+  /**
+   * One platform: the platform the counted events come from (all-events nodes and events sent on
+   * every platform skipped, ADR-072). `platforms` can list more.
+   */
+  fedFrom?: string[];
 }
 
 interface AppliedFilter {
@@ -513,18 +518,21 @@ function platformsOf(ctx: CheckContext, liveEvents: readonly (string | null)[]):
  * do not count; an event no code sends (live from PostHog only) has no known platform, so the tile
  * is not one-platform.
  */
-function onePlatform(ctx: CheckContext, liveEvents: readonly (string | null)[]): boolean {
+function onePlatform(
+  ctx: CheckContext,
+  liveEvents: readonly (string | null)[],
+): string[] | undefined {
   // With one catalog platform every event is on every platform, so none counts.
   const all = ctx.index.platforms;
   const fed = new Set<string>();
   for (const e of liveEvents) {
     if (e === null) continue;
     const p = ctx.index.eventPlatforms(e);
-    if (p.length === 0) return false;
+    if (p.length === 0) return undefined;
     if (all.every((x) => p.includes(x))) continue;
     for (const x of p) fed.add(x);
   }
-  return fed.size === 1;
+  return fed.size === 1 ? [...fed] : undefined;
 }
 
 /** The verdict of one tile (spec 6.7.3); `dashboards` are the requirements' dashboards. */
@@ -580,10 +588,14 @@ export function checkTile(
   );
   const platforms = platformsOf(ctx, value.liveEvents);
   let verdict: TileVerdict;
+  let fedFrom: string[] | undefined;
   if (value.core === 'unknown') verdict = modifierDegraded ? 'degraded' : 'not-checked';
   else if (value.core === 'dead' || value.core === 'partly-dead') verdict = value.core;
   else if (value.core === 'degraded' || modifierDegraded) verdict = 'degraded';
-  else verdict = onePlatform(ctx, value.liveEvents) ? 'one-platform' : 'live';
+  else {
+    fedFrom = onePlatform(ctx, value.liveEvents);
+    verdict = fedFrom === undefined ? 'live' : 'one-platform';
+  }
 
   return {
     id: tile.id,
@@ -596,6 +608,7 @@ export function checkTile(
     unknownParts,
     ...(parts.length === 0 ? { reasons: [NO_PARTS] } : {}),
     ...(value.deadFrom === undefined ? {} : { deadFrom: value.deadFrom }),
+    ...(fedFrom === undefined ? {} : { fedFrom }),
   };
 }
 

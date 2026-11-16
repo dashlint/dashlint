@@ -86,8 +86,9 @@ function tileBlock(model: ReportModel, tile: ReportTile): string[] {
     if (f.sites.length > 0) out.push(...wrap(formatSites(f.sites), LABEL));
   }
   if (tile.verdict === 'one-platform') {
-    const missing = model.platforms.filter((p) => !tile.platforms.includes(p));
-    out.push(...wrap(reportText.onePlatform(tile.platforms, missing), LABEL));
+    const fed = model.fedFrom[tile.id] ?? tile.platforms;
+    const missing = model.platforms.filter((p) => !fed.includes(p));
+    out.push(...wrap(reportText.onePlatform(fed, missing), LABEL));
   }
   if (tile.verdict === 'not-checked') {
     for (const p of tile.unknownParts)

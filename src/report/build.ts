@@ -47,6 +47,8 @@ export interface ReportModel {
   dashboards: { id: string; name: string }[];
   /** Per tile id: the notes printed after its title. */
   notes: Record<string, string[]>;
+  /** Per one-platform tile id: the platform its counted events come from (ADR-072). */
+  fedFrom: Record<string, string[]>;
   /** The observed window, when PostHog data was read. */
   windowDays?: number;
   warnings: IgnoreWarning[];
@@ -128,6 +130,7 @@ export function buildReport(input: BuildInput): ReportModel {
 
   const tiles: ReportTile[] = [];
   const notes: Record<string, string[]> = {};
+  const fedFrom: Record<string, string[]> = {};
   for (const { result, verdict } of outcome.tiles) {
     const tile = byId.get(result.id) as Tile;
     tiles.push({
@@ -142,6 +145,7 @@ export function buildReport(input: BuildInput): ReportModel {
       unknownParts: verdict === 'ignored' ? [] : unknownParts(result),
     });
     notes[tile.id] = verdict === 'ignored' ? [] : tileNotes(tile, result, alerts);
+    if (result.fedFrom !== undefined) fedFrom[tile.id] = [...result.fedFrom];
   }
 
   const reportAlerts: ReportAlert[] = alerts.map((a) => ({
@@ -208,6 +212,7 @@ export function buildReport(input: BuildInput): ReportModel {
     platforms: [...new Set(input.catalogs.flatMap((c) => c.source.platforms))].sort(),
     dashboards: (requirements.dashboards ?? []).map((d) => ({ id: d.id, name: d.name ?? d.id })),
     notes,
+    fedFrom,
     ...(requirements.observed === undefined
       ? {}
       : { windowDays: requirements.observed.windowDays }),
