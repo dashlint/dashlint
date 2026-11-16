@@ -91,6 +91,14 @@ describe.each(FAMILIES)('ADR-069 on $family', ({ family, pkg, unseen }) => {
     ]);
   });
 
+  it('a source that imports the package but only identifies has no event call site either', () => {
+    const catalog = catalogOf(`${family}/uncalled-identify-only`);
+    expect(catalog.source.sdks.length).toBe(1);
+    expect(catalog.identity.length).toBeGreaterThan(0);
+    expect(catalog.source.uncalledSdks).toEqual([pkg]);
+    expect(tileOf(`${family}/uncalled-identify-only`, unseen).verdict).toBe('not-checked');
+  });
+
   it('the same source with one call site of another event gives "dead" as today', () => {
     const catalog = catalogOf(`${family}/uncalled-one-site`);
     expect(catalog.source.uncalledSdks).toBeUndefined();

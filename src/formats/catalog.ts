@@ -34,8 +34,8 @@ export interface CatalogSource {
   sdks: CatalogSdk[];
   /**
    * SDK packages the source's package.json declares (a loaded descriptor describes them) with no
-   * call of them found: no event of the source is "no" from code alone (ADR-069). Sorted; absent
-   * when empty.
+   * event call site of them found: no event of the source is "no" from code alone (ADR-069).
+   * Sorted; absent when empty.
    */
   uncalledSdks?: string[];
 }

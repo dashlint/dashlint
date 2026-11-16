@@ -32,9 +32,9 @@ import {
   type SourceProgram,
 } from './program.js';
 import { mergeSiteProperties, resolveProperties, type PropertySite } from './properties.js';
-import { lineOf, type SdkCallScan } from './sdk-calls.js';
+import { lineOf } from './sdk-calls.js';
 import { resolveSuperProperties } from './super.js';
-import { followWrappers } from './wrappers.js';
+import { followWrappers, type WrapperScan } from './wrappers.js';
 
 export interface ExtractInput extends Omit<ProgramInput, 'leaveOut'> {
   /** The dashlint version that writes the catalog. */
@@ -142,13 +142,15 @@ interface Stages {
 }
 
 /**
- * The declared packages no call of the source belongs to (ADR-069): no resolved SDK call and no
- * open-world call that may be one. Calls in wrapper files outside the source do not count.
+ * The declared packages no event call site of the source belongs to (ADR-069): no event site, direct
+ * or through a wrapper, and no open-world call from an unresolved import that may be one. A source
+ * that only initialises the SDK or calls `identify` or `reset` still has no event call site
+ * (`coverage.callSites`, spec 6.3.1), so an event it does not send stays unknown.
  */
-function uncalledPackages(sp: SourceProgram, scan: SdkCallScan): string[] {
+function uncalledPackages(sp: SourceProgram, scan: WrapperScan): string[] {
   const called = new Set([
-    ...scan.calls.map((c) => c.descriptor.package),
-    ...scan.openCalls.map((c) => c.descriptor.package),
+    ...scan.events.map((e) => e.descriptor.package),
+    ...scan.sdkCalls.openCalls.map((c) => c.descriptor.package),
   ]);
   return (sp.declaredPackages ?? []).filter((p) => !called.has(p));
 }
@@ -160,7 +162,7 @@ function runStages(sp: SourceProgram, descriptors: readonly Descriptor[]): Stage
   const supers = resolveSuperProperties(sp, wrappers.sdkCalls.calls);
   const identity = findIdentityCalls(wrappers.sdkCalls.calls);
   const builtins = resolveBuiltins(sp, wrappers.sdkCalls);
-  const uncalled = uncalledPackages(sp, wrappers.sdkCalls);
+  const uncalled = uncalledPackages(sp, wrappers);
   return { properties, names, supers, identity, builtins, uncalled };
 }
 

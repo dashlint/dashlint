@@ -43,7 +43,7 @@
           }
         },
         "uncalledSdks": {
-          "description": "SDK packages the source's package.json declares and a descriptor describes, with no call of them found in the source: no event is \"no\" from code alone (ADR-069).",
+          "description": "SDK packages the source's package.json declares and a descriptor describes, with no event call site of them found in the source: no event is \"no\" from code alone (ADR-069).",
           "$ref": "#/$defs/nameList"
         }
       }
