@@ -568,6 +568,76 @@ describe('property-is-sent: breakdowns', () => {
       detail: { missingOn: ['wishlist_shared', 'giftcard_redeemed'] },
     });
     expect(r.finding?.hint).toBeUndefined();
+    expect(Object.keys(r.finding ?? {})).not.toContain('observed');
+    expect(Object.keys(r.finding ?? {})).not.toContain('hint');
+  });
+
+  it('no event sends it, a close key exists: the merged finding keeps the hint and observed', () => {
+    const o: Observed = {
+      windowDays: 30,
+      events: {
+        wishlist_shared: { defined: true, lastSeenAt: RECENT },
+        giftcard_redeemed: { defined: true, lastSeenAt: RECENT },
+      },
+      eventProperties: {
+        wishlist_shared: { seen: ['genre_id'], notSeen: ['genre'] },
+        giftcard_redeemed: { seen: [], notSeen: ['genre'] },
+      },
+    };
+    const r = checkBreakdown(
+      context([shop()], o),
+      { key: 'genre', scope: 'event' },
+      ['wishlist_shared', 'giftcard_redeemed'],
+      'b',
+    );
+    expect(r.effect).toBe('degraded');
+    expect(r.finding).toMatchObject({
+      check: 'property-is-sent',
+      path: 'b',
+      effect: 'degraded',
+      property: 'genre',
+      observed: 'notSeen',
+      hint: { closestProperty: 'genre_id' },
+      detail: { role: 'breakdown', missingOn: ['wishlist_shared', 'giftcard_redeemed'] },
+    });
+  });
+
+  it('two events send it, one only sometimes: info with presence, no event, no missingOn', () => {
+    const c = shop({
+      events: {
+        order_completed: event(30, { format: always(['paperback']) }),
+        wishlist_shared: event(41, {
+          format: { presence: 'sometimes', values: always(['ebook']).values },
+        }),
+      },
+    });
+    const r = checkBreakdown(context([c]), format, ['order_completed', 'wishlist_shared'], 'b');
+    expect(r.effect).toBe('live');
+    expect(r.finding).toEqual({
+      check: 'property-is-sent',
+      path: 'b',
+      effect: 'info',
+      property: 'format',
+      code: 'yes',
+      sites: [],
+      detail: { role: 'breakdown', scope: 'event', presence: 'sometimes' },
+    });
+  });
+
+  it('one event sends it sometimes and the other is unknown: the info names the sending event', () => {
+    const c = shop({
+      events: {
+        order_completed: event(30, {
+          format: { presence: 'sometimes', values: always(['ebook']).values },
+        }),
+        giftcard_redeemed: event(88, {}, true),
+      },
+    });
+    const r = checkBreakdown(context([c]), format, ['order_completed', 'giftcard_redeemed'], 'b');
+    expect(r.effect).toBe('live');
+    expect(r.checks.map((x) => x.sent)).toEqual(['yes', 'unknown']);
+    expect(r.finding).toMatchObject({ effect: 'info', event: 'order_completed' });
+    expect(Object.keys(r.finding?.detail ?? {})).not.toContain('missingOn');
   });
 
   it('two events from one call site (a literal union) list the site once', () => {
@@ -596,6 +666,8 @@ describe('property-is-sent: breakdowns', () => {
       sites: [{ file: 'web/src/shop41.ts', line: 41 }],
       detail: { missingOn: ['wishlist_shared'] },
     });
+    // One event sends it but another does not: the info belongs to no single event.
+    expect(Object.keys(r.finding ?? {})).not.toContain('event');
   });
 
   it('every event always sends it: live, no finding', () => {
