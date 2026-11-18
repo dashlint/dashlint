@@ -89,8 +89,8 @@ rules are not applied, because they depend on how that tool evaluates filters.
 ## Alerts
 
 An alert on an event your code never sends can't warn you, and it doesn't look broken. In a test
-PostHog project, alerts on an event nothing sends showed "Not firing" with no error on every
-hourly check when they watched for a decrease or an upper limit, and fired on every check when they
+PostHog project in November 2026, alerts on an event nothing sends showed "Not firing" with no
+error on every hourly check when they watched for a decrease or an upper limit, and fired on every check when they
 had a lower limit. dashlint checks each alert's insight and condition against your code and flags
 both cases:
 

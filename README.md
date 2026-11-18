@@ -22,8 +22,9 @@ sites that already had the data, took it to 10. Nothing had alerted on it for 7 
 dashlint joins the two sides. It checks the property filters, filter values and breakdowns of each
 tile against the calls your code makes: a filter on a property no call sends, a value the code
 can't produce, a breakdown that collapses into one "(none)" bucket, a negative filter with no
-effect. PostHog's dead-insight scout covers event firings and says property filters, cohorts and
-breakdowns are "outside this check", so the two are complementary.
+effect. PostHog's dead-insight scout covers event firings and, in its instructions as of November
+2026, says property filters, cohorts and breakdowns are "outside this check", so the two are
+complementary.
 
 ## Try it on the demo (no account, no key)
 
@@ -57,7 +58,9 @@ DEAD          Gift card redemptions
 
 ## Use it on your app
 
-Node 22.13 or later. In the root of your repository:
+Node 22.13 or later. Install your dependencies first (`npm ci --ignore-scripts` is enough): that
+lets dashlint read your SDK's real types and any tsconfig your config extends from a package. In
+the root of your repository:
 
 ```sh
 npx dashlint init
@@ -99,9 +102,9 @@ For each tile, dashlint asks:
   produce the value the filter asks for? A filter on `"Card"` when the code only sends `"card"` or
   `"wallet"` matches nothing.
 - **Can the alert fire?** An alert on an event your code never sends can't warn you, and it
-  doesn't look broken. In a test PostHog project, alerts on an event nothing sends showed "Not
-  firing" with no error on every hourly check when they watched for a decrease or an upper limit,
-  and fired on every check when they had a lower limit. dashlint checks each alert's insight and
+  doesn't look broken. In a test PostHog project in November 2026, alerts on an event nothing
+  sends showed "Not firing" with no error on every hourly check when they watched for a decrease
+  or an upper limit, and fired on every check when they had a lower limit. dashlint checks each alert's insight and
   condition against your code and flags both cases, plus alerts that point at a series or step the
   insight no longer has.
 
@@ -125,7 +128,7 @@ for any other tool. The full rules are in [docs/checks.md](docs/checks.md).
 
 Facts are yes, no or unknown. Only a definite "no" makes a tile dead; when dashlint can't tell, it
 says "not checked" with the reason and counts it. Unknown counts are always printed. Same input,
-same verdicts. It is free per run, and works offline after `pull`.
+same verdicts. It's free per run, and works offline after `pull`.
 
 ## In CI
 
@@ -190,7 +193,9 @@ findings at or above `failOn`, `2` usage or config error, `3` a bug in dashlint,
 
 - No telemetry. dashlint never sends your source code anywhere.
 - `extract`, `check`, `diff` and `audit --offline` make no network calls. `pull` makes GET requests
-  to the PostHog host in your config and nothing else.
+  to the PostHog host in your config and nothing else, unless you set `hogql: true` under
+  `platforms.posthog`: then it also sends aggregate HogQL queries to that host's `query/` endpoint,
+  asking when each property a tile uses last arrived. They return timestamps, never event rows.
 - The key is read only from the environment variable your config names, and never printed or
   logged. A key written into the config file is refused.
 - The catalog holds event names, property keys, fixed values and file:line locations, never source
@@ -205,7 +210,7 @@ Every number here comes from a recorded run:
 
 - On 64 public repositories across the four SDK families, dashlint read a literal event name at
   95.9% of the call sites it found, with 0 crashes.
-- In blind samples of the facts it reported, 1 in 100 was wrong.
+- In blind samples of 100 facts it reported, 1 was wrong.
 - On a laptop, `check` on a 1,040-file app takes 0.33 seconds end to end.
 
 ## Limits

@@ -5,7 +5,10 @@
 No. There is no telemetry. `extract`, `check`, `diff` and `audit --offline` make no network calls.
 `pull` makes GET requests to the PostHog host in your config, reads definitions (insights,
 dashboards, alerts, actions, event and property definitions), and nothing else. It never reads
-event rows, persons or recordings, and never writes to PostHog.
+event rows, persons or recordings, and never writes to PostHog. The one exception is opt-in: with
+`hogql: true` under `platforms.posthog`, `pull` also sends aggregate HogQL queries to the host's
+`query/` endpoint to ask when each property a tile uses last arrived, and gets back timestamps,
+not event rows.
 
 ## Which key does `pull` need?
 
@@ -22,10 +25,11 @@ values, never any event data. On a public repository these become public. `redac
 
 ## How is this different from PostHog's own checks?
 
-PostHog's dead-insight scout covers event firings and says property filters, cohorts and
-breakdowns are "outside this check", so the two are complementary. dashlint reads your code, so it
-also checks the property filters, filter values and breakdowns of each tile, and it can run on a
-pull request before the change ships. PostHog's scouts look after the fact: a dead insight after 30
+PostHog's dead-insight scout covers event firings and, in its instructions as of November 2026,
+says property filters, cohorts and breakdowns are "outside this check", so the two are
+complementary. dashlint reads your code, so it also checks the property filters, filter values and
+breakdowns of each tile, and it can run on a pull request before the change ships. PostHog's scouts
+look after the fact: a dead insight after 30
 days of silence, the PR follow-up scout after deploy.
 
 ## Which SDKs does it read?
