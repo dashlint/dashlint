@@ -23,3 +23,11 @@ jobs:
       - run: npm run lint
       - run: node scripts/copy-check.mjs
       - run: node scripts/perf.mjs --work "${{ runner.temp }}/perf" --ubuntu
+
+  # The one check branch protection requires: it stays the same when the matrix above grows.
+  ci-result:
+    if: always()
+    needs: build-test-lint
+    runs-on: ubuntu-latest
+    steps:
+      - run: test "${{ needs.build-test-lint.result }}" = success
