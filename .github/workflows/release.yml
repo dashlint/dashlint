@@ -1,0 +1,53 @@
+name: Release
+
+# Stages a new npm version from main with provenance (npm trusted publishing). A maintainer then
+# approves the staged version with 2FA on npmjs.com or with `npm stage approve`; nothing here
+# publishes directly. Runs only on the public dashlint/dashlint. The first version (0.1.0) is
+# published by hand, so this job skips while the package does not exist on npm yet, and skips a
+# version that is already there.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  stage:
+    if: github.repository == 'dashlint/dashlint' && github.event.repository.private == false
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      # Staged publishing needs npm 11.15.0 or later.
+      - run: npm install -g npm@11.21.1
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+      - run: node scripts/copy-check.mjs
+      - name: Decide whether to stage
+        id: decide
+        run: node scripts/release-decide.mjs >> "$GITHUB_OUTPUT"
+      - name: Stage the release
+        if: steps.decide.outputs.stage == 'true'
+        run: npm stage publish
+      - name: Summary
+        run: |
+          echo "### dashlint ${{ steps.decide.outputs.version }}" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ steps.decide.outputs.stage }}" = "true" ]; then
+            echo "Staged dashlint@${{ steps.decide.outputs.version }} with provenance; a maintainer approves it on npmjs.com." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Nothing staged: ${{ steps.decide.outputs.reason }}" >> "$GITHUB_STEP_SUMMARY"
+          fi

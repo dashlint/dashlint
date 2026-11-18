@@ -1,6 +1,6 @@
 {
   "name": "dashlint",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Checks that your analytics SDK calls match what your dashboards, alerts and insights actually need.",
   "license": "MIT",
   "author": "Aman Gupta (https://github.com/guptaaman678)",
