@@ -65,8 +65,10 @@ Node 22.13 or later. In the root of your repository:
 npx dashlint init
 ```
 
-`init` finds the folders that use an analytics SDK and writes `dashlint.config.yml`. Then pull a
-snapshot of your PostHog dashboards with a personal API key that has read-only scopes:
+`init` finds the folders that use an analytics SDK and writes `dashlint.config.yml`. Open it,
+uncomment the `platforms` block and set `project` to your PostHog project id (the number after
+`/project/` in your PostHog URL); change `host` if you are not on US cloud. Then pull a snapshot of
+your PostHog dashboards with a personal API key that has read-only scopes:
 
 ```sh
 export DASHLINT_POSTHOG_KEY=phx_your_read_only_key
