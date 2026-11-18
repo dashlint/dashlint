@@ -16,10 +16,8 @@ Not affiliated with or endorsed by PostHog, Mixpanel, Amplitude or Twilio Segmen
 
 A dashboard tile can be broken in a way neither side shows. The chart draws a plausible zero or a
 single "(none)" bucket, and the code looks fine. In a production app I run, a sharing dashboard of
-{{number:evidence-sharing-tiles}} tiles had {{number:evidence-sharing-live-before}} that could show
-a real number. One instrumentation commit, adding properties at call sites that already had the
-data, took it to {{number:evidence-sharing-live-after}}. Nothing had alerted on it for
-{{number:evidence-sharing-weeks}} weeks.
+23 tiles had 4 that could show a real number. One instrumentation commit, adding properties at call
+sites that already had the data, took it to 10. Nothing had alerted on it for 7 weeks.
 
 dashlint joins the two sides. It checks the property filters, filter values and breakdowns of each
 tile against the calls your code makes: a filter on a property no call sends, a value the code
@@ -205,12 +203,10 @@ findings at or above `failOn`, `2` usage or config error, `3` a bug in dashlint,
 
 Every number here comes from a recorded run:
 
-- On {{number:corpus-repos}} public repositories across the four SDK families, dashlint read a
-  literal event name at {{number:corpus-rate}} of the call sites it found, with
-  {{number:corpus-crashes}} crashes.
-- In blind samples of the facts it reported, {{number:blind-fp-count}} in
-  {{number:blind-sample-size}} were wrong.
-- `check` on a {{number:perf-files}}-file app takes {{number:perf-check-seconds}} seconds.
+- On 64 public repositories across the four SDK families, dashlint read a literal event name at
+  95.9% of the call sites it found, with 0 crashes.
+- In blind samples of the facts it reported, 1 in 100 was wrong.
+- On a laptop, `check` on a 1,040-file app takes 0.33 seconds end to end.
 
 ## Limits
 
