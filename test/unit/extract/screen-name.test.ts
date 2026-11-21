@@ -57,7 +57,8 @@ function scan(fixture: string): BuiltinScan {
 const fact = (fixture: string, event: string) =>
   propertyFact(mergeCatalogs([extract(fixture)], tables), event, '$screen_name');
 
-describe('$screen_name on posthog-react-native events (ADR-047)', () => {
+// Each case extracts a whole fixture program, as in the other SDK files' describes.
+describe('$screen_name on posthog-react-native events (ADR-047)', { timeout: 30_000 }, () => {
   it('a screen() call: yes, sometimes, on every event; always on $screen', () => {
     const f = fact('called', 'book_previewed');
     expect(f.fact).toBe('yes');
