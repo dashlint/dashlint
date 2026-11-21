@@ -97,6 +97,19 @@ describe('$screen_name on posthog-react-native events (ADR-047)', () => {
     ]);
     expect(s.builtins.conditional).toContain('$screen_name');
   });
+
+  it('autocapture true, captureScreens true, a spread beside false and a bare integration stay unknown', () => {
+    const s = scan('more-edges');
+    // The app's own <Shelf /> (line 39) is no caller and must not stop the scan.
+    expect(s.autos.map((a) => [a.line, a.state])).toEqual([
+      [11, 'conditional'],
+      [20, 'conditional'],
+      [29, 'conditional'],
+      [42, 'conditional'],
+    ]);
+    expect(s.builtins.conditional).toContain('$screen_name');
+    expect(s.off).not.toContain('$screen_name');
+  });
 });
 
 describe('callState (ADR-047)', () => {
@@ -138,6 +151,11 @@ describe('callState (ADR-047)', () => {
   it('a caller of another condition does not count', () => {
     const foreign = { component: 'OtherProvider', prop: 'auto', option: 'x' };
     expect(callState(SCREEN, rn, none, [auto('conditional', foreign)], [init])).toBe('off');
+  });
+
+  it('a call condition with no auto callers counts none of the source callers', () => {
+    const plain: CallCondition = { call: SCREEN.call };
+    expect(callState(plain, rn, none, [auto('conditional')], [init])).toBe('off');
   });
 
   it('no init and no caller: the client is made elsewhere, so conditional', () => {

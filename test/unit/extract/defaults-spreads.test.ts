@@ -149,6 +149,47 @@ describe('posthog-js: spreads (ADR-070 B)', () => {
   });
 });
 
+describe('posthog-js: more defaults and keys a spread never sends (ADR-070)', () => {
+  const fixture = perMutant(() => scan('posthog-js/defaults-spreads-more'));
+  let s: PropertyScan;
+  beforeEach(() => {
+    s = fixture();
+  });
+
+  it('an undefined default with no declared type is open and may be left out', () => {
+    expect(only(s, 'wish_saved').properties.title).toEqual({
+      presence: 'sometimes',
+      values: open('unknown'),
+    });
+  });
+
+  it('negative: a string default with no declared type is read from its type', () => {
+    expect(only(s, 'aisle_visited').properties.aisle).toEqual({
+      presence: 'always',
+      values: open('string'),
+    });
+  });
+
+  it('a null default read through parentheses is open', () => {
+    expect(only(s, 'tag_added').properties.tag?.values).toEqual(open('unknown'));
+  });
+
+  it('a name nothing declares is open and the scan goes on', () => {
+    expect(only(s, 'ghost_seen').properties.ghost?.values).toEqual(open('unknown'));
+  });
+
+  it('members inherited from Object and Function are never keys', () => {
+    expect(Object.keys(only(s, 'shelf_opened').properties)).toEqual(['name']);
+    expect(Object.keys(only(s, 'hook_ran').properties)).toEqual(['label']);
+  });
+
+  it('a symbol key is never a key', () => {
+    const site = only(s, 'till_opened');
+    expect(site.openProperties).toBe(false);
+    expect(Object.keys(site.properties)).toEqual(['drawer']);
+  });
+});
+
 describe('posthog-react-native: identify with an {Object} value (ADR-070)', () => {
   const fixture = perMutant(() => {
     const r = createSourceProgram({

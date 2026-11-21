@@ -9,7 +9,7 @@ import { afterAll, describe, expect, it } from 'vitest';
 import { eventFacts } from '../../../src/check/facts.js';
 import { applyIgnore, checkAlerts, checkContext, checkTiles } from '../../../src/check/index.js';
 import { loadDescriptors } from '../../../src/descriptors/index.js';
-import { extractCatalog } from '../../../src/extract/catalog.js';
+import { extractCatalog, writeCatalog } from '../../../src/extract/catalog.js';
 import { builtinTables, eventFact, mergeCatalogs } from '../../../src/extract/merge.js';
 import { declaredPackages } from '../../../src/extract/program.js';
 import type { Catalog } from '../../../src/formats/catalog.js';
@@ -81,6 +81,11 @@ const FAMILIES = [
 describe.each(FAMILIES)('ADR-069 on $family', ({ family, pkg, unseen }) => {
   it('records the declared package with no call in the catalog', () => {
     expect(catalogOf(`${family}/uncalled`).source.uncalledSdks).toEqual([pkg]);
+  });
+
+  it('keeps the uncalled package through a written catalog file', () => {
+    const back = JSON.parse(writeCatalog(catalogOf(`${family}/uncalled`))) as Catalog;
+    expect(back.source.uncalledSdks).toEqual([pkg]);
   });
 
   it('a declared package with no call site gives "not checked" naming the package', () => {
@@ -207,6 +212,10 @@ describe('declaredPackages', () => {
   );
   write('apps/broken/package.json', '{ not json');
   write('apps/empty/package.json', 'null');
+  write(
+    'apps/null-field/package.json',
+    JSON.stringify({ dependencies: null, devDependencies: { 'posthog-js': '1' } }),
+  );
   const wanted = ['posthog-js', '@segment/analytics-next', 'mixpanel-browser'];
 
   it('reads the nearest package.json above the source, every dependency field', () => {
@@ -223,6 +232,10 @@ describe('declaredPackages', () => {
   it('an unreadable or empty manifest declares nothing', () => {
     expect(declaredPackages(join(root, 'apps/broken'), root, wanted)).toEqual([]);
     expect(declaredPackages(join(root, 'apps/empty'), root, wanted)).toEqual([]);
+  });
+
+  it('a null dependency field is skipped and the other fields still count', () => {
+    expect(declaredPackages(join(root, 'apps/null-field'), root, wanted)).toEqual(['posthog-js']);
   });
 
   it('never reads a package.json above the repository root', () => {
