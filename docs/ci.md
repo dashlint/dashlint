@@ -98,7 +98,7 @@ catalogs:
 ## Run the same check locally
 
 ```sh
-npx dashlint diff --base origin/main
+npx @dashlint/cli diff --base origin/main
 ```
 
 `--format markdown` prints the comment the Action would post; `--format json` prints the report.
@@ -129,7 +129,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-      - run: npx dashlint pull
+      - run: npx @dashlint/cli pull
         env:
           DASHLINT_POSTHOG_KEY: ${{ secrets.DASHLINT_POSTHOG_KEY }}
       - name: Open a pull request when the snapshot changed

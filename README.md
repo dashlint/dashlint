@@ -34,7 +34,7 @@ purpose, and a committed snapshot of its PostHog dashboards:
 ```sh
 git clone https://github.com/dashlint/demo.git
 cd demo
-npx dashlint audit --offline
+npx @dashlint/cli audit --offline
 ```
 
 This prints the text report and writes `dashlint-report.html`. It exits 1, because the demo has
@@ -63,7 +63,7 @@ lets dashlint read your SDK's real types and any tsconfig your config extends fr
 the root of your repository:
 
 ```sh
-npx dashlint init
+npx @dashlint/cli init
 ```
 
 `init` finds the folders that use an analytics SDK and writes `dashlint.config.yml`. Open it,
@@ -73,14 +73,14 @@ your PostHog dashboards with a personal API key that has read-only scopes:
 
 ```sh
 export DASHLINT_POSTHOG_KEY=phx_your_read_only_key
-npx dashlint pull
+npx @dashlint/cli pull
 ```
 
 `pull` writes `dashlint.requirements.json`. Commit it: CI and every other command read this file
 and never call PostHog. Then:
 
 ```sh
-npx dashlint audit --offline
+npx @dashlint/cli audit --offline
 ```
 
 `audit` without `--offline` pulls a fresh snapshot first. `dashlint check` prints the same verdicts

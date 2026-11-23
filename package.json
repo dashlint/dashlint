@@ -1,5 +1,5 @@
 {
-  "name": "dashlint",
+  "name": "@dashlint/cli",
   "version": "0.1.0",
   "description": "Checks that your analytics SDK calls match what your dashboards, alerts and insights actually need.",
   "license": "MIT",
