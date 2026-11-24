@@ -1,9 +1,16 @@
 {
   "name": "@dashlint/cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Checks that your analytics SDK calls match what your dashboards, alerts and insights actually need.",
   "license": "MIT",
   "author": "Aman Gupta (https://github.com/guptaaman678)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dashlint/dashlint.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "bin": {
     "dashlint": "dist/cli/main.js"

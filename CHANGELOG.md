@@ -1,5 +1,11 @@
 # dashlint
 
+## 0.1.1
+
+### Patch Changes
+
+- fbc1c7a: Published from CI with npm provenance, through a staged release a maintainer approves. No change in behaviour.
+
 ## 0.1.0
 
 ### Minor Changes

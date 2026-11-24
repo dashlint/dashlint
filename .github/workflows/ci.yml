@@ -7,9 +7,11 @@ on:
 
 jobs:
   build-test-lint:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
         node-version: [22, 24]
     steps:
       - uses: actions/checkout@v5
@@ -22,7 +24,9 @@ jobs:
       - run: npm test
       - run: npm run lint
       - run: node scripts/copy-check.mjs
-      - run: node scripts/perf.mjs --work "${{ runner.temp }}/perf" --ubuntu
+      # The time and memory budgets are set for ubuntu runners, measured through /usr/bin/time.
+      - if: runner.os == 'Linux'
+        run: node scripts/perf.mjs --work "${{ runner.temp }}/perf" --ubuntu
 
   # The one check branch protection requires: it stays the same when the matrix above grows.
   ci-result:
