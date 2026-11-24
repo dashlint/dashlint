@@ -20,11 +20,25 @@ export function hookRan(hook: Hook): void {
   posthog.capture('hook_ran', { ...hook });
 }
 
-// A symbol key is never sent; the plain field is.
+// A symbol key and a #private field are never sent; the plain field is.
 class Till {
   [Symbol.toStringTag] = 'Till';
+  #float = 20;
   drawer = 1;
+  counted(): number {
+    return this.#float + this.drawer;
+  }
 }
 export function tillOpened(till: Till): void {
   posthog.capture('till_opened', { ...till });
+}
+
+// Written as strings these names are ordinary keys, and a spread sends them.
+interface Receipt {
+  '#lines': number;
+  '__#copy': number;
+  '__@till': number;
+}
+export function receiptPrinted(receipt: Receipt): void {
+  posthog.capture('receipt_printed', { ...receipt });
 }

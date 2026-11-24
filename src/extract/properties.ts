@@ -362,8 +362,10 @@ class PropertyReader {
     const bag: Bag = new Map();
     for (const prop of props) {
       const name = prop.getName();
-      // Symbol and private keys are never sent.
-      if (name.startsWith('__@') || name.startsWith('__#') || this.notOwnKey(prop)) continue;
+      // Symbol and #private keys are never sent. The escaped name tells them from string keys such
+      // as '#tag': getName() gives `#tag` for both.
+      const escaped = String(prop.escapedName);
+      if (escaped.startsWith('__@') || escaped.startsWith('__#') || this.notOwnKey(prop)) continue;
       const v = this.value(this.checker.getTypeOfSymbolAtLocation(prop, at));
       bag.set(name, this.draft(v, (prop.flags & ts.SymbolFlags.Optional) !== 0));
     }

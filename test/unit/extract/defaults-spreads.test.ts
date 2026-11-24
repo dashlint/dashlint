@@ -183,10 +183,16 @@ describe('posthog-js: more defaults and keys a spread never sends (ADR-070)', ()
     expect(Object.keys(only(s, 'hook_ran').properties)).toEqual(['label']);
   });
 
-  it('a symbol key is never a key', () => {
+  it('a symbol key and a #private field are never keys', () => {
     const site = only(s, 'till_opened');
     expect(site.openProperties).toBe(false);
     expect(Object.keys(site.properties)).toEqual(['drawer']);
+  });
+
+  it('negative: string keys that look like private or symbol names are sent', () => {
+    const site = only(s, 'receipt_printed');
+    expect(site.openProperties).toBe(false);
+    expect(Object.keys(site.properties).sort()).toEqual(['#lines', '__#copy', '__@till']);
   });
 });
 
