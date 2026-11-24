@@ -7,14 +7,16 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import { dirname, join, sep } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { npmCommand } from '../../../scripts/denylist-scan.mjs';
 import { debugOn } from '../../../src/cli/commands/pull.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '../../..');
 const BIN = join(ROOT, 'dist/cli/main.js');
-const HOOK = join(ROOT, 'test/fixtures/cli/no-network.mjs');
+// --import takes a URL: a drive letter reads as a scheme on Windows.
+const HOOK = pathToFileURL(join(ROOT, 'test/fixtures/cli/no-network.mjs')).href;
 const BOOKSHOP = join(ROOT, 'test/fixtures/cli/bookshop');
 const CALLS = join(ROOT, 'test/fixtures/extract/posthog-js/calls');
 const BLOCKED = 'dashlint-test: network blocked';
@@ -39,7 +41,14 @@ function blocked(args: string[], env: Record<string, string> = {}): Ran {
   const r = spawnSync(process.execPath, ['--import', HOOK, BIN, ...args], {
     cwd: dir,
     encoding: 'utf8',
-    env: { PATH: process.env['PATH'] ?? '', NO_COLOR: '1', TMPDIR: dir, ...env },
+    env: {
+      PATH: process.env['PATH'] ?? '',
+      NO_COLOR: '1',
+      TMPDIR: dir,
+      TEMP: dir,
+      TMP: dir,
+      ...env,
+    },
   });
   return { code: r.status, out: r.stdout, err: r.stderr };
 }
@@ -350,7 +359,8 @@ describe('no risky workflow trigger anywhere', () => {
 
 describe('the npm tarball', { timeout: 60_000 }, () => {
   it('npm pack --dry-run lists only dist, descriptors, README, LICENSE and package.json', () => {
-    const json = execFileSync('npm', ['pack', '--dry-run', '--json', '--ignore-scripts'], {
+    const [cmd, pre] = npmCommand();
+    const json = execFileSync(cmd, [...pre, 'pack', '--dry-run', '--json', '--ignore-scripts'], {
       cwd: ROOT,
       encoding: 'utf8',
       env: { ...process.env, NO_COLOR: '1' },

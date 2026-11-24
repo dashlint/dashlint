@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { decide } from '../../../scripts/release-decide.mjs';
 
@@ -6,6 +7,16 @@ const ok = (versions: string[]) => () => ({
   status: 0,
   stdout: JSON.stringify(versions),
   stderr: '',
+});
+
+describe('package.json', () => {
+  it('names the public repository npm matches provenance against, and publishes publicly', () => {
+    const root = JSON.parse(
+      readFileSync(new URL('../../../package.json', import.meta.url), 'utf8'),
+    ) as { repository?: { url?: string }; publishConfig?: { access?: string } };
+    expect(root.repository?.url).toBe('git+https://github.com/dashlint/dashlint.git');
+    expect(root.publishConfig?.access).toBe('public');
+  });
 });
 
 describe('release-decide', () => {

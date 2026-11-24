@@ -47,7 +47,7 @@ jobs:
         run: |
           echo "### dashlint ${{ steps.decide.outputs.version }}" >> "$GITHUB_STEP_SUMMARY"
           if [ "${{ steps.decide.outputs.stage }}" = "true" ]; then
-            echo "Staged dashlint@${{ steps.decide.outputs.version }} with provenance; a maintainer approves it on npmjs.com." >> "$GITHUB_STEP_SUMMARY"
+            echo "Staged @dashlint/cli@${{ steps.decide.outputs.version }} with provenance; a maintainer approves it on npmjs.com." >> "$GITHUB_STEP_SUMMARY"
           else
             echo "Nothing staged: ${{ steps.decide.outputs.reason }}" >> "$GITHUB_STEP_SUMMARY"
           fi

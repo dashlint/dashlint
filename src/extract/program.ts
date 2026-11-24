@@ -173,7 +173,8 @@ function parseConfig(file: string, warnings: string[]): ParsedConfig | string {
       fatal = message(d);
     },
   };
-  const parsed = ts.getParsedCommandLineOfConfigFile(file, { allowJs: true }, host);
+  // The compiler asserts on a backslash path when the config has a syntax error.
+  const parsed = ts.getParsedCommandLineOfConfigFile(slash(file), { allowJs: true }, host);
   if (!parsed) return fatal ?? `cannot read ${file}`;
   // 18003: no inputs found, which a solution-style config with references is meant to have.
   for (const d of parsed.errors) if (d.code !== 18003) warnings.push(message(d));

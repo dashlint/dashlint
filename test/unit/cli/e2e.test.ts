@@ -13,7 +13,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { run } from '../../../src/cli/main.js';
 import { validateReport } from '../../../src/formats/validate.js';
@@ -22,7 +22,8 @@ import { CLOSING_SENTENCE, commentText } from '../../../src/report/messages.js';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '../../..');
 const BIN = join(ROOT, 'dist/cli/main.js');
-const HOOK = join(ROOT, 'test/fixtures/cli/no-network.mjs');
+// --import takes a URL: a drive letter reads as a scheme on Windows.
+const HOOK = pathToFileURL(join(ROOT, 'test/fixtures/cli/no-network.mjs')).href;
 const BLOCKED = 'dashlint-test: network blocked';
 const KEY_VAR = 'BOOKSHOP_POSTHOG_KEY';
 
@@ -37,7 +38,14 @@ function binary(args: string[], cwd: string, env: Record<string, string> = {}): 
   const r = spawnSync(process.execPath, ['--import', HOOK, BIN, ...args], {
     cwd,
     encoding: 'utf8',
-    env: { PATH: process.env['PATH'] ?? '', NO_COLOR: '1', TMPDIR: tmp, ...env },
+    env: {
+      PATH: process.env['PATH'] ?? '',
+      NO_COLOR: '1',
+      TMPDIR: tmp,
+      TEMP: tmp,
+      TMP: tmp,
+      ...env,
+    },
   });
   return Promise.resolve({ code: r.status, out: r.stdout, err: r.stderr });
 }

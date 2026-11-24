@@ -313,7 +313,7 @@ function walk(dir, base = dir) {
     if (e.name === '.git' || e.name === 'node_modules') continue;
     const p = join(dir, e.name);
     if (e.isDirectory()) out.push(...walk(p, base));
-    else if (e.isFile()) out.push(relative(base, p));
+    else if (e.isFile()) out.push(relative(base, p).replace(/\\/g, '/'));
   }
   return out.sort();
 }
