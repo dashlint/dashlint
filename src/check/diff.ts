@@ -492,7 +492,7 @@ export function readAtCommit(repo: string, commit: string, path: string): string
  * from the stubs, spec 6.4 item 2), then removes the worktree whatever happens.
  */
 export function withWorktree<T>(repo: string, commit: string, fn: (root: string) => T): T {
-  const dir = mkdtempSync(join(realpathSync(tmpdir()), 'dashlint-base-'));
+  const dir = mkdtempSync(join(realpathSync.native(tmpdir()), 'dashlint-base-'));
   const root = join(dir, 'tree');
   try {
     git(repo, ['worktree', 'add', '--detach', '--quiet', root, commit]);

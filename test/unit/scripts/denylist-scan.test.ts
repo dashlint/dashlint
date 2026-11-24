@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { makeMatchers, run, scanText } from '../../../scripts/denylist-scan.mjs';
+import { makeMatchers, npmCommand, run, scanText } from '../../../scripts/denylist-scan.mjs';
 import { scratchRepo, writeFiles } from './helpers.js';
 
 // Invented terms only: the real denylist never enters this repository.
@@ -149,6 +149,15 @@ describe('denylist-scan', () => {
     expect(r.out.some((l: string) => /^STRICT dir .*deep\/x\.json:1: Zebrafinch$/.test(l))).toBe(
       true,
     );
+  });
+
+  it('starts npm through node on Windows, where npm is a .cmd file', () => {
+    expect(npmCommand('linux', '/usr/bin/node')).toEqual(['npm', []]);
+    const [cmd, pre] = npmCommand('win32', '/node/node.exe');
+    expect(cmd).toBe('/node/node.exe');
+    expect(pre.map((p: string) => p.replace(/\\/g, '/'))).toEqual([
+      '/node/node_modules/npm/bin/npm-cli.js',
+    ]);
   });
 
   it('scans the npm pack tarball contents, not files outside "files"', { timeout: 60000 }, () => {

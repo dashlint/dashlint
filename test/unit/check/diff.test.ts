@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { afterAll, describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it, vi } from 'vitest';
 import {
   DiffGitError,
   atOrAbove,
@@ -420,11 +420,17 @@ describe('diff over git worktrees (spec 6.7.5)', { timeout: 30_000 }, () => {
     const r = repo({ 'src/shelf.ts': shelf({ wishlistEvent: 'wishlist_sent' }) });
     run(r);
     expect(git(r.root, 'worktree', 'list').split('\n')).toHaveLength(1);
-    const left = readdirSync(realpathSync(tmpdir())).filter((n) => n.startsWith('dashlint-base-'));
-    expect(run(r).fails).toBe(true);
-    expect(
-      readdirSync(realpathSync(tmpdir())).filter((n) => n.startsWith('dashlint-base-')),
-    ).toEqual(left);
+    // A temporary folder of its own: other test files make and remove worktrees at the same time.
+    const own = mkdtempSync(join(tmpdir(), 'dashlint-own-tmp-'));
+    temps.push(own);
+    for (const name of ['TMPDIR', 'TEMP', 'TMP']) vi.stubEnv(name, own);
+    try {
+      expect(realpathSync.native(tmpdir())).toBe(realpathSync.native(own));
+      expect(run(r).fails).toBe(true);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+    expect(readdirSync(own)).toEqual([]);
     expect(() => run(r, { base: 'no-such-branch' })).toThrow(DiffGitError);
     expect(() => resolveCommit(r.root, '--help')).toThrow(DiffGitError);
     // A failing catalog builder still leaves no worktree behind.

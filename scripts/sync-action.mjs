@@ -102,7 +102,7 @@ export function run(argv, env = process.env, { files = FILES } = {}) {
     const maps = findMapFiles(staging);
     if (maps.length) {
       out.push(
-        `FAIL: .map file(s) in the copy: ${maps.map((m) => m.slice(staging.length + 1)).join(', ')}`,
+        `FAIL: .map file(s) in the copy: ${maps.map((m) => m.slice(staging.length + 1).replace(/\\/g, '/')).join(', ')}`,
       );
       return { code: 1, out };
     }

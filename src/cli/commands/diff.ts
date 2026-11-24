@@ -40,8 +40,10 @@ import {
 
 const slash = (p: string) => p.split('\\').join('/');
 
-/** A path under the config's folder with symlinks resolved, as git's toplevel is. */
-const inRepo = (file: string) => join(realpathSync(dirname(file)), basename(file));
+/** Symlinks and Windows short names (`RUNNER~1`) resolved, as git's toplevel is. */
+const real = (path: string) => realpathSync.native(path);
+
+const inRepo = (file: string) => join(real(dirname(file)), basename(file));
 
 function toplevel(dir: string): string {
   try {
@@ -125,7 +127,7 @@ export function diffRun(opts: DiffOptions, ctx: CommandContext): CommentInput {
     });
   } else {
     const repo = toplevel(config.dir);
-    const configRel = relative(repo, realpathSync(config.dir));
+    const configRel = relative(repo, real(config.dir));
     const baseCommit = commitOf(repo, base);
     const headCommit = headRef === undefined ? null : commitOf(repo, headRef);
     requirements = headRequirements(config, repo, headCommit);

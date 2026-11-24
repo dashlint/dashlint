@@ -18,7 +18,7 @@ import { pathToFileURL } from 'node:url';
 import { gunzipSync } from 'node:zlib';
 
 const SOURCES = ['tree', 'history', 'pack', 'bundle'];
-const BUNDLE = join('dist', 'action.mjs');
+const BUNDLE = 'dist/action.mjs';
 const SKIP_DIRS = new Set(['.git', 'node_modules']);
 
 export function loadTerms(path) {
@@ -56,6 +56,14 @@ export function scanText(text, matchers, locate) {
   }
   return hits;
 }
+
+const slash = (p) => p.replace(/\\/g, '/');
+
+/** The command and leading arguments that start npm: on Windows npm is a .cmd file, not a program. */
+export const npmCommand = (platform = process.platform, node = process.execPath) =>
+  platform === 'win32'
+    ? [node, [join(dirname(node), 'node_modules', 'npm', 'bin', 'npm-cli.js')]]
+    : ['npm', []];
 
 const git = (repo, args) =>
   spawnSync('git', ['-C', repo, ...args], { encoding: 'utf8', maxBuffer: 1024 * 1024 * 1024 });
@@ -142,11 +150,12 @@ function scanPack(repo, matchers) {
     return { hits: [], note: 'no package.json, skipped' };
   const dest = mkdtempSync(join(tmpdir(), 'dashlint-scan-'));
   try {
-    const r = spawnSync('npm', ['pack', '--json', '--ignore-scripts', '--pack-destination', dest], {
-      cwd: repo,
-      encoding: 'utf8',
-      maxBuffer: 64 * 1024 * 1024,
-    });
+    const [cmd, pre] = npmCommand();
+    const r = spawnSync(
+      cmd,
+      [...pre, 'pack', '--json', '--ignore-scripts', '--pack-destination', dest],
+      { cwd: repo, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 },
+    );
     if (r.status !== 0)
       throw new Error(`npm pack failed in ${repo}: ${r.stderr.trim().slice(-400)}`);
     const tgz = readdirSync(dest).find((f) => f.endsWith('.tgz'));
@@ -176,7 +185,7 @@ function scanDir(dir, matchers) {
   const files = walk(dir);
   const hits = [];
   for (const f of files)
-    hits.push(...scanFile(f, `dir ${relative(process.cwd(), f) || f}`, matchers));
+    hits.push(...scanFile(f, `dir ${slash(relative(process.cwd(), f) || f)}`, matchers));
   return { hits, note: `${files.length} files` };
 }
 
