@@ -1,5 +1,11 @@
 # dashlint
 
+## 0.1.2
+
+### Patch Changes
+
+- 3f1415f: A spread of a class instance no longer lists its `#private` fields as event properties: JavaScript never copies them. A string key that looks like a private or symbol name, such as `'__#copy'`, is kept.
+
 ## 0.1.1
 
 ### Patch Changes
